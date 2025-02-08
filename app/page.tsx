@@ -1,6 +1,7 @@
 import { createClient } from '@/utils/supabase/server'
 import { redirect } from 'next/navigation'
 import LogoutButton from '@/components/LogoutButton'
+import PlansDisplay from '@/components/plans/plans'
 
 export default async function Home() {
     const supabase = await createClient()
@@ -12,9 +13,7 @@ export default async function Home() {
 
     return (
         <div className="flex min-h-screen flex-col items-center justify-center p-24">
-            <h1 className="text-4xl font-bold mb-8">
-                Welcome, {user.email}
-            </h1>
+            <PlansDisplay />
             <LogoutButton />
         </div>
     )

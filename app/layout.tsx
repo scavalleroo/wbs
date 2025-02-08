@@ -2,6 +2,7 @@ import "./globals.css";
 import { Inter } from 'next/font/google'
 import { ThemeProvider } from '@/components/ui/theme-provider'
 import { AuthProvider } from '@/components/AuthProvider'
+import SupabaseProvider from "../lib/supabase-provider";
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -14,7 +15,9 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body>
         <ThemeProvider>
-          <AuthProvider>{children}</AuthProvider>
+          <SupabaseProvider>
+            {children}
+          </SupabaseProvider>
         </ThemeProvider>
       </body>
     </html>

@@ -1,23 +1,12 @@
-import { NextResponse } from 'next/server'
-import type { NextRequest } from 'next/server'
-import { supabase } from './lib/superbase'
+import { type NextRequest } from 'next/server'
+import { updateSession } from '@/utils/supabase/middleware'
 
 export async function middleware(request: NextRequest) {
-    let response = NextResponse.next({
-        request: {
-            headers: request.headers,
-        },
-    })
-
-    const { data: { session } } = await supabase.auth.getSession()
-
-    if (!session && request.nextUrl.pathname.startsWith('/dashboard')) {
-        return NextResponse.redirect(new URL('/login', request.url))
-    }
-
-    return response
+    return await updateSession(request)
 }
 
 export const config = {
-    matcher: ['/dashboard/:path*'],
+    matcher: [
+        '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+    ],
 }

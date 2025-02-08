@@ -3,7 +3,8 @@
 
 import DashboardLayout from '@/components/layout';
 import { User } from '@supabase/supabase-js';
-import PlansDisplay from '../../plans/PlansDisplay';
+import PlansDisplay from './plans/PlansDisplay';
+
 interface Props {
   user: User | null | undefined;
   userDetails: { [x: string]: any } | null | any;

@@ -4,10 +4,10 @@ import { useSupabase } from "@/app/supabase-provider";
 import { Plan } from "@/types/plan";
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from "react";
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "../ui/card";
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowRight, PlusCircle } from "lucide-react";
-import { Badge } from "../ui/badge";
-import { Progress } from "../ui/progress";
+import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
 
 
 export default function PlansDisplay() {

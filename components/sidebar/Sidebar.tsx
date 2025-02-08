@@ -35,17 +35,18 @@ function Sidebar(props: SidebarProps) {
 
   const user = useContext(UserContext);
   const userDetails = useContext(UserDetailsContext);
-  const handleSignOut = async (e) => {
+  const handleSignOut = async (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
     e.preventDefault();
     supabase.auth.signOut();
-    router.push('/dashboard/signin');
+    if (router) {
+      router.push('/dashboard/signin');
+    }
   };
   // SIDEBAR
   return (
     <div
-      className={`lg:!z-99 fixed !z-[99] min-h-full w-[300px] transition-all md:!z-[99] xl:!z-0 ${
-        props.variant === 'auth' ? 'xl:hidden' : 'xl:block'
-      } ${props.open ? '' : '-translate-x-[120%] xl:translate-x-[unset]'}`}
+      className={`lg:!z-99 fixed !z-[99] min-h-full w-[300px] transition-all md:!z-[99] xl:!z-0 ${props.variant === 'auth' ? 'xl:hidden' : 'xl:block'
+        } ${props.open ? '' : '-translate-x-[120%] xl:translate-x-[unset]'}`}
     >
       <Card
         className={`m-3 ml-3 h-[96.5vh] w-full overflow-hidden !rounded-lg border-zinc-200 pe-4 dark:border-zinc-800 sm:my-4 sm:mr-4 md:m-5 md:mr-[-50px]`}
@@ -70,14 +71,14 @@ function Sidebar(props: SidebarProps) {
                   <HiBolt className="h-5 w-5" />
                 </div>
                 <h5 className="me-2 text-2xl font-bold leading-5 text-zinc-950 dark:text-white">
-                  Horizon AI
+                  Yoda
                 </h5>
-                <Badge
+                {/* <Badge
                   variant="outline"
                   className="my-auto w-max px-2 py-0.5 text-xs text-zinc-950 dark:border-none dark:bg-zinc-800 dark:text-white"
                 >
                   FREE
-                </Badge>
+                </Badge> */}
               </div>
               <div className="mb-8 mt-8 h-px bg-zinc-200 dark:bg-white/10" />
               {/* Nav item */}
@@ -87,9 +88,9 @@ function Sidebar(props: SidebarProps) {
             </div>
             {/* Free Horizon Card    */}
             <div className="mb-9 mt-7">
-              <div className="flex justify-center">
+              {/* <div className="flex justify-center">
                 <SidebarCard />
-              </div>
+              </div> */}
 
               {/* Sidebar profile info */}
               <div className="mt-5 flex w-full items-center rounded-lg border border-zinc-200 p-4 dark:border-zinc-800">

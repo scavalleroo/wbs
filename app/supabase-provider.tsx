@@ -3,7 +3,7 @@
 import { createContext, useContext, useEffect, useState } from 'react'
 import { supabase } from '@/lib/superbase'
 import type { SupabaseClient, Session } from '@supabase/supabase-js'
-import type { Database } from '@/types/superbase'
+import type { Database } from '@/types/types_db'
 import { useRouter } from 'next/navigation'
 
 type SupabaseContext = {
@@ -65,9 +65,4 @@ export const useSupabase = () => {
         throw new Error('useSupabase must be used inside SupabaseProvider')
     }
     return context
-}
-
-export const useSession = () => {
-    const { session, isLoading } = useSupabase()
-    return { session, isLoading }
 }

@@ -1,8 +1,7 @@
 import "./globals.css";
 import { Inter } from 'next/font/google'
-import { ThemeProvider } from '@/components/ui/theme-provider'
-import { AuthProvider } from '@/components/AuthProvider'
-import SupabaseProvider from "../lib/supabase-provider";
+import { ThemeProvider } from '@/app/theme-provider'
+import SupabaseProvider from "./supabase-provider";
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -14,7 +13,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body>
-        <ThemeProvider>
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           <SupabaseProvider>
             {children}
           </SupabaseProvider>

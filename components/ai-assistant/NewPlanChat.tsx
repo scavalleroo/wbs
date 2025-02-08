@@ -5,8 +5,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Send, Loader2 } from 'lucide-react';
 import { OpenAIService } from '@/utils/openai-service';
-import { useSupabase } from '@/lib/supabase-provider';
-import { useRouter } from 'next/navigation';
 
 type Message = {
     role: 'user' | 'assistant';
@@ -20,8 +18,6 @@ export default function NewPlanChat() {
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLInputElement>(null);
     const openAIService = OpenAIService.getInstance();
-    const { supabase, session } = useSupabase();
-    const router = useRouter();
 
     // Auto-scroll to bottom when messages update
     const scrollToBottom = () => {

@@ -4,12 +4,41 @@ import { useTheme } from 'next-themes';
 import Script from 'next/script';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/utils/supabase/client';
+import { useEffect } from 'react';
 
 
 export default function GoogleSignInButton() {
     const { theme } = useTheme();
     const router = useRouter();
     const supabase = createClient(); // Use client-side Supabase instance
+
+    useEffect(() => {
+        const existingButton = document.getElementById("signInDiv");
+        if (existingButton) {
+            existingButton.innerHTML = '';
+        }
+
+        if (window.google) {
+            window.google.accounts.id.initialize({
+                client_id: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID!,
+                callback: handleSignInWithGoogle,
+                use_fedcm_for_prompt: true
+            });
+
+            window.google.accounts.id.renderButton(
+                document.getElementById("signInDiv")!,
+                {
+                    type: "standard",
+                    shape: "pill",
+                    theme: "filled_black", // Force dark theme
+                    text: "signin_with",
+                    size: "large",
+                    logo_alignment: "left",
+                    // width: 280 // Match your design width
+                }
+            );
+        }
+    }, [theme]);
 
     const handleSignInWithGoogle = async (response: any) => {
         try {
@@ -23,32 +52,6 @@ export default function GoogleSignInButton() {
             console.error('Error signing in with Google:', error);
         }
     };
-
-    const existingButton = document.getElementById("signInDiv");
-    if (existingButton) {
-        existingButton.innerHTML = '';
-    }
-
-    if (window.google) {
-        window.google.accounts.id.initialize({
-            client_id: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID!,
-            callback: handleSignInWithGoogle,
-            use_fedcm_for_prompt: true
-        });
-
-        window.google.accounts.id.renderButton(
-            document.getElementById("signInDiv")!,
-            {
-                type: "standard",
-                shape: "pill",
-                theme: "filled_black", // Force dark theme
-                text: "signin_with",
-                size: "large",
-                logo_alignment: "left",
-                // width: 280 // Match your design width
-            }
-        );
-    }
 
     return (
         <>

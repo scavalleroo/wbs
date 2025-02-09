@@ -1,43 +1,52 @@
 "use client";
 
-import { useSupabase } from "@/app/supabase-provider";
 import { Plan } from "@/types/plan";
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowRight, PlusCircle } from "lucide-react";
+import { ArrowRight, PlusCircle, Calendar, Clock } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-
+import { createClient } from "@/utils/supabase/client";
 
 export default function PlansDisplay() {
     const [plans, setPlans] = useState<Plan[]>([]);
-    const { supabase, session } = useSupabase();
+    const [isLoading, setIsLoading] = useState(true);
     const router = useRouter();
 
-    // Fetch plans on component mount
     useEffect(() => {
         const fetchPlans = async () => {
-            if (!session?.user?.id) return;
+            try {
+                const supabase = createClient();
+                const { data: { user } } = await supabase.auth.getUser();
 
-            const { data, error } = await supabase
-                .from('plans')
-                .select('*')
-                .eq('user_id', session.user.id)
-                .order('created_at', { ascending: false });
+                if (!user) {
+                    console.log('No user found');
+                    return;
+                }
 
-            if (error) {
-                console.error('Error fetching plans:', error);
-                return;
+                const { data, error } = await supabase
+                    .from('plans')
+                    .select('*')
+                    .eq('user_id', user.id)
+                    .order('created_at', { ascending: false });
+
+                if (error) {
+                    console.error('Error fetching plans:', error);
+                    return;
+                }
+
+                setPlans(data || []);
+            } catch (error) {
+                console.error('Error in fetchPlans:', error);
+            } finally {
+                setIsLoading(false);
             }
-
-            setPlans(data || []);
         };
 
         fetchPlans();
-    }, [session, supabase]);
+    }, []);
 
-    // Function to get color based on priority
     const getPriorityColor = (priority: string) => {
         switch (priority.toLowerCase()) {
             case 'high':
@@ -51,7 +60,6 @@ export default function PlansDisplay() {
         }
     };
 
-    // Function to format date
     const formatDate = (date: string) => {
         return new Date(date).toLocaleDateString('en-US', {
             year: 'numeric',
@@ -59,6 +67,19 @@ export default function PlansDisplay() {
             day: 'numeric'
         });
     };
+
+    const formatDuration = (plan: Plan) => {
+        if (plan.duration_type === 'deadline' && plan.deadline) {
+            return `Due ${formatDate(plan.deadline)}`;
+        } else if (plan.duration_type === 'quantity') {
+            return `${plan.duration_value} ${plan.duration_unit}`;
+        }
+        return 'No duration set';
+    };
+
+    if (isLoading) {
+        return <div className="p-6">Loading plans...</div>;
+    }
 
     return (
         <div className="p-6">
@@ -83,11 +104,21 @@ export default function PlansDisplay() {
                     >
                         <CardHeader>
                             <div className="flex justify-between items-start mb-2">
-                                <CardTitle className="text-xl font-bold line-clamp-2">{plan.goal}</CardTitle>
+                                <div>
+                                    <Badge variant="outline" className="mb-2">
+                                        {plan.type === 'custom' ? plan.custom_type : plan.type}
+                                    </Badge>
+                                    <CardTitle className="text-xl font-bold line-clamp-2">
+                                        {plan.title}
+                                    </CardTitle>
+                                </div>
                                 <Badge className={getPriorityColor(plan.priority)}>
                                     {plan.priority}
                                 </Badge>
                             </div>
+                            <p className="text-sm text-gray-600 line-clamp-2">
+                                {plan.description}
+                            </p>
                         </CardHeader>
 
                         <CardContent>
@@ -100,9 +131,22 @@ export default function PlansDisplay() {
                                     <Progress value={plan.progress} className="h-2" />
                                 </div>
 
-                                <div className="flex justify-between text-sm text-gray-600">
-                                    <span>Deadline</span>
-                                    <span>{formatDate(plan.deadline)}</span>
+                                <div className="space-y-2">
+                                    <div className="flex items-center gap-2 text-sm text-gray-600">
+                                        {plan.duration_type === 'deadline' ? (
+                                            <Calendar className="h-4 w-4" />
+                                        ) : (
+                                            <Clock className="h-4 w-4" />
+                                        )}
+                                        <span>{formatDuration(plan)}</span>
+                                    </div>
+
+                                    <div className="text-sm text-gray-600">
+                                        <strong>Goals: </strong>
+                                        <span className="line-clamp-2">
+                                            {plan.goals.join(', ')}
+                                        </span>
+                                    </div>
                                 </div>
                             </div>
                         </CardContent>

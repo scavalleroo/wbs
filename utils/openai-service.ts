@@ -100,4 +100,8 @@ export class OpenAIService {
     public resetThread(): void {
         this.thread = null;
     }
+
+    public getThreadID(): string | null {
+        return this.thread?.id || null
+    }
 }

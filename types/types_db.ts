@@ -13,57 +13,31 @@ export type Database = {
                 Row: {
                     id: string
                     user_id: string
-                    goal: string
+                    goals: string[]
                     deadline: string | null
                     priority: 'low' | 'medium' | 'high'
                     status: 'active' | 'completed' | 'paused'
                     progress: number
                     created_at: string
                     updated_at: string
+                    thread_id: string | null
                 }
                 Insert: {
                     user_id: string
-                    goal: string
+                    goals: string[]
                     deadline?: string
                     priority?: 'low' | 'medium' | 'high'
                     status?: 'active' | 'completed' | 'paused'
                     progress?: number
+                    thread_id?: string
                 }
                 Update: {
-                    goal?: string
+                    goals?: string[]
                     deadline?: string
                     priority?: 'low' | 'medium' | 'high'
                     status?: 'active' | 'completed' | 'paused'
                     progress?: number
-                }
-            }
-            tasks: {
-                Row: {
-                    id: string
-                    plan_id: string
-                    title: string
-                    description: string | null
-                    scheduled_date: string | null
-                    completed_date: string | null
-                    status: 'pending' | 'completed' | 'delayed'
-                    order_index: number
-                    created_at: string
-                }
-                Insert: {
-                    plan_id: string
-                    title: string
-                    description?: string
-                    scheduled_date?: string
-                    status?: 'pending' | 'completed' | 'delayed'
-                    order_index?: number
-                }
-                Update: {
-                    title?: string
-                    description?: string
-                    scheduled_date?: string
-                    completed_date?: string
-                    status?: 'pending' | 'completed' | 'delayed'
-                    order_index?: number
+                    thread_id?: string
                 }
             }
             prices: {

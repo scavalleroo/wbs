@@ -40,7 +40,7 @@ export default function SupabaseProvider({
             }
             if (event === 'SIGNED_OUT') {
                 router.refresh()
-                router.push('/login')
+                router.push('/dashboard/signin')
             }
             if (event === 'USER_UPDATED') {
                 router.refresh()

@@ -1,28 +1,23 @@
 // Auth Imports
 import { IRoute } from '@/types/types';
+import { PlusCircle } from 'lucide-react';
 import {
   HiOutlineHome,
-  HiOutlineCpuChip,
-  HiOutlineUsers,
-  HiOutlineUser,
   HiOutlineCog8Tooth,
-  HiOutlineCreditCard,
-  HiOutlineDocumentText,
-  HiOutlineCurrencyDollar
 } from 'react-icons/hi2';
 
 export const routes: IRoute[] = [
   {
-    name: 'Main Dashboard',
+    name: 'My plans',
     path: '/dashboard/main',
     icon: <HiOutlineHome className="-mt-[7px] h-4 w-4 stroke-2 text-inherit" />,
     collapse: false
   },
   {
-    name: 'AI Chat',
-    path: '/dashboard/ai-chat',
+    name: 'Create plan',
+    path: '/dashboard/plans/new',
     icon: (
-      <HiOutlineCpuChip className="-mt-[7px] h-4 w-4 stroke-2 text-inherit" />
+      <PlusCircle className="-mt-[7px] h-4 w-4 stroke-2 text-inherit" />
     ),
     collapse: false
   },

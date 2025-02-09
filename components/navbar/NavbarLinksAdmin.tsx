@@ -38,13 +38,14 @@ export default function HeaderLinks(props: { [x: string]: any }) {
   }, []);
 
   const handleSignOut = async (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
-    e.preventDefault();
-    supabase.auth.signOut();
+    await supabase.auth.signOut();
     if (router) {
       router.push('/dashboard/signin');
     }
   };
+
   if (!mounted) return null;
+
   return (
     <div className="relative flex min-w-max max-w-max flex-grow items-center justify-around gap-1 rounded-lg md:px-2 md:py-2 md:pl-3 xl:gap-2">
       <Button
@@ -67,7 +68,7 @@ export default function HeaderLinks(props: { [x: string]: any }) {
       </Button>
 
       {/* Dropdown Menu */}
-      <DropdownMenu>
+      {/* <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button
             variant="outline"
@@ -98,7 +99,7 @@ export default function HeaderLinks(props: { [x: string]: any }) {
             </Button>
           </a>
         </DropdownMenuContent>
-      </DropdownMenu>
+      </DropdownMenu> */}
 
       <Button
         onClick={(e) => handleSignOut(e)}

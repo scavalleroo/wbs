@@ -10,15 +10,16 @@ import {
 import DefaultAuth from '@/components/auth/default-auth';
 
 export default async function SignIn({
-    params,
+    params: paramsPromise,
     searchParams
 }: {
-    params: { id: string };
+    params: Promise<{ id: string }>;
     searchParams: { disable_button: boolean };
 }) {
     const { allowOauth, allowEmail, allowPassword } = getAuthTypes();
     const viewTypes = getViewTypes();
     const redirectMethod = getRedirectMethod();
+    const params = await paramsPromise;
 
     // Declare 'viewProp' and initialize with the default value
     let viewProp: string;

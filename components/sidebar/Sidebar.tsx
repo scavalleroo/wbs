@@ -8,7 +8,6 @@ import {
   renderView
 } from '@/components/scrollbar/Scrollbar';
 import Links from '@/components/sidebar/components/Links';
-import SidebarCard from '@/components/sidebar/components/SidebarCard';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card } from '@/components/ui/card';
 import { IRoute } from '@/types/types';

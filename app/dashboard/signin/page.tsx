@@ -1,11 +1,21 @@
 import { redirect } from 'next/navigation';
-import { getDefaultSignInView } from '@/utils/auth-helpers/settings';
-import { cookies } from 'next/headers';
+import { createClient } from '@/utils/supabase/server';
+import DefaultAuth from '@/components/auth/default-auth';
+
 
 export default async function SignIn() {
-    const preferredSignInView =
-        (await cookies()).get('preferredSignInView')?.value || null;
-    const defaultView = getDefaultSignInView(preferredSignInView);
+    // Check if the user is already logged in and redirect to the account page if so
+    const supabase = await createClient();
 
-    return redirect(`/dashboard/signin/${defaultView}`);
+    const {
+        data: { user }
+    } = await supabase.auth.getUser();
+
+    if (user) {
+        return redirect('/dashboard/main');
+    }
+
+    return (
+        <DefaultAuth />
+    )
 }

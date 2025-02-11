@@ -4,15 +4,15 @@ import { useTheme } from 'next-themes';
 import Script from 'next/script';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/utils/supabase/client';
-import { useEffect } from 'react';
-
+import { useEffect, useState } from 'react';
 
 export default function GoogleSignInButton() {
     const { theme } = useTheme();
     const router = useRouter();
-    const supabase = createClient(); // Use client-side Supabase instance
+    const supabase = createClient();
+    const [isScriptLoaded, setIsScriptLoaded] = useState(false);
 
-    useEffect(() => {
+    const initializeGoogleButton = () => {
         const existingButton = document.getElementById("signInDiv");
         if (existingButton) {
             existingButton.innerHTML = '';
@@ -30,15 +30,20 @@ export default function GoogleSignInButton() {
                 {
                     type: "standard",
                     shape: "pill",
-                    theme: "filled_black", // Force dark theme
+                    theme: "filled_black",
                     text: "signin_with",
                     size: "large",
                     logo_alignment: "left",
-                    // width: 280 // Match your design width
                 }
             );
         }
-    }, [theme]);
+    };
+
+    useEffect(() => {
+        if (isScriptLoaded) {
+            initializeGoogleButton();
+        }
+    }, [isScriptLoaded, theme]);
 
     const handleSignInWithGoogle = async (response: any) => {
         try {
@@ -55,7 +60,11 @@ export default function GoogleSignInButton() {
 
     return (
         <>
-            <Script src="https://accounts.google.com/gsi/client" />
+            <Script
+                src="https://accounts.google.com/gsi/client"
+                onLoad={() => setIsScriptLoaded(true)}
+                strategy="afterInteractive"
+            />
             <div
                 id="signInDiv"
                 className="mb-4 [&>div]:!bg-transparent dark:[&>div]:!bg-transparent [&>div]:!shadow-none"

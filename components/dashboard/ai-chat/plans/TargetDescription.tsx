@@ -15,8 +15,8 @@ export const TargetDescription: React.FC<TargetDescriptionProps> = ({ planData, 
                 value={planData.description}
                 onChange={handleInputChange}
                 className="w-full p-2 border rounded p-4"
-                style={{ fontSize: '1.4rem', lineHeight: '1.5' }}
-                placeholder="Describe the person or the team"
+                style={{ fontSize: '1rem', lineHeight: '1.2' }}
+                placeholder={`Describe your readiness for ${planData.goals.join(', ').toLocaleLowerCase()}`}
                 rows={4}
             />
         </div>

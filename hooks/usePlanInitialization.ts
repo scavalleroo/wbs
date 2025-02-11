@@ -75,7 +75,10 @@ export const usePlanInitialization = (planData: PlanData, onStreamUpdate: (messa
 
 
 const generateInitialPrompt = (planData: PlanData): string => {
-    return `Create a ${planData.type === 'custom' ? planData.customType : planData.type} plan with the following goals: ${planData.goals.join(', ')}. The plan is for ${planData.description} and ${planData.deadlineDate ? `The deadline is ${format(planData.deadlineDate, 'MMMM d, yyyy')}` : `should last for ${planData.durationValue} ${planData.durationUnit}`}. Today is the ${format(new Date(), 'MMMM d, yyyy')}.`;
+    return `Goals: ${planData.goals.join(', ')} 
+    Readiness Level: ${planData.description}
+    Deadline: ${format(planData.deadlineDate || new Date(), 'MMMM d, yyyy')}
+    Current Date: ${format(new Date(), 'MMMM d, yyyy')}`;
 };
 
 const createPlanInDatabase = async (userId: string, threadId: string, planData: PlanData) => {
@@ -90,9 +93,6 @@ const createPlanInDatabase = async (userId: string, threadId: string, planData: 
             status: 'active',
             progress: 0,
             thread_id: threadId,
-            duration_type: planData.durationType,
-            duration_unit: planData.durationUnit,
-            duration_value: planData.durationValue,
             title: planData.title,
             description: planData.description,
             type: planData.type,

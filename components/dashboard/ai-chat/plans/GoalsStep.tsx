@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { X } from 'lucide-react';
+import { PlusCircle, X } from 'lucide-react';
 import { PlanData } from '@/types/plan';
 
 type GoalsStepProps = {
@@ -39,13 +39,14 @@ export const GoalsStep: React.FC<GoalsStepProps> = ({ planData, onGoalsUpdate })
                             }
                         }}
                         className="flex-1 p-4 border rounded"
-                        style={{ fontSize: '1.4rem' }}
-                        placeholder={`Goal number ${planData.goals.length + 1}`}
+                        style={{ fontSize: '1rem' }}
+                        placeholder={`${planData.goals.length > 0 ? 'Want to add another goal?' : 'Can you describe your goal in one sentence?'}`}
                     />
                     <Button
                         onClick={handleAddGoal}
-                        className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+                        variant={"secondary"}
                     >
+                        <PlusCircle size={16} />
                         Add
                     </Button>
                 </div>

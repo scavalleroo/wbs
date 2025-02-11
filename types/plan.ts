@@ -23,9 +23,6 @@ export type PlanData = {
     customType: string;
     title: string;
     description: string;
-    durationType: 'quantity' | 'deadline';
-    durationUnit: 'days' | 'weeks' | 'months';
-    durationValue: number;
     deadlineDate: Date | undefined;
     goals: string[];
     currentGoal: string;

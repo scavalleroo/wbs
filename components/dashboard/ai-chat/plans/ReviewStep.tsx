@@ -14,7 +14,7 @@ export const ReviewStep: React.FC<ReviewStepProps> = ({ planData, planTypes }) =
     return (
         <div className="space-y-8">
             {/* Plan Type Header */}
-            <div className="flex items-center justify-center space-x-4 p-6 bg-blue-50 rounded-lg">
+            {/* <div className="flex items-center justify-center space-x-4 p-6 bg-blue-50 rounded-lg">
                 {planTypes.find(t => t.id === planData.type)?.icon && (
                     <div className="p-4 bg-white rounded-full shadow-sm">
                         {React.createElement(planTypes.find(t => t.id === planData.type)?.icon || Plus)}
@@ -23,7 +23,7 @@ export const ReviewStep: React.FC<ReviewStepProps> = ({ planData, planTypes }) =
                 <h2 className="text-3xl font-medium capitalize">
                     {planData.type === 'custom' ? planData.customType : `${planData.type} Plan`}
                 </h2>
-            </div>
+            </div> */}
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Goals Section */}
@@ -41,7 +41,7 @@ export const ReviewStep: React.FC<ReviewStepProps> = ({ planData, planTypes }) =
                                     key={index}
                                     className="group flex items-center gap-2 px-4 py-2 bg-green-100 rounded-full transition-colors cursor-default"
                                 >
-                                    <span className="text-sm font-medium">{goal}</span>
+                                    <span className="text-base font-medium">{goal}</span>
                                 </div>
                             ))}
                         </div>
@@ -71,22 +71,11 @@ export const ReviewStep: React.FC<ReviewStepProps> = ({ planData, planTypes }) =
                     </CardHeader>
                     <CardContent>
                         <div className="space-y-2">
-                            {planData.durationType === 'quantity' ? (
-                                <div className="flex items-center space-x-2">
-                                    <span className="text-2xl font-semibold text-blue-600">
-                                        {planData.durationValue}
-                                    </span>
-                                    <span className="text-lg text-gray-600 capitalize">
-                                        {planData.durationUnit}
-                                    </span>
-                                </div>
-                            ) : (
-                                <div className="space-y-1">
-                                    <p className="text-2xl font-semibold text-blue-600">
-                                        {format(planData.deadlineDate || new Date(), 'MMMM d, yyyy')}
-                                    </p>
-                                </div>
-                            )}
+                            <div className="space-y-1">
+                                <p className="text-2xl font-semibold text-blue-600">
+                                    {format(planData.deadlineDate || new Date(), 'MMMM d, yyyy')}
+                                </p>
+                            </div>
                         </div>
                     </CardContent>
                 </Card>

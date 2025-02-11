@@ -22,10 +22,6 @@ export default function Settings(props: Props) {
         <div className="mb-5 flex gap-5 flex-col xl:flex-row w-full">
           <PlansDisplay />
         </div>
-        {/* Conversion and talbes*/}
-        <div className="h-full w-full rounded-lg ">
-
-        </div>
       </div>
     </DashboardLayout>
   );

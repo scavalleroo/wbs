@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { OpenAIService } from '@/utils/openai-service';
 import { format } from 'date-fns';
 import { createClient } from '@/utils/supabase/client';
-import { Message, PlanData } from '../types/plan';
+import { Message, MessageConstructor, PlanData } from '../types/plan';
 
 export const usePlanInitialization = (planData: PlanData, onStreamUpdate: (messages: Message[]) => void) => {
     const [error, setError] = useState<Error | null>(null);
@@ -37,7 +37,18 @@ export const usePlanInitialization = (planData: PlanData, onStreamUpdate: (messa
                             // Only update if component is still mounted
                             if (isMounted) {
                                 assistantResponse += chunk;
-                                onStreamUpdate([{ role: 'assistant', content: assistantResponse }]);
+                                let initialMessage;
+                                try {
+                                    console.log('Assistant response 1:', assistantResponse);
+                                    let response = JSON.parse(assistantResponse);
+                                    response.plan.loading = false; // Set loading to false when response is successfully parsed
+                                    initialMessage = MessageConstructor.createAssistantMessage(response);
+                                } catch {
+                                    console.log('Assistant response 2:', assistantResponse);
+                                    // Create a message with loading state set to true
+                                    initialMessage = MessageConstructor.createAssistantMessage({ plan: { loading: true } }, null);
+                                }
+                                onStreamUpdate([initialMessage]);
                             }
                         });
                     }

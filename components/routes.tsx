@@ -1,6 +1,6 @@
 // Auth Imports
 import { IRoute } from '@/types/types';
-import { PlusCircle } from 'lucide-react';
+import { PlusCircle, Sparkles } from 'lucide-react';
 import {
   HiOutlineHome,
   HiOutlineCog8Tooth,
@@ -14,10 +14,10 @@ export const routes: IRoute[] = [
     collapse: false
   },
   {
-    name: 'Create plan',
+    name: 'Generate new plan',
     path: '/dashboard/plans/new',
     icon: (
-      <PlusCircle className="-mt-[7px] h-4 w-4 stroke-2 text-inherit" />
+      <Sparkles className="-mt-[7px] h-4 w-4 stroke-2 text-inherit" />
     ),
     collapse: false
   },

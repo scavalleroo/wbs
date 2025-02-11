@@ -1,11 +1,13 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Send, Loader2, Check, ChevronLeft } from 'lucide-react';
-import { OpenAIService } from '@/utils/openai-service';
+import { Loader2, Send, ChevronLeft, Check } from 'lucide-react';
 import { MessageBubble } from './MessageBubble';
-import { Message, PlanData } from '@/types/plan';
 import { usePlanInitialization } from '@/hooks/usePlanInitialization';
+import { OpenAIService } from '@/utils/openai-service';
+import { Message, MessageConstructor, PlanData, PlanResponse } from '@/types/plan';
+import PlanTimeline from './PlanTimeLine';
+
 
 export default function NewPlanChat({ planData }: { planData: PlanData }) {
     const [messages, setMessages] = useState<Message[]>([]);
@@ -28,40 +30,66 @@ export default function NewPlanChat({ planData }: { planData: PlanData }) {
         setIsLoading(true);
 
         const userMessage = input.trim();
-        setMessages(prev => [...prev, { role: 'user', content: userMessage }]);
+        setMessages(prev => [...prev, MessageConstructor.createUserMessage(userMessage)]);
 
         try {
             let assistantResponse = '';
             await openAIService.sendMessage(userMessage, (chunk) => {
                 assistantResponse += chunk;
-                setMessages(prev => {
-                    const newMessages = [...prev];
-                    if (newMessages.length > 0 && newMessages[newMessages.length - 1].role === 'assistant') {
-                        newMessages[newMessages.length - 1].content = assistantResponse;
-                    } else {
-                        newMessages.push({ role: 'assistant', content: assistantResponse });
-                    }
-                    return newMessages;
-                });
+                let initialMessage;
+                try {
+                    console.log('Assistant response 1:', assistantResponse);
+                    let response = JSON.parse(assistantResponse);
+                    response.plan.loading = false; // Set loading to false when response is successfully parsed
+                    setMessages(prev => MessageConstructor.updateMessageResponse(prev, response));
+                } catch {
+                    console.log('Assistant response 2:', assistantResponse);
+                    // Create a message with loading state set to true
+                    setMessages(prev => MessageConstructor.updateMessageResponse(prev, {
+                        plan: {
+                            loading: true,
+                            granularity: null,
+                            detailLevel: null,
+                            title: null,
+                            goals: null,
+                            deadline: null,
+                            tasks: null,
+                            error: null
+                        }
+                    }));
+                }
+
             });
         } catch (error) {
             console.error('Error sending message:', error);
-            setMessages(prev => [...prev, {
-                role: 'assistant',
-                content: "I'm sorry, I encountered an error. Please try again."
-            }]);
+            setMessages(prev => [
+                ...prev,
+                MessageConstructor.createAssistantMessage(
+                    null,
+                    "I'm sorry, I encountered an error. Please try again."
+                )
+            ]);
         } finally {
             setIsLoading(false);
             inputRef.current?.focus();
         }
     };
 
+    if (error) {
+        return <div className="text-red-500">Error: {error.message}</div>;
+    }
+
     return (
         <div className="flex flex-col h-[calc(100vh-140px)] max-h-screen bg-secondary-100">
             <div className="flex-1 overflow-y-auto p-4">
                 <div className="max-w-3xl mx-auto">
                     {messages.map((message, index) => (
-                        <MessageBubble key={index} message={message} />
+                        message.role === 'assistant' ? (
+                            message.response?.plan &&
+                            <PlanTimeline key={index} plan={message.response.plan} />
+                        ) : (
+                            <MessageBubble key={index} message={message} />
+                        )
                     ))}
                     <div ref={messagesEndRef} />
                 </div>

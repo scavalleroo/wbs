@@ -1,13 +1,13 @@
 import React, { useState, useCallback, useMemo } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ChevronRight, ChevronLeft, Check, Book, Dumbbell, Utensils, Users, Plus, Palmtree, Sparkles } from 'lucide-react';
+import { ChevronRight, ChevronLeft, Book, Dumbbell, Utensils, Users, Plus, Palmtree, Sparkles } from 'lucide-react';
 
 import { GoalsStep } from './GoalsStep';
-import NewPlanChat from './NewPlanChat';
 import { PlanData } from '@/types/plan';
 import { TargetDescription } from './TargetDescription';
 import { DurationStep } from './DurationStep';
+import NewPlanChat from './NewPlanChat';
 
 const PlanCreationWizard = () => {
     const [step, setStep] = useState(1);

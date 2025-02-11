@@ -4,10 +4,11 @@ import { Plan } from "@/types/plan";
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowRight, PlusCircle, Calendar, Clock } from "lucide-react";
+import { ArrowRight, PlusCircle, Calendar, Clock, Sparkles } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { createClient } from "@/utils/supabase/client";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function PlansDisplay() {
     const [plans, setPlans] = useState<Plan[]>([]);
@@ -78,7 +79,15 @@ export default function PlansDisplay() {
     };
 
     if (isLoading) {
-        return <div className="p-6">Loading plans...</div>;
+        return (
+            <div className="p-6 w-full">
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                    <Skeleton className="w-full h-80" />
+                    <Skeleton className="w-full h-80" />
+                    <Skeleton className="w-full h-80" />
+                </div>
+            </div>
+        );
     }
 
     return (
@@ -90,8 +99,8 @@ export default function PlansDisplay() {
                     onClick={() => router.push('/dashboard/plans/new')}
                 >
                     <CardContent className="flex flex-col items-center justify-center h-full min-h-[200px]">
-                        <PlusCircle className="h-12 w-12 text-gray-400 mb-4" />
-                        <p className="text-lg font-medium text-gray-600">Create New Plan</p>
+                        <Sparkles className="h-12 w-12 text-primary/40 mb-4 mt-2" />
+                        <p className="text-lg font-medium text-primary">Generate new plan</p>
                     </CardContent>
                 </Card>
 

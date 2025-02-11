@@ -17,3 +17,22 @@ export type Plan = {
     type: string
     custom_type: string
 }
+
+export type PlanData = {
+    type: string;
+    customType: string;
+    title: string;
+    description: string;
+    durationType: 'quantity' | 'deadline';
+    durationUnit: 'days' | 'weeks' | 'months';
+    durationValue: number;
+    deadlineDate: Date | undefined;
+    goals: string[];
+    currentGoal: string;
+};
+
+
+export type Message = {
+    role: 'user' | 'assistant';
+    content: string;
+}

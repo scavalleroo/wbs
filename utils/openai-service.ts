@@ -98,6 +98,7 @@ export class OpenAIService {
     }
 
     public resetThread(): void {
+        console.log('Resetting thread');
         this.thread = null;
     }
 

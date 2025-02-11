@@ -1,9 +1,9 @@
 import React from 'react';
 import { Textarea } from '@/components/ui/textarea';
-import { PlanData } from '@/types/plan';
+import { Plan } from '@/types/plan';
 
 interface TargetDescriptionProps {
-    planData: PlanData;
+    planData: Plan;
     handleInputChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
 }
 
@@ -11,8 +11,8 @@ export const TargetDescription: React.FC<TargetDescriptionProps> = ({ planData, 
     return (
         <div className="space-y-4">
             <Textarea
-                name="description"
-                value={planData.description}
+                name="user_resources"
+                value={planData.user_resources}
                 onChange={handleInputChange}
                 className="w-full p-2 border rounded p-4"
                 style={{ fontSize: '1rem', lineHeight: '1.2' }}

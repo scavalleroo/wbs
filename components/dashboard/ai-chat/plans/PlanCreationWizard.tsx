@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { ChevronRight, ChevronLeft, Book, Dumbbell, Utensils, Users, Plus, Palmtree, Sparkles } from 'lucide-react';
 
 import { GoalsStep } from './GoalsStep';
-import { PlanData } from '@/types/plan';
+import { Plan } from '@/types/plan';
 import { TargetDescription } from './TargetDescription';
 import { DurationStep } from './DurationStep';
 import NewPlanChat from './NewPlanChat';
@@ -13,32 +13,26 @@ const PlanCreationWizard = () => {
     const [step, setStep] = useState(1);
     const [openAIChat, setOpenAIChat] = useState(false);
 
-    const [planData, setPlanData] = useState<PlanData>({
-        type: '',
-        customType: '',
+    const [planData, setPlanData] = useState<Plan>({
+        id: '',
+        user_id: '',
         title: '',
-        description: '',
-        deadlineDate: undefined,
+        user_resources: '',
+        deadline: undefined,
         goals: [],
-        currentGoal: ''
+        status: 'creation',
+        progress: 0,
+        created_at: '',
+        updated_at: '',
+        thread_id: null
     });
 
-    const planTypes = useMemo(() => [
-        { id: 'study', name: 'Study Plan', icon: Book },
-        { id: 'training', name: 'Training Plan', icon: Dumbbell },
-        { id: 'nutrition', name: 'Nutrition Plan', icon: Utensils },
-        { id: 'vacation', name: 'Vacation Plan', icon: Palmtree },
-        { id: 'team', name: 'Team Plan', icon: Users },
-        { id: 'custom', name: 'Custom Plan', icon: Plus },
-    ], []);
-
     const stepsTitle = useMemo(() => [
-        // 'What plan do you want to create?',
         `What exactly do you want to achieve?`,
-        `How prepared do you feel in terms of skills and support?`,
+        `What skills and support do you have to help you succeed?`,
         'By when do you want to achieve this goal?',
         'Plan summary'
-    ], [planData.type, planData.customType]);
+    ], []);
 
     const handleGoalsUpdate = useCallback((goals: string[]) => {
         setPlanData(prev => ({ ...prev, goals }));
@@ -57,11 +51,11 @@ const PlanCreationWizard = () => {
         }
 
         if (step === 2) {
-            return planData.description.trim().length === 0;
+            return planData.user_resources.trim().length === 0;
         }
 
         if (step === 3) {
-            return !planData.deadlineDate;
+            return !planData.deadline;
         }
 
         return false;
@@ -80,15 +74,6 @@ const PlanCreationWizard = () => {
                     </CardTitle>
                 </CardHeader>
                 <CardContent>
-                    {/* {step === 1 && (
-                    <PlanTypeSelection
-                        planTypes={planTypes}
-                        planData={planData}
-                        onPlanTypeSelect={handlePlanTypeSelect}
-                        onCustomTypeChange={handleCustomTypeChange}
-                    />
-                )} */}
-
                     {step === 1 && (
                         <GoalsStep
                             planData={planData}
@@ -110,13 +95,6 @@ const PlanCreationWizard = () => {
                         />
                     )}
 
-                    {/* {step === 4 && (
-                        <ReviewStep
-                            planData={planData}
-                            planTypes={planTypes}
-                        />
-                    )} */}
-
                     <div className="flex justify-between mt-8">
                         {step > 1 && (
                             <Button
@@ -128,6 +106,7 @@ const PlanCreationWizard = () => {
                                 Back
                             </Button>
                         )}
+
                         {step < 3 ? (
                             <Button
                                 onClick={handleNext}

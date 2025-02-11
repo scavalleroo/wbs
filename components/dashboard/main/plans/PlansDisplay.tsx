@@ -4,11 +4,12 @@ import { Plan } from "@/types/plan";
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowRight, PlusCircle, Calendar, Clock, Sparkles } from "lucide-react";
+import { ArrowRight, Calendar, Sparkles, Target } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { createClient } from "@/utils/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
+import { format } from "date-fns";
 
 export default function PlansDisplay() {
     const [plans, setPlans] = useState<Plan[]>([]);
@@ -61,21 +62,9 @@ export default function PlansDisplay() {
         }
     };
 
-    const formatDate = (date: string) => {
-        return new Date(date).toLocaleDateString('en-US', {
-            year: 'numeric',
-            month: 'short',
-            day: 'numeric'
-        });
-    };
-
     const formatDuration = (plan: Plan) => {
-        if (plan.duration_type === 'deadline' && plan.deadline) {
-            return `Due ${formatDate(plan.deadline)}`;
-        } else if (plan.duration_type === 'quantity') {
-            return `${plan.duration_value} ${plan.duration_unit}`;
-        }
-        return 'No duration set';
+        return `Due ${plan.deadline ?
+            format(plan.deadline, 'PPP') : 'No deadline'}`;
     };
 
     if (isLoading) {
@@ -114,20 +103,20 @@ export default function PlansDisplay() {
                         <CardHeader>
                             <div className="flex justify-between items-start mb-2">
                                 <div>
-                                    <Badge variant="outline" className="mb-2">
-                                        {plan.type === 'custom' ? plan.custom_type : plan.type}
-                                    </Badge>
                                     <CardTitle className="text-xl font-bold line-clamp-2">
                                         {plan.title}
                                     </CardTitle>
                                 </div>
-                                <Badge className={getPriorityColor(plan.priority)}>
+                                {/* <Badge className={getPriorityColor(plan.priority)}>
                                     {plan.priority}
-                                </Badge>
+                                </Badge> */}
                             </div>
-                            <p className="text-sm text-gray-600 line-clamp-2">
-                                {plan.description}
-                            </p>
+                            <div className="flex items-center gap-1 text-sm text-gray-600">
+                                <Target className="h-4 w-4 mr-1" />
+                                <p className="text-sm text-gray-600 line-clamp-2">
+                                    {plan.goals.join(', ')}
+                                </p>
+                            </div>
                         </CardHeader>
 
                         <CardContent>
@@ -142,19 +131,8 @@ export default function PlansDisplay() {
 
                                 <div className="space-y-2">
                                     <div className="flex items-center gap-2 text-sm text-gray-600">
-                                        {plan.duration_type === 'deadline' ? (
-                                            <Calendar className="h-4 w-4" />
-                                        ) : (
-                                            <Clock className="h-4 w-4" />
-                                        )}
+                                        <Calendar className="h-4 w-4" />
                                         <span>{formatDuration(plan)}</span>
-                                    </div>
-
-                                    <div className="text-sm text-gray-600">
-                                        <strong>Goals: </strong>
-                                        <span className="line-clamp-2">
-                                            {plan.goals.join(', ')}
-                                        </span>
                                     </div>
                                 </div>
                             </div>

@@ -2,10 +2,10 @@ import React, { useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { PlusCircle, X } from 'lucide-react';
-import { PlanData } from '@/types/plan';
+import { Plan } from '@/types/plan';
 
 type GoalsStepProps = {
-    planData: PlanData;
+    planData: Plan;
     onGoalsUpdate: (goals: string[]) => void;
 };
 

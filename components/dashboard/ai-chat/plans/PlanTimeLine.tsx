@@ -1,7 +1,7 @@
 import React from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { CheckCircle2, Clock, AlertCircle, Circle, Sparkle, Sparkles } from 'lucide-react';
+import { CheckCircle2, Clock, AlertCircle, Circle, Sparkles, Target, Calendar } from 'lucide-react';
 import { PlanOpenAI } from '@/types/plan';
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -41,12 +41,18 @@ const PlanTimeline = ({ plan }: { plan: PlanOpenAI }) => {
             <CardHeader>
                 <div className="flex flex-col space-y-2">
                     <CardTitle>{plan.title}</CardTitle>
-                    <div className="flex gap-2">
+                    {/* <div className="flex gap-2">
                         <Badge variant="outline">{plan.granularity}</Badge>
                         <Badge variant="outline">Detail: {plan.detailLevel}</Badge>
+                    </div> */}
+                    <div className='flex flex-row gap-2 items-center'>
+                        <Target className='w-4 h-4' />
+                        <p className="text-sm text-gray-500">{plan.goals}</p>
                     </div>
-                    <p className="text-sm text-gray-500">{plan.goals}</p>
-                    <p className="text-sm text-gray-500">Deadline: {plan.deadline}</p>
+                    <div className='flex flex-row gap-2 items-center'>
+                        <Calendar className='w-4 h-4' />
+                        <p className="text-sm text-gray-500">{plan.deadline}</p>
+                    </div>
                 </div>
             </CardHeader>
             <CardContent>

@@ -5,11 +5,11 @@ import { Loader2, Send, ChevronLeft, Check } from 'lucide-react';
 import { MessageBubble } from './MessageBubble';
 import { usePlanInitialization } from '@/hooks/usePlanInitialization';
 import { OpenAIService } from '@/utils/openai-service';
-import { Message, MessageConstructor, PlanData, PlanResponse } from '@/types/plan';
+import { Message, MessageConstructor, Plan } from '@/types/plan';
 import PlanTimeline from './PlanTimeLine';
 
 
-export default function NewPlanChat({ planData }: { planData: PlanData }) {
+export default function NewPlanChat({ planData }: { planData: Plan }) {
     const [messages, setMessages] = useState<Message[]>([]);
     const [input, setInput] = useState('');
     const [isLoading, setIsLoading] = useState(false);

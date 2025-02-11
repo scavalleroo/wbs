@@ -14,30 +14,40 @@ export type Database = {
                     id: string
                     user_id: string
                     goals: string[]
-                    deadline: string | null
-                    priority: 'low' | 'medium' | 'high'
-                    status: 'active' | 'completed' | 'paused'
+                    deadline: Date | undefined
+                    status: 'creation' | 'active' | 'completed' | 'paused'
                     progress: number
                     created_at: string
                     updated_at: string
                     thread_id: string | null
+                    title: string
+                    user_resources: string
                 }
                 Insert: {
+                    id: string
                     user_id: string
                     goals: string[]
-                    deadline?: string
-                    priority?: 'low' | 'medium' | 'high'
-                    status?: 'active' | 'completed' | 'paused'
-                    progress?: number
-                    thread_id?: string
+                    deadline: Date | undefined
+                    status: 'creation' | 'active' | 'completed' | 'paused'
+                    progress: number
+                    created_at: string
+                    updated_at: string
+                    thread_id: string | null
+                    title: string
+                    user_resources: string
                 }
                 Update: {
-                    goals?: string[]
-                    deadline?: string
-                    priority?: 'low' | 'medium' | 'high'
-                    status?: 'active' | 'completed' | 'paused'
-                    progress?: number
-                    thread_id?: string
+                    id: string
+                    user_id: string
+                    goals: string[]
+                    deadline: Date | undefined
+                    status: 'creation' | 'active' | 'completed' | 'paused'
+                    progress: number
+                    created_at: string
+                    updated_at: string
+                    thread_id: string | null
+                    title: string
+                    user_resources: string
                 }
             }
             prices: {

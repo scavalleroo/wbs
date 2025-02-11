@@ -2,26 +2,25 @@ import { useState, useEffect, useRef } from 'react';
 import { OpenAIService } from '@/utils/openai-service';
 import { format } from 'date-fns';
 import { createClient } from '@/utils/supabase/client';
-import { Message, MessageConstructor, PlanData } from '../types/plan';
+import { Message, MessageConstructor, Plan } from '../types/plan';
 
-export const usePlanInitialization = (planData: PlanData, onStreamUpdate: (messages: Message[]) => void) => {
+export const usePlanInitialization = (planData: Plan, onStreamUpdate: (messages: Message[]) => void) => {
     const [error, setError] = useState<Error | null>(null);
     const supabase = createClient();
     const openAIService = OpenAIService.getInstance();
     const [isInitializing, setIsInitializing] = useState(false);
 
-    // Add planData and onStreamUpdate to dependency array
     useEffect(() => {
         let isMounted = true;
 
         const initialize = async () => {
-            // Prevent multiple simultaneous initializations
             if (isInitializing || !isMounted) {
                 return;
             }
 
             setIsInitializing(true);
             openAIService.resetThread();
+            let responseTitle: string | undefined;
 
             try {
                 if (isMounted) {
@@ -34,18 +33,17 @@ export const usePlanInitialization = (planData: PlanData, onStreamUpdate: (messa
                     if (isMounted) {
                         console.log('Initializing plan with prompt:', prompt);
                         await openAIService.sendMessage(prompt, (chunk) => {
-                            // Only update if component is still mounted
                             if (isMounted) {
                                 assistantResponse += chunk;
                                 let initialMessage;
                                 try {
                                     console.log('Assistant response 1:', assistantResponse);
                                     let response = JSON.parse(assistantResponse);
-                                    response.plan.loading = false; // Set loading to false when response is successfully parsed
+                                    response.plan.loading = false;
+                                    responseTitle = response.plan.title;  // Store the title
                                     initialMessage = MessageConstructor.createAssistantMessage(response);
                                 } catch {
                                     console.log('Assistant response 2:', assistantResponse);
-                                    // Create a message with loading state set to true
                                     initialMessage = MessageConstructor.createAssistantMessage({ plan: { loading: true } }, null);
                                 }
                                 onStreamUpdate([initialMessage]);
@@ -57,7 +55,8 @@ export const usePlanInitialization = (planData: PlanData, onStreamUpdate: (messa
                         const newThreadID = openAIService.getThreadID();
                         if (!newThreadID) throw new Error('Failed to create thread');
 
-                        await createPlanInDatabase(user.id, newThreadID, planData);
+                        // Pass the responseTitle to createPlanInDatabase
+                        await createPlanInDatabase(user.id, newThreadID, planData, responseTitle);
                         console.log('Plan initialization completed successfully');
                     }
                 }
@@ -75,39 +74,39 @@ export const usePlanInitialization = (planData: PlanData, onStreamUpdate: (messa
 
         initialize();
 
-        // Cleanup function to prevent state updates after unmount
         return () => {
             isMounted = false;
         };
-    }, [planData, onStreamUpdate]); // Add dependencies
+    }, [planData, onStreamUpdate]);
 
     return { error, isInitializing };
 };
 
-
-const generateInitialPrompt = (planData: PlanData): string => {
+const generateInitialPrompt = (planData: Plan): string => {
     return `Goals: ${planData.goals.join(', ')} 
-    Readiness Level: ${planData.description}
-    Deadline: ${format(planData.deadlineDate || new Date(), 'MMMM d, yyyy')}
+    Readiness Level: ${planData.user_resources}
+    Deadline: ${format(planData.deadline || new Date(), 'MMMM d, yyyy')}
     Current Date: ${format(new Date(), 'MMMM d, yyyy')}`;
 };
 
-const createPlanInDatabase = async (userId: string, threadId: string, planData: PlanData) => {
+const createPlanInDatabase = async (
+    userId: string,
+    threadId: string,
+    planData: Plan,
+    responseTitle?: string
+) => {
     const supabase = createClient();
     const { error } = await supabase
         .from('plans')
         .insert({
             user_id: userId,
             goals: planData.goals,
-            deadline: planData.deadlineDate ? format(planData.deadlineDate, 'yyyy-MM-dd') : null,
-            priority: 'medium',
+            deadline: planData.deadline ? format(planData.deadline, 'yyyy-MM-dd') : null,
             status: 'active',
             progress: 0,
             thread_id: threadId,
-            title: planData.title,
-            description: planData.description,
-            type: planData.type,
-            custom_type: planData.customType
+            title: responseTitle || planData.title, // Use responseTitle if available, fall back to planData.title
+            user_resources: planData.user_resources,
         });
 
     if (error) throw error;

@@ -98,7 +98,7 @@ export default function PlansDisplay() {
                     <Card
                         key={plan.id}
                         className="cursor-pointer hover:shadow-lg transition-shadow"
-                        onClick={() => router.push(`/plans/${plan.id}`)}
+                        onClick={() => router.push(`/dashboard/plans/${plan.id}`)}
                     >
                         <CardHeader>
                             <div className="flex justify-between items-start mb-2">
@@ -107,9 +107,6 @@ export default function PlansDisplay() {
                                         {plan.title}
                                     </CardTitle>
                                 </div>
-                                {/* <Badge className={getPriorityColor(plan.priority)}>
-                                    {plan.priority}
-                                </Badge> */}
                             </div>
                             <div className="flex items-center gap-1 text-sm text-gray-600">
                                 <Target className="h-4 w-4 mr-1" />

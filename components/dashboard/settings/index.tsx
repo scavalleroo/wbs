@@ -116,9 +116,9 @@ export default function Settings(props: Props) {
               <p className="text-xl font-extrabold text-zinc-950 leading-[100%] dark:text-white pl-4 md:text-3xl">
                 {props.user?.user_metadata.full_name}
               </p>
-              <p className="text-sm font-medium text-zinc-500 dark:text-zinc-400 md:mt-2 pl-4 md:text-base">
+              {/* <p className="text-sm font-medium text-zinc-500 dark:text-zinc-400 md:mt-2 pl-4 md:text-base">
                 CEO and Founder
-              </p>
+              </p> */}
             </div>
           </Card>
           <Card
@@ -165,7 +165,7 @@ export default function Settings(props: Props) {
               </Button>
               <div className="mt-8 h-px w-full max-w-[90%] self-center bg-zinc-200 dark:bg-white/10 md:mt-0 md:hidden" />
             </div>
-            <p
+            {/* <p
               className={`mb-5 px-2.5 text-red-500 md:px-9 ${nameError?.status ? 'block' : 'hidden'
                 }`}
             >
@@ -179,9 +179,9 @@ export default function Settings(props: Props) {
               <p className="ml-1 mt-[1px] text-sm font-medium leading-none text-zinc-500 dark:text-zinc-400">
                 (We will email you to verify the change)
               </p>
-            </label>
+            </label> */}
 
-            <div className="mb-8 flex flex-col md:flex-row">
+            {/* <div className="mb-8 flex flex-col md:flex-row">
               <form
                 className="w-full"
                 id="emailForm"
@@ -202,9 +202,9 @@ export default function Settings(props: Props) {
               >
                 Update email
               </Button>
-            </div>
+            </div> */}
           </Card>
-          <Notifications notifications={notifications} />
+          {/* <Notifications notifications={notifications} /> */}
         </div>
       </div>
     </DashboardLayout>

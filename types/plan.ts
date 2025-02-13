@@ -90,11 +90,13 @@ export interface Task {
     description: string;
     status: TaskStatus;
     metric: Metric;
+    daily_tasks: { [key: string]: string } | null;
 }
 
 // Tasks map type with dynamic period keys
 export interface Tasks {
     [period: string]: Task;
+
 }
 
 // Main plan type

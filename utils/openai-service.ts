@@ -1,5 +1,6 @@
 import OpenAI from 'openai';
 import { Assistant } from 'openai/resources/beta/assistants.mjs';
+import { Message } from 'openai/resources/beta/threads/messages.mjs';
 import { Thread } from 'openai/resources/beta/threads/threads';
 
 export class OpenAIService {
@@ -15,7 +16,6 @@ export class OpenAIService {
             dangerouslyAllowBrowser: true,
         });
 
-        // Initialize the assistant asynchronously
         this.initializationPromise = this.initializeAssistant();
     }
 
@@ -60,13 +60,11 @@ export class OpenAIService {
             await this.ensureInitialized();
             const thread = await this.ensureThread();
 
-            // Create a message in the thread
             await this.openaiClient.beta.threads.messages.create(thread.id, {
                 role: "user",
                 content: input
             });
 
-            // Create and stream the run
             const stream = await this.openaiClient.beta.threads.runs.create(
                 thread.id,
                 {
@@ -97,12 +95,48 @@ export class OpenAIService {
         }
     }
 
+    public async getThreadMessages(threadId?: string): Promise<Message[]> {
+        try {
+            await this.ensureInitialized();
+            const targetThreadId = threadId || this.thread?.id;
+
+            if (!targetThreadId) {
+                throw new Error('No thread ID available');
+            }
+
+            const response = await this.openaiClient.beta.threads.messages.list(
+                targetThreadId,
+                {
+                    order: 'asc',  // Get messages in chronological order
+                    limit: 100     // Adjust this limit as needed
+                }
+            );
+
+            return response.data;
+        } catch (error) {
+            console.error('Error fetching thread messages:', error);
+            throw error;
+        }
+    }
+
+    public async loadExistingThread(threadId: string): Promise<void> {
+        try {
+            await this.ensureInitialized();
+            // Verify the thread exists and is accessible
+            const thread = await this.openaiClient.beta.threads.retrieve(threadId);
+            this.thread = thread;
+        } catch (error) {
+            console.error('Error loading existing thread:', error);
+            throw error;
+        }
+    }
+
     public resetThread(): void {
         console.log('Resetting thread');
         this.thread = null;
     }
 
     public getThreadID(): string | null {
-        return this.thread?.id || null
+        return this.thread?.id || null;
     }
 }

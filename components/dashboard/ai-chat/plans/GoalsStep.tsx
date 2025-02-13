@@ -28,7 +28,7 @@ export const GoalsStep: React.FC<GoalsStepProps> = ({ planData, onGoalsUpdate })
     return (
         <div className="space-y-4">
             <div>
-                <div className="flex gap-2">
+                <div className="flex flex-col gap-2">
                     <Input
                         type="text"
                         value={currentGoal}

@@ -54,7 +54,7 @@ export default function NewPlanChat({ planData }: { planData: Plan }) {
                             goals: null,
                             deadline: null,
                             tasks: null,
-                            error: null
+                            error: null,
                         }
                     }));
                 }
@@ -95,7 +95,7 @@ export default function NewPlanChat({ planData }: { planData: Plan }) {
                 </div>
             </div>
 
-            <div className="p-4 bg-white border-t">
+            <div className="p-4 bg-background border-t border-border">
                 <form onSubmit={handleSubmit} className="max-w-3xl mx-auto flex gap-2">
                     <Input
                         ref={inputRef}
@@ -103,10 +103,14 @@ export default function NewPlanChat({ planData }: { planData: Plan }) {
                         onChange={(e) => setInput(e.target.value)}
                         placeholder="Ask for plan changes..."
                         disabled={isLoading || isInitializing}
-                        className="flex-1 p-4"
+                        className="flex-1 p-4 bg-background"
                         style={{ fontSize: '1.1rem' }}
                     />
-                    <Button type="submit" disabled={isLoading || isInitializing}>
+                    <Button
+                        type="submit"
+                        disabled={isLoading || isInitializing}
+                        variant="default"
+                    >
                         {isLoading || isInitializing ? (
                             <Loader2 className="h-4 w-4 animate-spin" />
                         ) : (
@@ -123,15 +127,17 @@ export default function NewPlanChat({ planData }: { planData: Plan }) {
                         <ChevronLeft size={16} />
                         Back
                     </Button>
-                    {!isLoading && !isInitializing && (
+                    {/* {!isLoading && !isInitializing && (
                         <Button
                             type="submit"
-                            className='bg-green-700 hover:bg-green-500'
+                            variant="default"
+                            className="bg-green-700 hover:bg-green-600 dark:bg-green-600 dark:hover:bg-green-500"
                             disabled={isLoading || isInitializing}
                         >
-                            <Check className="h-4 w-4" /> <p>Activate Plan</p>
+                            <Check className="h-4 w-4 mr-2" />
+                            <span>Activate Plan</span>
                         </Button>
-                    )}
+                    )} */}
                 </div>
             </div>
         </div>

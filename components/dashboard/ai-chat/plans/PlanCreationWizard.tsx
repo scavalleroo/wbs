@@ -29,7 +29,7 @@ const PlanCreationWizard = () => {
 
     const stepsTitle = useMemo(() => [
         `What exactly do you want to achieve?`,
-        `What skills and support do you have to help you succeed?`,
+        `What skills do you have to make you succeed?`,
         'By when do you want to achieve this goal?',
         'Plan summary'
     ], []);

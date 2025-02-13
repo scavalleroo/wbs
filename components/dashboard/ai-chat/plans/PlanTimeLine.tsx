@@ -3,6 +3,7 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { CheckCircle2, Clock, AlertCircle, Circle, Sparkles, Target, Calendar, ChevronDown, ChevronUp } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useState } from 'react';
+import { PlanOpenAI } from '@/types/plan';
 
 const getStatusIcon = (status: any) => {
     switch (status) {
@@ -38,7 +39,7 @@ interface Plan {
     };
 }
 
-const PlanTimeline = ({ plan }: { plan: Plan }) => {
+const PlanTimeline = ({ plan }: { plan: PlanOpenAI }) => {
     const [expandedWeeks, setExpandedWeeks] = useState<{ [key: string]: boolean }>({});
 
     if (plan.loading) {

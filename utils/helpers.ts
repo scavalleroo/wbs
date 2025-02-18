@@ -127,3 +127,14 @@ export function parseWeekDates(weekStr: string): { startDate: Date; endDate: Dat
     endDate: new Date(dates[1])
   };
 }
+
+export const BREAKPOINTS = {
+  sm: 640,
+  md: 768,
+  lg: 1024,
+};
+
+export const HOURS = Array.from({ length: 24 }, (_, i) => i);
+export const HOUR_HEIGHT = 60;
+export const MINUTE_HEIGHT = HOUR_HEIGHT / 60;
+export const TOTAL_HEIGHT = HOUR_HEIGHT * 24;

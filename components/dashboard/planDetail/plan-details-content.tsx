@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Loader2, Send, ChevronLeft, Check, MoreVertical, Trash2 } from 'lucide-react';
 import { OpenAIService } from '@/utils/openai-service';
-import { Message, MessageConstructor, Plan } from '@/types/plan';
+import { Message, MessageConstructor, Plan, PlanOpenAI } from '@/types/plan';
 import PlanTimeline from '../ai-chat/plans/PlanTimeLine';
 import { MessageBubble } from '../ai-chat/plans/MessageBubble';
 import {
@@ -154,7 +154,12 @@ export default function PlanDetailsContent({ planData }: { planData: Plan }) {
     const handleActivatePlan = async () => {
         setIsLoading(true);
         try {
-            await PlanService.insertPlanActivities(Number(planData.id), messages.at(-1)?.response);
+            const lastMessage = messages.at(-1);
+            if (!lastMessage?.response?.plan) {
+                throw new Error('No valid plan found in the last message');
+            }
+
+            await PlanService.insertPlanActivities(Number(planData.id), lastMessage.response.plan);
             router.push('/dashboard/main');
             router.refresh();
         } catch (error) {

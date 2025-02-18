@@ -16,7 +16,7 @@ export interface PlanActivity {
     id: number;
     created_at: string;
     plan: Plan;
-    scheduled_timestamp: string;
+    scheduled_timestamp: Date;
     description: string;
     status: 'To do' | 'In Progress' | 'Completed';
     notes: string | null;
@@ -80,7 +80,7 @@ export interface Metric {
 export interface Task {
     description: string;
     metric: Metric;
-    daily_tasks: { [key: string]: string } | null;
+    daily_tasks: { [key: string]: string };
 }
 
 // Tasks map type with dynamic period keys

@@ -2,10 +2,7 @@
 
 import DashboardLayout from '@/components/layout';
 import { User } from '@supabase/supabase-js';
-import CalendarView from './calendar-component';
-import { useEffect, useState } from 'react';
-import { PlanActivity } from '@/types/plan';
-import { createClient } from '@/utils/supabase/client';
+import CalendarView from './CalendarView';
 
 interface Props {
     user: User | null | undefined;
@@ -13,8 +10,6 @@ interface Props {
 }
 
 export default function CalendarPageComponent(props: Props) {
-    const [activities, setActivities] = useState<PlanActivity[]>([]);
-
     return (
         <DashboardLayout
             user={props.user}

@@ -86,7 +86,7 @@ const generateInitialPrompt = (planData: Plan): string => {
     return `Goals: ${planData.goals.join(', ')} 
     Readiness Level: ${planData.user_resources}
     Deadline: ${format(planData.end_date || new Date(), 'MMMM d, yyyy')}
-    Current Date: ${format(new Date(), 'MMMM d, yyyy')}, and today is a ${format(new Date(), 'EEEE')}
+    Current Date: ${format(new Date(), 'MMMM d, yyyy')}, and today is ${format(new Date(), 'EEEE')}
     Current Time: ${format(new Date(), 'HH:mm:ss')}`;
 };
 

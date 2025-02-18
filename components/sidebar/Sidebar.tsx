@@ -48,7 +48,7 @@ function Sidebar(props: SidebarProps) {
         } ${props.open ? '' : '-translate-x-[120%] xl:translate-x-[unset]'}`}
     >
       <Card
-        className={`m-3 ml-3 h-[96.5vh] w-full overflow-hidden !rounded-lg border-zinc-200 pe-4 dark:border-zinc-800 sm:my-4 sm:mr-4 md:m-5 md:mr-[-50px]`}
+        className={`m-3 ml-3 h-[96.5vh] w-full overflow-hidden !rounded-lg border-zinc-200 dark:border-zinc-800 sm:my-4 sm:mr-4 md:m-5 md:mr-[-50px]`}
       >
         <Scrollbars
           autoHide

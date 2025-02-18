@@ -112,13 +112,11 @@ export default function PlanDetailsContent({ planData }: { planData: Plan }) {
                     setMessages(prev => MessageConstructor.updateMessageResponse(prev, {
                         plan: {
                             loading: true,
-                            granularity: null,
-                            detailLevel: null,
                             title: null,
                             goals: null,
-                            deadline: null,
-                            tasks: null,
+                            end_date: null,
                             error: null,
+                            tasks: []
                         }
                     }));
                 }

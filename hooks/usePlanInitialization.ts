@@ -85,8 +85,9 @@ export const usePlanInitialization = (planData: Plan, onStreamUpdate: (messages:
 const generateInitialPrompt = (planData: Plan): string => {
     return `Goals: ${planData.goals.join(', ')} 
     Readiness Level: ${planData.user_resources}
-    Deadline: ${format(planData.deadline || new Date(), 'MMMM d, yyyy')}
-    Current Date: ${format(new Date(), 'MMMM d, yyyy')}`;
+    Deadline: ${format(planData.end_date || new Date(), 'MMMM d, yyyy')}
+    Current Date: ${format(new Date(), 'MMMM d, yyyy')}, and today is a ${format(new Date(), 'EEEE')}
+    Current Time: ${format(new Date(), 'HH:mm:ss')}`;
 };
 
 const createPlanInDatabase = async (
@@ -101,12 +102,11 @@ const createPlanInDatabase = async (
         .insert({
             user_id: userId,
             goals: planData.goals,
-            deadline: planData.deadline ? format(planData.deadline, 'yyyy-MM-dd') : null,
-            status: 'active',
-            progress: 0,
+            end_date: planData.end_date ? format(planData.end_date, 'yyyy-MM-dd') : null,
             thread_id: threadId,
             title: responseTitle || planData.title, // Use responseTitle if available, fall back to planData.title
             user_resources: planData.user_resources,
+            start_date: format(new Date(), 'yyyy-MM-dd')
         });
 
     if (error) throw error;

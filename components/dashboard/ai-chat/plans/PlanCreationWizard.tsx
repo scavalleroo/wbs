@@ -18,14 +18,13 @@ const PlanCreationWizard = () => {
         user_id: '',
         title: '',
         user_resources: '',
-        deadline: undefined,
+        end_date: undefined,
         goals: [],
         status: 'creation',
-        progress: 0,
         created_at: '',
         updated_at: '',
         thread_id: null,
-        startDate: undefined
+        start_date: undefined
     });
 
     const stepsTitle = useMemo(() => [
@@ -56,7 +55,7 @@ const PlanCreationWizard = () => {
         }
 
         if (step === 3) {
-            return !planData.deadline;
+            return !planData.end_date;
         }
 
         return false;

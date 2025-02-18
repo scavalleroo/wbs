@@ -4,9 +4,7 @@ import { Plan } from "@/types/plan";
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowRight, Calendar, Sparkles, Target } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
+import { ArrowRight, Calendar, Sparkles } from "lucide-react";
 import { createClient } from "@/utils/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
 import { format } from "date-fns";
@@ -63,8 +61,8 @@ export default function PlansDisplay() {
     };
 
     const formatDuration = (plan: Plan) => {
-        return `Due ${plan.deadline ?
-            format(plan.deadline, 'PPP') : 'No deadline'}`;
+        return `Due ${plan.end_date ?
+            format(plan.end_date, 'PPP') : 'No deadline'}`;
     };
 
     if (isLoading) {
@@ -117,14 +115,6 @@ export default function PlansDisplay() {
 
                         <CardContent>
                             <div className="space-y-4">
-                                <div>
-                                    <div className="flex justify-between mb-2">
-                                        <span className="text-sm text-gray-600">Progress</span>
-                                        <span className="text-sm font-medium">{plan.progress}%</span>
-                                    </div>
-                                    <Progress value={plan.progress} className="h-2" />
-                                </div>
-
                                 <div className="space-y-2">
                                     <div className="flex items-center gap-2 text-sm text-gray-600">
                                         <Calendar className="h-4 w-4" />

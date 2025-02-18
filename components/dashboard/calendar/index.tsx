@@ -2,7 +2,7 @@
 
 import DashboardLayout from '@/components/layout';
 import { User } from '@supabase/supabase-js';
-import MonthlyCalendar from './calendar-component';
+import CalendarView from './calendar-component';
 import { useEffect, useState } from 'react';
 import { PlanActivity } from '@/types/plan';
 import { createClient } from '@/utils/supabase/client';
@@ -24,7 +24,7 @@ export default function CalendarPageComponent(props: Props) {
         >
             <div className="h-full w-full">
                 <div className="mb-5 flex gap-5 flex-col xl:flex-row w-full">
-                    <MonthlyCalendar />
+                    <CalendarView />
                 </div>
             </div>
         </DashboardLayout>

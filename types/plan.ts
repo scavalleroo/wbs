@@ -2,35 +2,28 @@ export type Plan = {
     id: string
     user_id: string
     goals: string[]
-    deadline: Date | undefined
     status: 'creation' | 'active' | 'completed' | 'paused'
-    progress: number
     created_at: string
     updated_at: string
     thread_id: string | null
     title: string
     user_resources: string
-    startDate: Date | undefined
-}
-
-export interface DailyTask {
-    date: Date;
-    description: string;
+    start_date: Date | undefined
+    end_date: Date | undefined
 }
 
 export interface PlanActivity {
     id: number;
     created_at: string;
-    plan_id: number;
-    scheduled_date: string;
+    plan: Plan;
+    scheduled_timestamp: string;
     description: string;
-    status: string;
-    daily_tasks: Record<string, string>;
-    metric_type: string;
-    metric_target: string;
-    actual_result: string | null;
-    completion_notes: string | null;
+    status: 'To do' | 'In Progress' | 'Completed';
+    notes: string | null;
     updated_at: string;
+    duration?: number;
+    metric_type?: string;
+    metric_target?: number;
 }
 
 export interface Message {
@@ -77,28 +70,6 @@ export class MessageConstructor {
     }
 }
 
-
-// Enum types for better type safety
-export enum PlanGranularity {
-    DayByDay = 'dayByDay',
-    WeekByWeek = 'weekByWeek',
-    MonthByMonth = 'monthByMonth',
-    Year = 'year'
-}
-
-export enum DetailLevel {
-    Low = 'low',
-    Medium = 'medium',
-    High = 'high'
-}
-
-export enum TaskStatus {
-    NotStarted = 'Not Started',
-    InProgress = 'In Progress',
-    Completed = 'Completed',
-    Delayed = 'Delayed'
-}
-
 // Metric type
 export interface Metric {
     type: string;
@@ -108,7 +79,6 @@ export interface Metric {
 // Task type
 export interface Task {
     description: string;
-    status: TaskStatus;
     metric: Metric;
     daily_tasks: { [key: string]: string } | null;
 }
@@ -116,19 +86,16 @@ export interface Task {
 // Tasks map type with dynamic period keys
 export interface Tasks {
     [period: string]: Task;
-
 }
 
 // Main plan type
 export interface PlanOpenAI {
-    granularity: PlanGranularity | null;
-    detailLevel: DetailLevel | null;
     title: string | null;
     goals: string | null;
-    deadline: string | null;
-    tasks: Tasks | null;
+    end_date: string | null;
     error: string | null;
     loading: boolean;
+    tasks: Task[];
 }
 
 // Response wrapper type

@@ -13,19 +13,19 @@ export const DurationStep: React.FC<DurationStepProps> = ({ planData, setPlanDat
     return (
         <div className="space-y-6">
             <div className="space-y-4">
-                {planData.deadline && (
+                {planData.end_date && (
                     <Alert>
                         <AlertTitle className='text-center'>Selected Deadline</AlertTitle>
                         <AlertDescription className='text-lg text-center'>
-                            {format(planData.deadline, 'PPP')}
+                            {format(planData.end_date, 'PPP')}
                         </AlertDescription>
                     </Alert>
                 )}
                 <div className="flex justify-center">
                     <Calendar
                         mode="single"
-                        selected={planData.deadline}
-                        onSelect={(date) => setPlanData({ ...planData, deadline: date })}
+                        selected={planData.end_date}
+                        onSelect={(date) => setPlanData({ ...planData, end_date: date })}
                         className="rounded-md border"
                         disabled={(date) => date < new Date()}
                     />

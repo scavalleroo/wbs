@@ -9,7 +9,6 @@ interface Props {
   userDetails: { [x: string]: any } | null;
 }
 export default function Chat(props: Props) {
-
   return (
     <DashboardLayout
       user={props.user}

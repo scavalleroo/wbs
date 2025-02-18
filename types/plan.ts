@@ -10,8 +10,28 @@ export type Plan = {
     thread_id: string | null
     title: string
     user_resources: string
+    startDate: Date | undefined
 }
 
+export interface DailyTask {
+    date: Date;
+    description: string;
+}
+
+export interface PlanActivity {
+    id: number;
+    created_at: string;
+    plan_id: number;
+    scheduled_date: string;
+    description: string;
+    status: string;
+    daily_tasks: Record<string, string>;
+    metric_type: string;
+    metric_target: string;
+    actual_result: string | null;
+    completion_notes: string | null;
+    updated_at: string;
+}
 
 export interface Message {
     role: 'user' | 'assistant';

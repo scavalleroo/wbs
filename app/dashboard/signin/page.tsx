@@ -12,7 +12,7 @@ export default async function SignIn() {
     } = await supabase.auth.getUser();
 
     if (user) {
-        return redirect('/dashboard/main');
+        return redirect('/dashboard/plans/new');
     }
 
     return (

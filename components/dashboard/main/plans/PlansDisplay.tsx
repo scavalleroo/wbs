@@ -109,7 +109,6 @@ export default function PlansDisplay() {
                                 </div>
                             </div>
                             <div className="flex items-center gap-1 text-sm text-gray-600">
-                                <Target className="h-4 w-4 mr-1" />
                                 <p className="text-sm text-gray-600 line-clamp-2">
                                     {plan.goals.join(', ')}
                                 </p>
@@ -135,8 +134,8 @@ export default function PlansDisplay() {
                             </div>
                         </CardContent>
 
-                        <CardFooter className="flex justify-between items-center">
-                            <Badge variant="outline">{plan.status}</Badge>
+                        <CardFooter className="flex justify-end items-center">
+                            {/* <Badge variant="outline">{plan.status}</Badge> */}
                             <ArrowRight className="h-5 w-5 text-gray-400" />
                         </CardFooter>
                     </Card>

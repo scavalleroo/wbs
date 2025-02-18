@@ -6,7 +6,6 @@ import { OpenAIService } from '@/utils/openai-service';
 import { Message, MessageConstructor, Plan } from '@/types/plan';
 import PlanTimeline from '../ai-chat/plans/PlanTimeLine';
 import { MessageBubble } from '../ai-chat/plans/MessageBubble';
-import { createClient } from '@/utils/supabase/client';
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -154,6 +153,18 @@ export default function PlanDetailsContent({ planData }: { planData: Plan }) {
         }
     };
 
+    const handleActivatePlan = async () => {
+        setIsLoading(true);
+        try {
+            await PlanService.insertPlanActivities(Number(planData.id), messages.at(-1)?.response);
+            router.push('/dashboard/main');
+            router.refresh();
+        } catch (error) {
+            console.error('Error activating plan:', error);
+        }
+        setIsLoading(false);
+    };
+
     return (
         <div className="flex flex-col h-[calc(100vh-140px)] max-h-screen bg-secondary-100 w-full">
             <div className="flex-1 overflow-y-auto p-4">
@@ -205,15 +216,16 @@ export default function PlanDetailsContent({ planData }: { planData: Plan }) {
                         Back
                     </Button>
                     <div className="flex items-center gap-2">
-                        {/* {!isLoading && !isLoadingMessages && (
+                        {!isLoading && !isLoadingMessages && (
                             <Button
                                 type="submit"
                                 className='bg-green-700 hover:bg-green-500'
                                 disabled={isLoading || isLoadingMessages}
+                                onClick={handleActivatePlan}
                             >
                                 <Check className="h-4 w-4" /> <p>Activate Plan</p>
                             </Button>
-                        )} */}
+                        )}
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                                 <Button variant="ghost" size="icon">

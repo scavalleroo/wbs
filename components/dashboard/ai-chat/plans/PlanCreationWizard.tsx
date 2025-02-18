@@ -24,7 +24,8 @@ const PlanCreationWizard = () => {
         progress: 0,
         created_at: '',
         updated_at: '',
-        thread_id: null
+        thread_id: null,
+        startDate: undefined
     });
 
     const stepsTitle = useMemo(() => [

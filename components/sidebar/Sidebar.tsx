@@ -97,9 +97,6 @@ function Sidebar(props: SidebarProps) {
                   <Avatar className="min-h-10 min-w-10">
                     <AvatarImage src={user?.user_metadata.avatar_url} />
                     <AvatarFallback className="font-bold dark:text-zinc-950">
-                      {/* {userDetails.full_name
-                        ? `${userDetails.full_name[0]}`
-                        : `${user?.user_metadata.email[0].toUpperCase()}`} */}
                     </AvatarFallback>
                   </Avatar>
                 </a>

@@ -10,7 +10,7 @@ interface Props {
   userDetails: { [x: string]: any } | null | any;
 }
 
-export default function Settings(props: Props) {
+export default function MainPage(props: Props) {
   return (
     <DashboardLayout
       user={props.user}

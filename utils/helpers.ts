@@ -1,7 +1,3 @@
-import { Database } from '@/types/types_db';
-
-type Price = Database['public']['tables']['prices']['Row'];
-
 export const getURL = (path?: string) => {
   let url =
     process?.env?.NEXT_PUBLIC_SITE_URL ?? // Set this to your site URL in production env.
@@ -20,31 +16,6 @@ export const getURL = (path?: string) => {
   }
 
   return url;
-};
-
-export const postData = async ({
-  url,
-  data
-}: {
-  url: string;
-  data?: { price: Price };
-}) => {
-  console.log('posting,', url, data);
-
-  const res = await fetch(url, {
-    method: 'POST',
-    headers: new Headers({ 'Content-Type': 'application/json' }),
-    credentials: 'same-origin',
-    body: JSON.stringify(data)
-  });
-
-  if (!res.ok) {
-    console.log('Error in postData', { url, data, res });
-
-    throw Error(res.statusText);
-  }
-
-  return res.json();
 };
 
 export const toDateTime = (secs: number) => {
@@ -137,3 +108,22 @@ export const getErrorRedirect = (
     disableButton,
     arbitraryParams
   );
+
+export function parseDateFromString(dateStr: string): Date {
+  // Convert strings like "Monday (14/02)" to a Date object
+  const year = 2025; // You might want to pass this as a parameter
+  const day = dateStr.match(/\((\d{2})\/(\d{2})\)/);
+  if (!day) throw new Error(`Invalid date format: ${dateStr}`);
+  return new Date(year, parseInt(day[2]) - 1, parseInt(day[1]));
+}
+
+export function parseWeekDates(weekStr: string): { startDate: Date; endDate: Date } {
+  // Parse "Week 1 (February 14, 2025 - February 20, 2025)"
+  const match = weekStr.match(/\((.*?)\)/);
+  if (!match) throw new Error(`Invalid week format: ${weekStr}`);
+  const dates = match[1].split(' - ');
+  return {
+    startDate: new Date(dates[0]),
+    endDate: new Date(dates[1])
+  };
+}

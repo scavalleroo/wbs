@@ -18,27 +18,6 @@ const getStatusIcon = (status: any) => {
     }
 };
 
-interface Plan {
-    loading: boolean;
-    error?: string;
-    title: string;
-    goals: string;
-    deadline: string;
-    tasks: {
-        [key: string]: {
-            description: string;
-            daily_tasks?: {
-                [key: string]: string;
-            };
-            metric: {
-                value: string;
-                type: string;
-            };
-            status: string;
-        };
-    };
-}
-
 const PlanTimeline = ({ plan }: { plan: PlanOpenAI }) => {
     const [expandedWeeks, setExpandedWeeks] = useState<{ [key: string]: boolean }>({});
 

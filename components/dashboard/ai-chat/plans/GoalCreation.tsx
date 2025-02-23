@@ -1,6 +1,6 @@
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
-import { Card } from '@/components/ui/card';
+import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -12,6 +12,7 @@ import { format, isBefore, startOfToday } from 'date-fns';
 import { ArrowRightIcon, CalendarIcon, ChevronLeftIcon, ChevronRightIcon, PencilIcon, Sparkles } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 import NewPlanChat from './NewPlanChat';
+import { Badge } from '@/components/ui/badge';
 
 const SmartGoalCreator: React.FC = () => {
     const [targetDate, setTargetDate] = useState<Date | undefined>(undefined);
@@ -166,11 +167,8 @@ const SmartGoalCreator: React.FC = () => {
     };
 
     const LoadingGoalText = () => (
-        <div className="flex items-center space-x-4">
-            <div className='flex flex-col gap-1 items-left'>
-                <ArrowRightIcon className="h-5 w-5 text-gray-400 dark:text-gray-500" />
-                <span className='text-primary/70 text-xs'>Generating the next step...</span>
-            </div>
+        <div className="flex flex-col items-center space-x-4 gap-1 w-full">
+            <span className='text-primary/70'>Generating the next step...</span>
             <div className="space-y-2 shrink-0 flex-1">
                 <Skeleton className="h-5 w-56" />
                 <Skeleton className="h-5 w-40" />
@@ -247,6 +245,13 @@ const SmartGoalCreator: React.FC = () => {
                                         />
                                     ) : (
                                         <div className="space-y-3">
+                                            {apiResponse && apiResponse.isComplete && (
+                                                <div className="flex items-center justify-center space-x-2 mb-8">
+                                                    <Badge className="text-white text-base bg-green-600 font-medium px-4">
+                                                        Ready to generate the plan!
+                                                    </Badge>
+                                                </div>
+                                            )}
                                             <p className="text-xl font-medium text-gray-900 dark:text-gray-100 text-center">
                                                 {goal}
                                             </p>
@@ -307,14 +312,6 @@ const SmartGoalCreator: React.FC = () => {
                         </div>
                     )}
 
-                    {apiResponse && apiResponse.isComplete && (
-                        <Card className="p-6 bg-green-100 dark:bg-green-900">
-                            <p className="text-lg font-medium text-green-800 dark:text-green-200 text-center">
-                                {apiResponse.completeGoal}
-                            </p>
-                        </Card>
-                    )}
-
                     {shouldShowInputInterface() && !isManualEditing && (
                         <div className="space-y-4">
                             {loading ? (
@@ -342,6 +339,11 @@ const SmartGoalCreator: React.FC = () => {
                                                     type="text"
                                                     value={userInput}
                                                     onChange={handleInputChange}
+                                                    onKeyDown={(e) => {
+                                                        if (e.key === 'Enter') {
+                                                            handleSubmit();
+                                                        }
+                                                    }}
                                                     placeholder={apiResponse.otherPlaceholder!.charAt(0).toUpperCase() + apiResponse.otherPlaceholder!.slice(1)}
                                                     className="h-12 text-lg dark:bg-gray-700 dark:text-gray-200"
                                                     style={{ fontSize: '1.1rem' }}

@@ -57,19 +57,22 @@ export const PlanService = {
     async insertPlanActivities(planId: number, plan: any) {
         const supabase = createClient();
         const activities: any[] = [];
+        const currentYear = new Date().getFullYear();
 
         // Loop through each week in tasks
         Object.entries(plan.tasks as Tasks).forEach(([weekKey, weekData]: [string, WeekData]) => {
-            Object.entries(weekData.daily_tasks).forEach(async ([timeSlot, activity]: [string, string]) => {
-                const dateMatch = timeSlot.match(/\((\d{2})\/(\d{2})\)/);
-                const timeMatch = timeSlot.match(/\((\d{2}):(\d{2}), (\d+)\)/);
+            Object.entries(weekData.daily_tasks).forEach(([timeSlot, activity]: [string, string]) => {
 
-                if (dateMatch && timeMatch) {
-                    const [_, day, month] = dateMatch;
-                    const [__, hour, minute, duration] = timeMatch;
+                // Updated regex pattern to match "Friday (24/11), (15:30, 375 minutes)"
+                const match = timeSlot.match(/^([^(]+)\s*\((\d{2})\/(\d{2})\),\s*\((\d{2}):(\d{2}),\s*(\d+)\s*minutes\)$/);
 
-                    const currentYear = new Date().getFullYear();
-                    const scheduledTimestamp = new Date(currentYear, parseInt(month) - 1, parseInt(day), parseInt(hour), parseInt(minute));
+                if (match) {
+                    const [, dayName, day, month, hour, minute, duration] = match;
+                    console.log('Match:', dayName, day, month, hour, minute, duration);
+
+                    const scheduledTimestamp = new Date(
+                        currentYear, parseInt(month) - 1, parseInt(day), parseInt(hour), parseInt(minute)
+                    );
 
                     activities.push({
                         plan_id: planId,
@@ -78,8 +81,9 @@ export const PlanService = {
                         duration: parseInt(duration),
                         status: 'To do'
                     });
+                } else {
+                    console.error('Invalid timeSlot format:', timeSlot);
                 }
-
             });
         });
 

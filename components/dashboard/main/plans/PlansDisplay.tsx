@@ -108,7 +108,7 @@ export default function PlansDisplay() {
                             </div>
                             <div className="flex items-center gap-1 text-sm text-gray-600">
                                 <p className="text-sm text-gray-600 line-clamp-2">
-                                    {plan.goals.join(', ')}
+                                    {plan.goal}
                                 </p>
                             </div>
                         </CardHeader>

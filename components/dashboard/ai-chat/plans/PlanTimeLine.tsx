@@ -35,13 +35,23 @@ const PlanTimeline = ({ plan }: { plan: PlanOpenAI }) => {
 
     const renderDailyTasks = (dailyTasks: Record<string, string>) => {
         const tasksByDay = Object.entries(dailyTasks).reduce((acc, [day, description]) => {
-            const parts = day.match(/([^(]+)\s*\(([^)]+)\),\s*\(([^,]+),\s*(\d+)\)/);
-            const dayName = parts?.[1]?.trim() || '';
-            const date = parts?.[2] || '';
-            const time = parts?.[3] || '';
-            const duration = parts?.[4] || '';
+            console.log("Parsing:", day);
+
+            // Updated regex pattern to correctly extract day, date, time, and duration
+            const parts = day.match(/^([^(]+)\s*\((\d{2}\/\d{2})\),\s*\((\d{2}:\d{2}),\s*(\d+)\s*minutes\)$/);
+
+            if (!parts) {
+                console.error("No match for:", day);
+                return acc;
+            }
+
+            const dayName = parts[1].trim();
+            const date = parts[2];
+            const time = parts[3];
+            const duration = parts[4];
 
             const dayKey = `${dayName} (${date})`;
+
             if (!acc[dayKey]) {
                 acc[dayKey] = [];
             }
@@ -65,6 +75,7 @@ const PlanTimeline = ({ plan }: { plan: PlanOpenAI }) => {
             </div>
         ));
     };
+
 
     return (
         <Card className="w-full max-w-4xl mb-4">

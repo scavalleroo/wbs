@@ -1,31 +1,17 @@
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
+import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Textarea } from '@/components/ui/textarea';
+import { ApiResponse, GoalStep, SmartPlan } from '@/types/plan';
 import { OpenAIService } from '@/utils/openai-service';
 import { format, isBefore, startOfToday } from 'date-fns';
 import { ArrowRightIcon, CalendarIcon, ChevronLeftIcon, ChevronRightIcon, PencilIcon, Sparkles } from 'lucide-react';
-import React, { useState } from 'react';
-
-interface ApiResponse {
-    type: 'text' | 'date';
-    nextText: string;
-    options?: string[];
-    otherPlaceholder?: string;
-    isComplete: boolean;
-    completeGoal?: string;
-}
-
-interface GoalStep {
-    text: string;
-    value: string;
-    type: 'text' | 'date';
-    options?: string[];
-    otherPlaceholder?: string;
-}
+import React, { useEffect, useState } from 'react';
+import NewPlanChat from './NewPlanChat';
 
 const SmartGoalCreator: React.FC = () => {
     const [targetDate, setTargetDate] = useState<Date | undefined>(undefined);
@@ -38,8 +24,9 @@ const SmartGoalCreator: React.FC = () => {
     const [currentStepIndex, setCurrentStepIndex] = useState<number>(0);
     const [isManualEditing, setIsManualEditing] = useState<boolean>(false);
     const [manualGoal, setManualGoal] = useState<string>('');
-    const openAIService = OpenAIService.getInstance();
+    const openAIService = OpenAIService.getInstance(true);
     const [openAIChat, setOpenAIChat] = useState(false);
+    const [smartPlan, setSmartPlan] = useState<SmartPlan | null>(null);
 
     const handleTargetDateChange = async (date: Date | undefined) => {
         if (date) {
@@ -62,10 +49,6 @@ const SmartGoalCreator: React.FC = () => {
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setUserInput(e.target.value);
-    };
-
-    const handleManualGoalChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setManualGoal(e.target.value);
     };
 
     const handleOptionSelect = (value: string) => {
@@ -102,7 +85,7 @@ const SmartGoalCreator: React.FC = () => {
         setLoading(true);
         try {
             const messageGoal = initialGoal || goal;
-            setGoal(messageGoal);
+            setGoal(messageGoal.replace(`[${apiResponse?.otherPlaceholder}]`, userInput));
             const fullResponse = await openAIService.sendMessage(
                 JSON.stringify({ goal: messageGoal, userInput, currentDate: format(new Date(), 'PPP') }),
                 (content) => {
@@ -182,185 +165,225 @@ const SmartGoalCreator: React.FC = () => {
         return currentStepIndex === goalSteps.length - 1 && apiResponse && !apiResponse.isComplete;
     };
 
-    const renderSelectOptions = () => {
-        return (
-            <Select key="options-select" onValueChange={handleOptionSelect} value={userSelect}>
-                <SelectTrigger>
-                    <SelectValue placeholder={apiResponse!.otherPlaceholder ?? "Select an option"} className='text-muted' />
-                </SelectTrigger>
-                <SelectContent>
-                    {apiResponse?.options?.map((option, index) => (
-                        <SelectItem key={index} value={option}>
-                            {option}
-                        </SelectItem>
-                    ))}
-                </SelectContent>
-            </Select>
-        );
-    };
-
     const LoadingGoalText = () => (
         <div className="flex items-center space-x-4">
-            <ArrowRightIcon className="h-4 w-4 text-gray-400" />
-            <div className="space-y-2">
-                <Skeleton className="h-4 w-48" />
-                <Skeleton className="h-4 w-32" />
+            <div className='flex flex-col gap-1 items-left'>
+                <ArrowRightIcon className="h-5 w-5 text-gray-400 dark:text-gray-500" />
+                <span className='text-primary/70 text-xs'>Generating the next step...</span>
+            </div>
+            <div className="space-y-2 shrink-0 flex-1">
+                <Skeleton className="h-5 w-56" />
+                <Skeleton className="h-5 w-40" />
             </div>
         </div>
     );
 
     const LoadingInput = () => (
         <div className="space-y-4 w-full">
-            <Skeleton className="h-10 w-full" />
-            <Skeleton className="h-10 w-24" />
+            <Skeleton className="h-12 w-full" />
+            <Skeleton className="h-12 w-32" />
         </div>
     );
 
-    return (
-        <div className="space-y-4 mx-auto w-full max-w-md">
-            {!goal && (
-                <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium">By</span>
-                    <Popover>
-                        <PopoverTrigger asChild>
-                            <Button variant="outline" className="h-8 text-left font-normal bg-white">
-                                <CalendarIcon className="mr-2 h-4 w-4" />
-                                {targetDate ? format(targetDate, 'PPP') : "Select the target date"}
-                            </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0">
-                            <Calendar
-                                mode="single"
-                                selected={targetDate}
-                                onSelect={handleTargetDateChange}
-                                disabled={(date) => isBefore(date, startOfToday())}
-                                initialFocus
-                            />
-                        </PopoverContent>
-                    </Popover>
-                </div>
-            )}
+    useEffect(() => {
+        if (smartPlan) {
+            setOpenAIChat(true);
+        }
+    }, [smartPlan]);
 
-            {goal && (
-                <div className="space-y-4">
-                    <div className="flex items-center justify-between">
-                        <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => navigateStep('prev')}
-                            disabled={currentStepIndex === 0}
-                        >
-                            <ChevronLeftIcon className="h-4 w-4" />
-                        </Button>
-                        <div className="flex-1 mx-4">
-                            {isManualEditing ? (
-                                <Textarea
-                                    value={manualGoal}
-                                    onChange={(e) => setManualGoal(e.target.value)}
-                                    className="w-full min-h-[100px] resize-none"
-                                    placeholder="Edit your goal..."
-                                />
+    if (openAIChat && smartPlan) {
+        return (
+            <NewPlanChat smartPlan={smartPlan} />
+        );
+    }
+
+    return (
+        <div className="h-full bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+            <div className="w-full max-w-2xl mx-auto px-4 py-8">
+                <div className="space-y-6">
+                    {!goal && (
+                        <div className="flex items-center gap-3 justify-center">
+                            <span className="text-lg font-medium dark:text-gray-200">By</span>
+                            <Popover>
+                                <PopoverTrigger asChild>
+                                    <Button variant="outline" className="h-10 text-left font-normal bg-white dark:bg-gray-800 dark:text-gray-200">
+                                        <CalendarIcon className="mr-2 h-5 w-5" />
+                                        {targetDate ? format(targetDate, 'PPP') : "Select the target date"}
+                                    </Button>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-auto p-0">
+                                    <Calendar
+                                        mode="single"
+                                        selected={targetDate}
+                                        onSelect={handleTargetDateChange}
+                                        disabled={(date) => isBefore(date, startOfToday())}
+                                        initialFocus
+                                        className="dark:bg-gray-800 dark:text-gray-200"
+                                    />
+                                </PopoverContent>
+                            </Popover>
+                        </div>
+                    )}
+
+                    {goal && (
+                        <div className="space-y-6 bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm">
+                            <div className="flex items-center justify-between">
+                                <Button
+                                    variant="ghost"
+                                    size="lg"
+                                    onClick={() => navigateStep('prev')}
+                                    disabled={currentStepIndex === 0}
+                                    className="dark:text-gray-300"
+                                >
+                                    <ChevronLeftIcon className="h-6 w-6" />
+                                </Button>
+                                <div className="flex-1 mx-6">
+                                    {isManualEditing ? (
+                                        <Textarea
+                                            value={manualGoal}
+                                            onChange={(e) => setManualGoal(e.target.value)}
+                                            className="w-full min-h-[120px] resize-none text-lg dark:bg-gray-700 dark:text-gray-200"
+                                            placeholder="Edit your goal..."
+                                        />
+                                    ) : (
+                                        <div className="space-y-3">
+                                            <p className="text-xl font-medium text-gray-900 dark:text-gray-100 text-center">
+                                                {goal}
+                                            </p>
+                                            {loading && <LoadingGoalText />}
+                                        </div>
+                                    )}
+                                </div>
+                                <Button
+                                    variant="ghost"
+                                    size="lg"
+                                    onClick={() => navigateStep('next')}
+                                    disabled={currentStepIndex >= goalSteps.length - 1}
+                                    className="dark:text-gray-300"
+                                >
+                                    <ChevronRightIcon className="h-6 w-6" />
+                                </Button>
+                            </div>
+
+                            <div className="flex justify-between items-center">
+                                <span className="text-base text-gray-600 dark:text-gray-400">
+                                    Step {currentStepIndex + 1}/{goalSteps.length}
+                                </span>
+
+                                {isManualEditing ? (
+                                    <div className="space-x-3">
+                                        <Button
+                                            variant="outline"
+                                            size="lg"
+                                            onClick={() => {
+                                                setIsManualEditing(false);
+                                                setManualGoal(goal);
+                                            }}
+                                            className="dark:bg-gray-700 dark:text-gray-200"
+                                        >
+                                            Cancel
+                                        </Button>
+                                        <Button
+                                            size="lg"
+                                            onClick={handleManualEditSubmit}
+                                            disabled={loading}
+                                            className="dark:bg-blue-600 dark:hover:bg-blue-700"
+                                        >
+                                            {loading ? 'Saving...' : 'Save'}
+                                        </Button>
+                                    </div>
+                                ) : (
+                                    <Button
+                                        variant="outline"
+                                        size="lg"
+                                        onClick={() => setIsManualEditing(true)}
+                                        className="dark:bg-gray-700 dark:text-gray-200"
+                                    >
+                                        <PencilIcon className="h-5 w-5 mr-2" />
+                                        Edit Goal
+                                    </Button>
+                                )}
+                            </div>
+                        </div>
+                    )}
+
+                    {apiResponse && apiResponse.isComplete && (
+                        <Card className="p-6 bg-green-100 dark:bg-green-900">
+                            <p className="text-lg font-medium text-green-800 dark:text-green-200 text-center">
+                                {apiResponse.completeGoal}
+                            </p>
+                        </Card>
+                    )}
+
+                    {shouldShowInputInterface() && !isManualEditing && (
+                        <div className="space-y-4">
+                            {loading ? (
+                                <LoadingInput />
                             ) : (
-                                <div className="space-y-2">
-                                    <p className="text-base">{goal}</p>
-                                    {loading && <LoadingGoalText />}
+                                <div className="space-y-4">
+                                    {apiResponse?.type === 'text' ? (
+                                        <div className="space-y-3">
+                                            {apiResponse.options && (
+                                                <Select onValueChange={handleOptionSelect} value={userSelect}>
+                                                    <SelectTrigger className="w-full h-12 text-lg dark:bg-gray-700 dark:text-gray-200">
+                                                        <SelectValue className='text-primary/60' placeholder={apiResponse.otherPlaceholder ? apiResponse.otherPlaceholder.charAt(0).toUpperCase() + apiResponse.otherPlaceholder.slice(1) : "Select an option"} />
+                                                    </SelectTrigger>
+                                                    <SelectContent className="dark:bg-gray-800">
+                                                        {apiResponse.options.map((option, index) => (
+                                                            <SelectItem key={index} value={option}>
+                                                                {option.charAt(0).toUpperCase() + option.slice(1)}
+                                                            </SelectItem>
+                                                        ))}
+                                                    </SelectContent>
+                                                </Select>
+                                            )}
+                                            {userSelect === 'other' && (
+                                                <Input
+                                                    type="text"
+                                                    value={userInput}
+                                                    onChange={handleInputChange}
+                                                    placeholder={apiResponse.otherPlaceholder!.charAt(0).toUpperCase() + apiResponse.otherPlaceholder!.slice(1)}
+                                                    className="h-12 text-lg dark:bg-gray-700 dark:text-gray-200"
+                                                    style={{ fontSize: '1.1rem' }}
+                                                />
+                                            )}
+                                        </div>
+                                    ) : (
+                                        <Input
+                                            type="date"
+                                            value={userInput}
+                                            onChange={handleInputChange}
+                                            className="h-12 text-lg dark:bg-gray-700 dark:text-gray-200"
+                                        />
+                                    )}
+                                    <Button
+                                        onClick={() => handleSubmit()}
+                                        disabled={loading}
+                                        size="lg"
+                                        className="w-full text-lg dark:bg-blue-600 dark:hover:bg-blue-700"
+                                    >
+                                        {loading ? 'Processing...' : 'Next'}
+                                    </Button>
                                 </div>
                             )}
                         </div>
+                    )}
+
+                    {apiResponse?.isComplete && (
                         <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => navigateStep('next')}
-                            disabled={currentStepIndex >= goalSteps.length - 1}
+                            onClick={() => setSmartPlan({
+                                text: goal,
+                                end_date: targetDate
+                            })}
+                            size="lg"
+                            className="w-full text-lg text-white bg-purple-800 hover:bg-purple-900"
                         >
-                            <ChevronRightIcon className="h-4 w-4" />
+                            <Sparkles size={20} className="mr-2" />
+                            Generate plan with AI
                         </Button>
-                    </div>
-
-                    <div className="flex justify-between items-center">
-                        <span className="text-sm text-gray-500">
-                            Step {currentStepIndex + 1}/{goalSteps.length}
-                        </span>
-
-                        {isManualEditing ? (
-                            <div className="space-x-2">
-                                <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => {
-                                        setIsManualEditing(false);
-                                        setManualGoal(goal);
-                                    }}
-                                >
-                                    Cancel
-                                </Button>
-                                <Button
-                                    size="sm"
-                                    onClick={handleManualEditSubmit}
-                                    disabled={loading}
-                                >
-                                    {loading ? 'Saving...' : 'Save'}
-                                </Button>
-                            </div>
-                        ) : (
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => setIsManualEditing(true)}
-                            >
-                                <PencilIcon className="h-4 w-4 mr-2" />
-                                Edit Goal
-                            </Button>
-                        )}
-                    </div>
-                </div>
-            )}
-
-            {apiResponse && apiResponse.isComplete && (
-                <p className="text-green-600 font-medium">{apiResponse.completeGoal}</p>
-            )}
-
-            {shouldShowInputInterface() && !isManualEditing && (
-                <div className="space-y-4">
-                    {loading ? (
-                        <LoadingInput />
-                    ) : (
-                        <>
-                            {apiResponse?.type === 'text' ? (
-                                <div className="space-y-2">
-                                    {apiResponse.options && renderSelectOptions()}
-                                    {userSelect === 'other' && (
-                                        <Input
-                                            type="text"
-                                            value={userInput}
-                                            onChange={handleInputChange}
-                                            placeholder={apiResponse.otherPlaceholder}
-                                        />
-                                    )}
-                                </div>
-                            ) : (
-                                <Input
-                                    type="date"
-                                    value={userInput}
-                                    onChange={handleInputChange}
-                                />
-                            )}
-                            <Button onClick={() => handleSubmit()} disabled={loading}>
-                                {loading ? 'Processing...' : 'Next'}
-                            </Button>
-                        </>
                     )}
                 </div>
-            )}
-
-            {apiResponse?.isComplete && (
-                <Button
-                    onClick={() => setOpenAIChat(true)}
-                >
-                    <Sparkles size={16} />
-                    Generate plan with AI
-                </Button>
-            )}
+            </div>
         </div>
     );
 };

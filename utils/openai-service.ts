@@ -9,6 +9,7 @@ export class OpenAIService {
     private assistant: Assistant | null = null;
     private thread: Thread | null = null;
     private initializationPromise: Promise<void>;
+    private smartGoal: boolean;
 
     public constructor(smartGoal: boolean = false) {
         this.openaiClient = new OpenAI({
@@ -16,13 +17,18 @@ export class OpenAIService {
             dangerouslyAllowBrowser: true,
         });
 
+        this.smartGoal = smartGoal;
         this.initializationPromise = this.initializeAssistant(smartGoal);
     }
 
     private async initializeAssistant(smartGoal: boolean): Promise<void> {
         try {
+            this.smartGoal = smartGoal;
             this.assistant = await this.openaiClient.beta.assistants.retrieve(
-                process.env.NEXT_PUBLIC_OPENAI_ASSISTANT_ID_SMART_GOAL!
+                smartGoal ?
+                    process.env.NEXT_PUBLIC_OPENAI_ASSISTANT_ID_SMART_GOAL!
+                    :
+                    process.env.NEXT_PUBLIC_OPENAI_ASSISTANT_ID!
             );
         } catch (error) {
             console.error('Failed to initialize assistant:', error);
@@ -31,7 +37,8 @@ export class OpenAIService {
     }
 
     public static getInstance(smartGoal: boolean = false): OpenAIService {
-        if (!OpenAIService.instance) {
+        const isInstance = OpenAIService.instance;
+        if (!isInstance || isInstance.smartGoal !== smartGoal) {
             OpenAIService.instance = new OpenAIService(smartGoal);
         }
         return OpenAIService.instance;
@@ -66,10 +73,15 @@ export class OpenAIService {
                 content: input
             });
 
+            console.log("Smart goal:", this.smartGoal);
+
             const stream = await this.openaiClient.beta.threads.runs.create(
                 thread.id,
                 {
-                    assistant_id: process.env.NEXT_PUBLIC_OPENAI_ASSISTANT_ID_SMART_GOAL!,
+                    assistant_id: this.smartGoal ?
+                        process.env.NEXT_PUBLIC_OPENAI_ASSISTANT_ID_SMART_GOAL!
+                        :
+                        process.env.NEXT_PUBLIC_OPENAI_ASSISTANT_ID!,
                     stream: true
                 }
             );

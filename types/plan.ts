@@ -192,3 +192,25 @@ export const STEPS = {
     END_DATE: 'end_date',
     COMPLETE: 'complete'
 };
+
+export interface ApiResponse {
+    type: 'text' | 'date';
+    nextText: string;
+    options?: string[];
+    otherPlaceholder?: string;
+    isComplete: boolean;
+    completeGoal?: string;
+}
+
+export interface GoalStep {
+    text: string;
+    value: string;
+    type: 'text' | 'date';
+    options?: string[];
+    otherPlaceholder?: string;
+}
+
+export interface SmartPlan {
+    text: string;
+    end_date: Date | undefined;
+}

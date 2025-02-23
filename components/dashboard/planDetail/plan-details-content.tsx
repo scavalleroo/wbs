@@ -34,7 +34,7 @@ export default function PlanDetailsContent({ planData }: { planData: Plan }) {
     const [isDeleting, setIsDeleting] = useState(false);
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLInputElement>(null);
-    const openAIService = OpenAIService.getInstance();
+    const openAIService = OpenAIService.getInstance(false);
     const router = useRouter();
 
     useEffect(() => {

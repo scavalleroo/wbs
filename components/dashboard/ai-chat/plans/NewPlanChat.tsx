@@ -1,22 +1,22 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Loader2, Send, ChevronLeft, Check } from 'lucide-react';
+import { Loader2, Send, ChevronLeft } from 'lucide-react';
 import { MessageBubble } from './MessageBubble';
 import { usePlanInitialization } from '@/hooks/usePlanInitialization';
 import { OpenAIService } from '@/utils/openai-service';
-import { Message, MessageConstructor, Plan } from '@/types/plan';
+import { Message, MessageConstructor, SmartPlan } from '@/types/plan';
 import PlanTimeline from './PlanTimeLine';
 
 
-export default function NewPlanChat({ planData }: { planData: Plan }) {
+export default function NewPlanChat({ smartPlan }: { smartPlan: SmartPlan }) {
     const [messages, setMessages] = useState<Message[]>([]);
     const [input, setInput] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLInputElement>(null);
-    const openAIService = OpenAIService.getInstance();
-    const { error, isInitializing } = usePlanInitialization(planData, setMessages);
+    const openAIService = OpenAIService.getInstance(false);
+    const { error, isInitializing } = usePlanInitialization(smartPlan, setMessages);
 
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -125,17 +125,6 @@ export default function NewPlanChat({ planData }: { planData: Plan }) {
                         <ChevronLeft size={16} />
                         Back
                     </Button>
-                    {/* {!isLoading && !isInitializing && (
-                        <Button
-                            type="submit"
-                            variant="default"
-                            className="bg-green-700 hover:bg-green-600 dark:bg-green-600 dark:hover:bg-green-500"
-                            disabled={isLoading || isInitializing}
-                        >
-                            <Check className="h-4 w-4 mr-2" />
-                            <span>Activate Plan</span>
-                        </Button>
-                    )} */}
                 </div>
             </div>
         </div>

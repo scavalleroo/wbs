@@ -1,13 +1,13 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { OpenAIService } from '@/utils/openai-service';
 import { format } from 'date-fns';
 import { createClient } from '@/utils/supabase/client';
-import { Message, MessageConstructor, Plan } from '../types/plan';
+import { Message, MessageConstructor, SmartPlan } from '../types/plan';
 
-export const usePlanInitialization = (planData: Plan, onStreamUpdate: (messages: Message[]) => void) => {
+export const usePlanInitialization = (smartPlan: SmartPlan, onStreamUpdate: (messages: Message[]) => void) => {
     const [error, setError] = useState<Error | null>(null);
     const supabase = createClient();
-    const openAIService = OpenAIService.getInstance();
+    const openAIService = OpenAIService.getInstance(false);
     const [isInitializing, setIsInitializing] = useState(false);
 
     useEffect(() => {
@@ -27,7 +27,7 @@ export const usePlanInitialization = (planData: Plan, onStreamUpdate: (messages:
                     const { data: { user } } = await supabase.auth.getUser();
                     if (!user) throw new Error('No user found');
 
-                    const prompt = generateInitialPrompt(planData);
+                    const prompt = smartPlan.text + ". Current date and time: " + format(new Date(), 'MMMM d, yyyy, HH:mm:ss');
 
                     let assistantResponse = '';
                     if (isMounted) {
@@ -56,7 +56,7 @@ export const usePlanInitialization = (planData: Plan, onStreamUpdate: (messages:
                         if (!newThreadID) throw new Error('Failed to create thread');
 
                         // Pass the responseTitle to createPlanInDatabase
-                        await createPlanInDatabase(user.id, newThreadID, planData, responseTitle);
+                        await createPlanInDatabase(user.id, newThreadID, smartPlan, responseTitle);
                         console.log('Plan initialization completed successfully');
                     }
                 }
@@ -77,23 +77,15 @@ export const usePlanInitialization = (planData: Plan, onStreamUpdate: (messages:
         return () => {
             isMounted = false;
         };
-    }, [planData, onStreamUpdate]);
+    }, [smartPlan, onStreamUpdate]);
 
     return { error, isInitializing };
-};
-
-const generateInitialPrompt = (planData: Plan): string => {
-    return `Goal: ${planData.goal} 
-    Readiness Level: ${planData.user_resources}
-    Deadline: ${format(planData.end_date || new Date(), 'MMMM d, yyyy')}
-    Current Date: ${format(new Date(), 'MMMM d, yyyy')}, and today is ${format(new Date(), 'EEEE')}
-    Current Time: ${format(new Date(), 'HH:mm:ss')}`;
 };
 
 const createPlanInDatabase = async (
     userId: string,
     threadId: string,
-    planData: Plan,
+    smartPlan: SmartPlan,
     responseTitle?: string
 ) => {
     const supabase = createClient();
@@ -101,11 +93,10 @@ const createPlanInDatabase = async (
         .from('plans')
         .insert({
             user_id: userId,
-            goals: planData.goal,
-            end_date: planData.end_date ? format(planData.end_date, 'yyyy-MM-dd') : null,
+            goal: smartPlan.text,
+            end_date: smartPlan.end_date ? format(smartPlan.end_date, 'yyyy-MM-dd') : null,
             thread_id: threadId,
-            title: responseTitle || planData.title, // Use responseTitle if available, fall back to planData.title
-            user_resources: planData.user_resources,
+            title: responseTitle!, // Use responseTitle if available, fall back to planData.title
             start_date: format(new Date(), 'yyyy-MM-dd')
         });
 

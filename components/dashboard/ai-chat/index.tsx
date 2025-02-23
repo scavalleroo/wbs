@@ -1,6 +1,5 @@
 'use client';
 
-import PlanCreationWizard from "./plans/PlanCreationWizard";
 import DashboardLayout from "@/components/layout";
 import { User } from "@supabase/supabase-js";
 import SmartGoalForm from "./plans/GoalCreation";

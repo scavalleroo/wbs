@@ -13,7 +13,7 @@ export const routes: IRoute[] = [
     icon: (
       <Sparkles className="-mt-[7px] h-4 w-4 stroke-2 text-inherit" />
     ),
-    collapse: false
+    collapse: false,
   },
   {
     name: 'Calendar',

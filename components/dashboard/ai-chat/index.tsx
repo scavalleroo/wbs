@@ -3,6 +3,7 @@
 import PlanCreationWizard from "./plans/PlanCreationWizard";
 import DashboardLayout from "@/components/layout";
 import { User } from "@supabase/supabase-js";
+import SmartGoalForm from "./plans/GoalCreation";
 
 interface Props {
   user: User | null | undefined;
@@ -16,7 +17,7 @@ export default function Chat(props: Props) {
       title="AI Generator"
       description="AI Generator"
     >
-      <PlanCreationWizard />
+      <SmartGoalForm />
     </DashboardLayout>
   );
 }

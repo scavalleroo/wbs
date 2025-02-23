@@ -40,7 +40,7 @@ export const GoalsStep: React.FC<GoalsStepProps> = ({ planData, onGoalsUpdate })
                         }}
                         className="flex-1 p-4 border rounded"
                         style={{ fontSize: '1rem' }}
-                        placeholder={`${planData.goals.length > 0 ? 'Want to add another goal?' : 'Can you describe your goal in one sentence?'}`}
+                        placeholder={`${planData.goal.length > 0 ? 'Want to add another goal?' : 'Can you describe your goal in one sentence?'}`}
                     />
                     <Button
                         onClick={handleAddGoal}

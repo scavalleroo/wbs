@@ -10,19 +10,19 @@ export class OpenAIService {
     private thread: Thread | null = null;
     private initializationPromise: Promise<void>;
 
-    private constructor() {
+    public constructor(smartGoal: boolean = false) {
         this.openaiClient = new OpenAI({
             apiKey: process.env.NEXT_PUBLIC_OPENAI_API_KEY,
             dangerouslyAllowBrowser: true,
         });
 
-        this.initializationPromise = this.initializeAssistant();
+        this.initializationPromise = this.initializeAssistant(smartGoal);
     }
 
-    private async initializeAssistant(): Promise<void> {
+    private async initializeAssistant(smartGoal: boolean): Promise<void> {
         try {
             this.assistant = await this.openaiClient.beta.assistants.retrieve(
-                process.env.NEXT_PUBLIC_OPENAI_ASSISTANT_ID!
+                process.env.NEXT_PUBLIC_OPENAI_ASSISTANT_ID_SMART_GOAL!
             );
         } catch (error) {
             console.error('Failed to initialize assistant:', error);
@@ -30,9 +30,9 @@ export class OpenAIService {
         }
     }
 
-    public static getInstance(): OpenAIService {
+    public static getInstance(smartGoal: boolean = false): OpenAIService {
         if (!OpenAIService.instance) {
-            OpenAIService.instance = new OpenAIService();
+            OpenAIService.instance = new OpenAIService(smartGoal);
         }
         return OpenAIService.instance;
     }
@@ -60,6 +60,7 @@ export class OpenAIService {
             await this.ensureInitialized();
             const thread = await this.ensureThread();
 
+            console.log('Sending message:', input);
             await this.openaiClient.beta.threads.messages.create(thread.id, {
                 role: "user",
                 content: input
@@ -68,7 +69,7 @@ export class OpenAIService {
             const stream = await this.openaiClient.beta.threads.runs.create(
                 thread.id,
                 {
-                    assistant_id: process.env.NEXT_PUBLIC_OPENAI_ASSISTANT_ID!,
+                    assistant_id: process.env.NEXT_PUBLIC_OPENAI_ASSISTANT_ID_SMART_GOAL!,
                     stream: true
                 }
             );

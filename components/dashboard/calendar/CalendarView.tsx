@@ -9,6 +9,7 @@ import { MonthView } from './MonthView';
 import { WeekViewTimeGrid } from './WeekView/WeekViewTimeGrid';
 import { DayView } from './DayView';
 import { CalendarHeader } from './CalendarHeader';
+import { toast } from '@/hooks/use-toast';
 
 const CalendarView = () => {
     const [currentDate, setCurrentDate] = useState(new Date());
@@ -85,6 +86,30 @@ const CalendarView = () => {
         );
     };
 
+    const handleActivityUpdate = async (updatedActivity: PlanActivity) => {
+        try {
+            await PlanService.updateActivity(updatedActivity);
+            // Update the local state
+            setActivities(prevActivities =>
+                prevActivities.map(activity =>
+                    activity.id === updatedActivity.id ? updatedActivity : activity
+                )
+            );
+            toast({
+                title: "Success",
+                description: "Activity updated successfully",
+                variant: "default",
+            });
+        } catch (error) {
+            console.error("Error updating activity:", error);
+            toast({
+                title: "Error",
+                description: "Failed to update activity",
+                variant: "destructive",
+            });
+        }
+    };
+
     const renderContent = () => {
         if (isLoading) {
             return (
@@ -98,7 +123,7 @@ const CalendarView = () => {
             case 'month':
                 return <MonthView currentDate={currentDate} activities={activities} />;
             case 'week':
-                return <WeekViewTimeGrid currentDate={currentDate} activities={activities} />;
+                return <WeekViewTimeGrid currentDate={currentDate} activities={activities} onActivityUpdate={handleActivityUpdate} />;
             case 'day':
                 return <DayView currentDate={currentDate} activities={getDayActivities(currentDate)} />;
             default:

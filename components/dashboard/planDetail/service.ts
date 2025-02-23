@@ -128,5 +128,27 @@ export const PlanService = {
         }
 
         return activities || [];
+    },
+
+    async updateActivity(updatedActivity: PlanActivity) {
+        const supabase = createClient();
+        const { data, error } = await supabase
+            .from('plan_activities')
+            .update({
+                updated_at: new Date(),
+                scheduled_timestamp: updatedActivity.scheduled_timestamp,
+                description: updatedActivity.description,
+                duration: updatedActivity.duration,
+                status: updatedActivity.status
+            })
+            .eq('id', updatedActivity.id)
+            .single();
+
+        if (error) {
+            console.error('Error updating activity:', error);
+            throw error;
+        }
+
+        return data;
     }
 };

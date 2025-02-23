@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useMemo } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ChevronRight, ChevronLeft, Book, Dumbbell, Utensils, Users, Plus, Palmtree, Sparkles } from 'lucide-react';
+import { ChevronRight, ChevronLeft, Sparkles } from 'lucide-react';
 
 import { GoalsStep } from './GoalsStep';
 import { Plan } from '@/types/plan';
@@ -19,12 +19,16 @@ const PlanCreationWizard = () => {
         title: '',
         user_resources: '',
         end_date: undefined,
-        goals: [],
+        goal: '',
         status: 'creation',
         created_at: '',
         updated_at: '',
         thread_id: null,
-        start_date: undefined
+        start_date: undefined,
+        action: '',
+        objective: '',
+        outcome: '',
+        criteria: '',
     });
 
     const stepsTitle = useMemo(() => [
@@ -47,7 +51,7 @@ const PlanCreationWizard = () => {
 
     function isNextDisabled() {
         if (step === 1) {
-            return planData.goals.length === 0;
+            return planData.goal.length === 0;
         }
 
         if (step === 2) {

@@ -72,12 +72,6 @@ function Sidebar(props: SidebarProps) {
                 <h5 className="me-2 text-2xl font-bold leading-5 text-zinc-950 dark:text-white">
                   Weko
                 </h5>
-                {/* <Badge
-                  variant="outline"
-                  className="my-auto w-max px-2 py-0.5 text-xs text-zinc-950 dark:border-none dark:bg-zinc-800 dark:text-white"
-                >
-                  FREE
-                </Badge> */}
               </div>
               <div className="mb-8 mt-8 h-px bg-zinc-200 dark:bg-white/10" />
               {/* Nav item */}

@@ -2,11 +2,6 @@
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuTrigger
-} from '@/components/ui/dropdown-menu';
 import { OpenContext, UserContext } from '@/contexts/layout';
 import { getRedirectMethod } from '@/utils/auth-helpers/settings';
 import { useTheme } from 'next-themes';
@@ -16,7 +11,6 @@ import { FiAlignJustify } from 'react-icons/fi';
 import {
   HiOutlineMoon,
   HiOutlineSun,
-  HiOutlineInformationCircle,
   HiOutlineArrowRightOnRectangle
 } from 'react-icons/hi2';
 import { createClient } from '@/utils/supabase/client';
@@ -29,7 +23,7 @@ export default function HeaderLinks(props: { [x: string]: any }) {
   const [mounted, setMounted] = useState(false);
   const router = getRedirectMethod() === 'client' ? useRouter() : null;
   const onOpen = () => {
-    setOpen(false);
+    setOpen(true);
   };
 
   // Ensures this component is rendered only on the client

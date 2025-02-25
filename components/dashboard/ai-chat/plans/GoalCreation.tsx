@@ -7,9 +7,16 @@ import { ResponsiveDatePicker } from './components/ResposiveDatePicker';
 import { GoalCard } from './components/GoalCard';
 import { InputInterface } from './components/InputInterface';
 import { GenerateAIButton } from './components/GenerateAIButton';
+import { LoadingGoalText, LoadingInput } from './components/LoadingGoalsText';
+import { Button } from '@/components/ui/button';
+import { init } from 'next/dist/compiled/webpack/webpack';
 
 const SmartGoalCreator: React.FC = () => {
-    const [targetDate, setTargetDate] = useState<Date | undefined>(undefined);
+    const [targetDate, setTargetDate] = useState<Date | undefined>(() => {
+        const date = new Date();
+        date.setMonth(date.getMonth() + 1);
+        return date;
+    });
     const [goal, setGoal] = useState<string>('');
     const [apiResponse, setApiResponse] = useState<ApiResponse | null>(null);
     const [userInput, setUserInput] = useState<string>('');
@@ -24,10 +31,11 @@ const SmartGoalCreator: React.FC = () => {
     const [smartPlan, setSmartPlan] = useState<SmartPlan | null>(null);
 
     const handleTargetDateChange = async (date: Date | undefined) => {
+        console.log('Selected date:', date);
         if (date) {
             setTargetDate(date);
             const formattedDate = format(date, 'PPP');
-            const initialGoal = `By ${formattedDate}, I aim to...`;
+            const initialGoal = `By ${formattedDate}, I aim to`;
             setGoal(initialGoal);
             setUserInput(initialGoal);
             setManualGoal(initialGoal);
@@ -81,7 +89,7 @@ const SmartGoalCreator: React.FC = () => {
         try {
             setGoal(goal.replace(`[${apiResponse?.otherPlaceholder}]`, userInput));
             const fullResponse = await openAIService.sendMessage(
-                JSON.stringify({ goal: goal, userInput, currentDate: format(new Date(), 'PPP') }),
+                JSON.stringify({ goal: initialGoal ? initialGoal : goal, userInput, currentDate: format(new Date(), 'PPP') }),
                 (content) => {
                     console.log('Stream update:', content);
                 }
@@ -165,6 +173,10 @@ const SmartGoalCreator: React.FC = () => {
         }
     }, [smartPlan]);
 
+    useEffect(() => {
+        console.log('Goal:', goal);
+    }, [goal]);
+
     if (openAIChat && smartPlan) {
         return <NewPlanChat smartPlan={smartPlan} />;
     }
@@ -175,11 +187,42 @@ const SmartGoalCreator: React.FC = () => {
                 <div className="space-y-6">
                     {/* Date Picker (shown only when no goal is set) */}
                     {!goal && (
-                        <ResponsiveDatePicker
-                            targetDate={targetDate}
-                            handleTargetDateChange={handleTargetDateChange}
-                        />
+                        <div>
+                            <div className="space-y-4 sm:space-y-6 bg-white dark:bg-gray-800 rounded-lg p-3 sm:p-6 shadow-sm mb-4">
+                                <div className="flex flex-col items-center justify-center">
+                                    {!loading && (
+                                        <h1 className='font-bold capitalize hover:text-zinc-950 dark:hover:text-white mb-4'>Pick the day to start</h1>
+                                    )}
+
+                                    <ResponsiveDatePicker
+                                        targetDate={targetDate}
+                                        handleTargetDateChange={handleTargetDateChange}
+                                    />
+
+                                    {loading && (
+                                        <div className='mt-4 w-full flex flex-col items-center justify-center gap-4'>
+                                            <LoadingGoalText />
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+
+                            {loading && (
+                                <LoadingInput />
+                            )}
+
+                            <Button
+                                onClick={() => handleTargetDateChange(targetDate)}
+                                disabled={loading}
+                                size="default"
+                                className="sm:size-lg w-full text-base sm:text-lg dark:bg-blue-600 dark:hover:bg-blue-700 mt-4"
+                            >
+                                {loading ? 'Generating the next step...' : 'Next'}
+                            </Button>
+
+                        </div>
                     )}
+
 
                     {/* Goal Card (shown when a goal is set) */}
                     {goal && (

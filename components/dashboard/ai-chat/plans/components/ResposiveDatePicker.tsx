@@ -23,10 +23,12 @@ export const ResponsiveDatePicker = ({ targetDate, handleTargetDateChange }: { t
                         onSelect={handleTargetDateChange}
                         disabled={(date) => isBefore(date, startOfToday())}
                         initialFocus
+                        defaultMonth={targetDate}
                         className="dark:bg-gray-800 dark:text-gray-200"
                     />
                 </PopoverContent>
             </Popover>
+            <span className="text-base sm:text-lg font-medium dark:text-gray-200">, I am to...</span>
         </div>
     );
 };

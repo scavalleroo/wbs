@@ -14,7 +14,7 @@ export default function NewPlanChat({ smartPlan }: { smartPlan: SmartPlan }) {
     const [input, setInput] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const messagesEndRef = useRef<HTMLDivElement>(null);
-    const inputRef = useRef<HTMLInputElement>(null);
+    const inputRef = useRef<HTMLTextAreaElement>(null);
     const openAIService = OpenAIService.getInstance(false);
     const { error, isInitializing } = usePlanInitialization(smartPlan, setMessages);
 
@@ -78,9 +78,9 @@ export default function NewPlanChat({ smartPlan }: { smartPlan: SmartPlan }) {
     }
 
     return (
-        <div className="flex flex-col h-[calc(100vh-140px)] max-h-screen bg-secondary-100">
+        <div className="flex flex-col md:h-[calc(100vh-118px)] h-[calc(100vh-90px)] max-h-screen bg-secondary-100">
             <div className="flex-1 overflow-y-auto p-4">
-                <div className="max-w-3xl mx-auto">
+                <div className="mx-auto">
                     {messages.map((message, index) => (
                         message.role === 'assistant' ? (
                             message.response?.plan &&
@@ -94,38 +94,51 @@ export default function NewPlanChat({ smartPlan }: { smartPlan: SmartPlan }) {
             </div>
 
             <div className="p-4 bg-background border-t border-border">
-                <form onSubmit={handleSubmit} className="max-w-3xl mx-auto flex gap-2">
-                    <Input
-                        ref={inputRef}
-                        value={input}
-                        onChange={(e) => setInput(e.target.value)}
-                        placeholder="Ask for plan changes..."
-                        disabled={isLoading || isInitializing}
-                        className="flex-1 p-4 bg-background"
-                        style={{ fontSize: '1.1rem' }}
-                    />
-                    <Button
-                        type="submit"
-                        disabled={isLoading || isInitializing}
-                        variant="default"
-                    >
-                        {isLoading || isInitializing ? (
-                            <Loader2 className="h-4 w-4 animate-spin" />
-                        ) : (
-                            <Send className="h-4 w-4" />
-                        )}
-                    </Button>
+                <form onSubmit={handleSubmit} className="max-w-3xl mx-auto">
+                    <div className="flex gap-2 items-end">
+                        <div className="flex-1 relative">
+                            <textarea
+                                ref={inputRef}
+                                value={input}
+                                onChange={(e) => {
+                                    setInput(e.target.value);
+                                    // Auto-resize the textarea
+                                    e.target.style.height = 'auto';
+                                    e.target.style.height = `${Math.min(e.target.scrollHeight, 200)}px`;
+                                }}
+                                placeholder="Ask for plan changes..."
+                                disabled={isLoading || isInitializing}
+                                className="w-full p-4 resize-none overflow-hidden rounded-md border border-input bg-background ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                                style={{
+                                    fontSize: '1.1rem',
+                                    minHeight: '56px',
+                                    maxHeight: '200px'
+                                }}
+                                rows={1}
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter' && !e.shiftKey) {
+                                        e.preventDefault();
+                                        if (input.trim() && !isLoading && !isInitializing) {
+                                            handleSubmit(e);
+                                        }
+                                    }
+                                }}
+                            />
+                        </div>
+                        <Button
+                            type="submit"
+                            disabled={isLoading || isInitializing}
+                            variant="default"
+                            className="h-10 w-10 p-0 flex-shrink-0"
+                        >
+                            {isLoading || isInitializing ? (
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                                <Send className="h-4 w-4" />
+                            )}
+                        </Button>
+                    </div>
                 </form>
-                <div className='flex flex-row justify-between mt-2'>
-                    <Button
-                        onClick={() => window.history.back()}
-                        className="flex items-center gap-2"
-                        variant="outline"
-                    >
-                        <ChevronLeft size={16} />
-                        Back
-                    </Button>
-                </div>
             </div>
         </div>
     );

@@ -21,7 +21,7 @@ export const CalendarHeader: React.FC<CalendarHeaderProps> = ({
     onPrevious,
     onNext,
 }) => (
-    <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+    <div className="flex flex-row justify-between items-center gap-4">
         <div className="flex gap-2">
             <Button onClick={onToday} variant="outline" className="flex gap-2">
                 <CalendarIcon className="h-4 w-4" />
@@ -34,11 +34,11 @@ export const CalendarHeader: React.FC<CalendarHeaderProps> = ({
                 <ChevronRight className="h-4 w-4" />
             </Button>
         </div>
-        <div className="text-xl font-semibold">
-            {view === 'month' && format(currentDate, 'MMMM yyyy')}
-            {view === 'week' && `Week of ${format(startOfWeek(currentDate), 'MMM d, yyyy')}`}
-            {view === 'day' && format(currentDate, 'MMMM d, yyyy')}
-        </div>
+        {view !== 'day' && (
+            <div className="text-base">
+                {format(currentDate, 'MMMM yyyy')}
+            </div>
+        )}
         <Select value={view} onValueChange={onViewChange}>
             <SelectTrigger className="w-32">
                 <SelectValue />

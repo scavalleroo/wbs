@@ -10,6 +10,7 @@ import { WeekViewTimeGrid } from './WeekView/WeekViewTimeGrid';
 import { DayView } from './DayView';
 import { CalendarHeader } from './CalendarHeader';
 import { toast } from '@/hooks/use-toast';
+import { DayViewTimeGrid } from './DayView/DayViewTimeGrid';
 
 const CalendarView = () => {
     const [currentDate, setCurrentDate] = useState(new Date());
@@ -125,7 +126,7 @@ const CalendarView = () => {
             case 'week':
                 return <WeekViewTimeGrid currentDate={currentDate} activities={activities} onActivityUpdate={handleActivityUpdate} />;
             case 'day':
-                return <DayView currentDate={currentDate} activities={getDayActivities(currentDate)} />;
+                return <DayViewTimeGrid currentDate={currentDate} activities={getDayActivities(currentDate)} />;
             default:
                 return null;
         }

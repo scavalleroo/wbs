@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Loader2, Send, ChevronLeft, Check, MoreVertical, Trash2 } from 'lucide-react';
+import { Loader2, Send, ChevronLeft, Check, MoreVertical, Trash2, CalendarPlus } from 'lucide-react';
 import { OpenAIService } from '@/utils/openai-service';
 import { Message, MessageConstructor, Plan, PlanOpenAI } from '@/types/plan';
 import PlanTimeline from '../ai-chat/plans/PlanTimeLine';
@@ -10,6 +10,7 @@ import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
+    DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { useRouter } from 'next/navigation';
@@ -33,7 +34,7 @@ export default function PlanDetailsContent({ planData }: { planData: Plan }) {
     const [showDeleteAlert, setShowDeleteAlert] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
     const messagesEndRef = useRef<HTMLDivElement>(null);
-    const inputRef = useRef<HTMLInputElement>(null);
+    const inputRef = useRef<HTMLTextAreaElement>(null);
     const openAIService = OpenAIService.getInstance(false);
     const router = useRouter();
 
@@ -169,9 +170,9 @@ export default function PlanDetailsContent({ planData }: { planData: Plan }) {
     };
 
     return (
-        <div className="flex flex-col h-[calc(100vh-140px)] max-h-screen bg-secondary-100 w-full">
+        <div className="flex flex-col md:h-[calc(100vh-118px)] h-[calc(100vh-90px)] max-h-screen bg-secondary-100 w-full">
             <div className="flex-1 overflow-y-auto p-4">
-                <div className="max-w-3xl mx-auto">
+                <div className="mx-auto">
                     {isLoadingMessages ? (
                         <div className="flex justify-center items-center h-32">
                             <Loader2 className="h-8 w-8 animate-spin" />
@@ -190,45 +191,52 @@ export default function PlanDetailsContent({ planData }: { planData: Plan }) {
                 </div>
             </div>
 
-            <div className="p-4 bg-white border-t">
-                <form onSubmit={handleSubmit} className="max-w-3xl mx-auto flex gap-2">
-                    <Input
-                        ref={inputRef}
-                        value={input}
-                        onChange={(e) => setInput(e.target.value)}
-                        placeholder="Ask for plan changes..."
-                        disabled={isLoading || isLoadingMessages}
-                        className="flex-1 p-4"
-                        style={{ fontSize: '1.1rem' }}
-                    />
-                    <Button type="submit" disabled={isLoading || isLoadingMessages}>
-                        {isLoading ? (
-                            <Loader2 className="h-4 w-4 animate-spin" />
-                        ) : (
-                            <Send className="h-4 w-4" />
-                        )}
-                    </Button>
-                </form>
-                <div className='flex flex-row justify-between mt-2'>
-                    <Button
-                        onClick={() => window.history.back()}
-                        className="flex items-center gap-2"
-                        variant="outline"
-                    >
-                        <ChevronLeft size={16} />
-                        Back
-                    </Button>
-                    <div className="flex items-center gap-2">
-                        {!isLoading && !isLoadingMessages && (
+            <div className="p-2 bg-white border-t">
+                <div className="flex justify-between items-center max-w-full px-4">
+                    <div className="flex-1 max-w-3xl mx-auto">
+                        <form onSubmit={handleSubmit} className="flex gap-2 items-center">
+                            <div className="flex-1 relative">
+                                <textarea
+                                    ref={inputRef}
+                                    value={input}
+                                    onChange={(e) => {
+                                        setInput(e.target.value);
+                                        e.target.style.height = 'auto';
+                                        e.target.style.height = `${Math.min(e.target.scrollHeight, 200)}px`;
+                                    }}
+                                    placeholder="Ask for plan changes..."
+                                    disabled={isLoading || isLoadingMessages}
+                                    className="w-full p-4 resize-none overflow-hidden rounded-md border border-input bg-background ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                                    style={{
+                                        fontSize: '1.1rem',
+                                        minHeight: '56px',
+                                        maxHeight: '200px'
+                                    }}
+                                    rows={1}
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Enter' && !e.shiftKey) {
+                                            e.preventDefault();
+                                            if (input.trim() && !isLoading && !isLoadingMessages) {
+                                                handleSubmit(e);
+                                            }
+                                        }
+                                    }}
+                                />
+                            </div>
                             <Button
                                 type="submit"
-                                className='bg-green-700 hover:bg-green-500'
                                 disabled={isLoading || isLoadingMessages}
-                                onClick={handleActivatePlan}
+                                className="h-10 w-10 p-0 flex-shrink-0"
                             >
-                                <Check className="h-4 w-4" /> <p>Activate Plan</p>
+                                {isLoading ? (
+                                    <Loader2 className="h-4 w-4 animate-spin" />
+                                ) : (
+                                    <Send className="h-4 w-4" />
+                                )}
                             </Button>
-                        )}
+                        </form>
+                    </div>
+                    <div className="ml-4">
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                                 <Button variant="ghost" size="icon">
@@ -242,6 +250,13 @@ export default function PlanDetailsContent({ planData }: { planData: Plan }) {
                                 >
                                     <Trash2 className="h-4 w-4 mr-2" />
                                     Delete Plan
+                                </DropdownMenuItem>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem
+                                    disabled={isLoading || isLoadingMessages}
+                                    onClick={handleActivatePlan}
+                                >
+                                    <CalendarPlus className="h-4 w-4 mr-1" /> <p>Add to Weko calendar</p>
                                 </DropdownMenuItem>
                             </DropdownMenuContent>
                         </DropdownMenu>

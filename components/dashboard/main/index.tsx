@@ -19,7 +19,7 @@ export default function MainPage(props: Props) {
       description="Manage your subscriptions"
     >
       <div className="h-full w-full">
-        <div className="mb-5 flex gap-5 flex-col xl:flex-row w-full">
+        <div className="flex gap-5 flex-col xl:flex-row w-full">
           <PlansDisplay />
         </div>
       </div>

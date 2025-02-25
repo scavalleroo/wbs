@@ -11,7 +11,7 @@ import {
   UserContext,
   UserDetailsContext
 } from '@/contexts/layout';
-import React from 'react';
+import React, { useState } from 'react';
 
 interface Props {
   children: React.ReactNode;
@@ -23,7 +23,7 @@ interface Props {
 
 const DashboardLayout: React.FC<Props> = (props: Props) => {
   const pathname = usePathname();
-  const [open, setOpen] = React.useState(false);
+  const [open, setOpen] = useState(false);
 
   return (
     <UserContext.Provider value={props.user}>
@@ -31,7 +31,7 @@ const DashboardLayout: React.FC<Props> = (props: Props) => {
         <OpenContext.Provider value={{ open, setOpen }}>
           <div className="dark:bg-background-900 flex h-full w-full bg-white">
             <Toaster />
-            <Sidebar routes={routes} setOpen={setOpen} />
+            <Sidebar routes={routes} setOpen={setOpen} open={open} />
             <div className="h-full w-full dark:bg-zinc-950">
               <main
                 className={`mx-2.5 flex-none transition-all dark:bg-zinc-950 md:pr-2 xl:ml-[328px]`}

@@ -148,19 +148,6 @@ export type GoalStepProps = {
     customPlaceholder: string;
 };
 
-export type DatePickerProps = {
-    date: Date | undefined;
-    setDate: (date: Date | undefined) => void;
-    minDate?: Date;
-    placeholder: string;
-};
-
-export type InlineSelectProps = {
-    value: string;
-    onValueChange: (value: string) => void;
-    options: { value: string, label: string }[];
-};
-
 export const initialFormData: FormData = {
     startDate: undefined,
     endDate: undefined,

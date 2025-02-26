@@ -131,7 +131,7 @@ export const WeekViewTimeGrid: React.FC<WeekViewTimeGridProps> = ({
 
     return (
         <div className="flex flex-col h-[calc(100vh-250px)] bg-background">
-            <div className="flex-none">
+            <div className="flex-none mr-4">
                 <div className="flex border-b">
                     <div className="w-16 flex-shrink-0" />
                     {weekDays.map((day, dayIndex) => (

@@ -8,6 +8,12 @@ import {
 
 export const routes: IRoute[] = [
   {
+    name: 'My plans',
+    path: '/dashboard/main',
+    icon: <HiOutlineHome className="-mt-[7px] h-4 w-4 stroke-2 text-inherit" />,
+    collapse: false
+  },
+  {
     name: 'Generate new plan',
     path: '/dashboard/plans/new',
     icon: (
@@ -21,12 +27,6 @@ export const routes: IRoute[] = [
     icon: (
       <Calendar className="-mt-[7px] h-4 w-4 stroke-2 text-inherit" />
     ),
-    collapse: false
-  },
-  {
-    name: 'My plans',
-    path: '/dashboard/main',
-    icon: <HiOutlineHome className="-mt-[7px] h-4 w-4 stroke-2 text-inherit" />,
     collapse: false
   },
   {

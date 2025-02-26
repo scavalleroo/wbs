@@ -95,11 +95,20 @@ export interface Tasks {
 // Main plan type
 export interface PlanOpenAI {
     title: string | null;
-    goals: string | null;
+    goal: string | null;
     end_date: string | null;
     error: string | null;
     loading: boolean;
     tasks: Task[];
+}
+
+// Types
+export interface DailyTask {
+    time: string;
+    duration: string;
+    description: string;
+    dayName: string;
+    date: string;
 }
 
 // Response wrapper type

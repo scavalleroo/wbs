@@ -13,36 +13,9 @@ import {
     List,
     LayoutGrid
 } from 'lucide-react';
-import { PlanOpenAI } from '@/types/plan';
+import { DailyTask, PlanOpenAI } from '@/types/plan';
 
-// Types
-interface DailyTask {
-    time: string;
-    duration: string;
-    description: string;
-    dayName: string;
-    date: string;
-}
-
-interface TaskMetric {
-    type: string;
-    value: string;
-}
-
-interface WeekTask {
-    description: string;
-    metric: TaskMetric;
-    daily_tasks?: Record<string, string>;
-}
-
-interface Plan {
-    title: string;
-    goals: string;
-    end_date: string;
-    tasks: Record<string, WeekTask>;
-}
-
-const PlanTimeline: React.FC<{ plan: PlanOpenAI }> = ({ plan }) => {
+const PlanTimeline: React.FC<{ plan: PlanOpenAI, isGenerating: boolean }> = ({ plan, isGenerating }) => {
     const [expandedWeeks, setExpandedWeeks] = useState<Record<string, boolean>>({});
     const [taskViewPreference, setTaskViewPreference] = useState<Record<string, 'list' | 'calendar'>>({});
     const [filterActive, setFilterActive] = useState(false);
@@ -239,6 +212,25 @@ const PlanTimeline: React.FC<{ plan: PlanOpenAI }> = ({ plan }) => {
         );
     });
 
+    if (isGenerating) {
+        return (
+            <Card className="w-full mb-4">
+                <CardHeader className="md:pb-0">
+                    <CardTitle className="text-xl md:text-2xl">Generating Plan...</CardTitle>
+                    <CardContent>
+                        {plan.goal && (
+                            <div className="flex flex-col md:flex-row md:gap-6 pt-1">
+                                <div className="flex flex-row gap-2 items-center">
+                                    <p className="text-sm text-gray-500 dark:text-gray-400">{plan.goal}</p>
+                                </div>
+                            </div>
+                        )}
+                    </CardContent>
+                </CardHeader>
+            </Card>
+        );
+    }
+
     return (
         <Card className="w-full mb-4">
             <CardHeader className="md:pb-0">
@@ -296,7 +288,7 @@ const PlanTimeline: React.FC<{ plan: PlanOpenAI }> = ({ plan }) => {
 
                     <div className="flex flex-col md:flex-row md:gap-6 pt-1">
                         <div className="flex flex-row gap-2 items-center">
-                            <p className="text-sm text-gray-500 dark:text-gray-400">{plan.goals}</p>
+                            <p className="text-sm text-gray-500 dark:text-gray-400">{plan.goal}</p>
                         </div>
                     </div>
                 </div>

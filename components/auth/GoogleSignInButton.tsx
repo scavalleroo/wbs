@@ -52,7 +52,7 @@ export default function GoogleSignInButton() {
                 token: response.credential,
             });
             if (error) throw error;
-            router.push('/dashboard/plans/new');
+            router.push('/dashboard/main');
         } catch (error) {
             console.error('Error signing in with Google:', error);
         }

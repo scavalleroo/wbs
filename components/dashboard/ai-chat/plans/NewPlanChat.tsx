@@ -49,7 +49,7 @@ export default function NewPlanChat({ smartPlan }: { smartPlan: SmartPlan }) {
                         plan: {
                             loading: true,
                             title: null,
-                            goals: null,
+                            goal: null,
                             end_date: null,
                             error: null,
                             tasks: []
@@ -84,7 +84,7 @@ export default function NewPlanChat({ smartPlan }: { smartPlan: SmartPlan }) {
                     {messages.map((message, index) => (
                         message.role === 'assistant' ? (
                             message.response?.plan &&
-                            <PlanTimeline key={index} plan={message.response.plan} />
+                            <PlanTimeline key={index} plan={message.response.plan} isGenerating={isLoading || isInitializing} />
                         ) : (
                             <MessageBubble key={index} message={message} />
                         )

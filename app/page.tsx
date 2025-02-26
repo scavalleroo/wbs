@@ -8,6 +8,6 @@ export default async function Home() {
     if (!user) {
         return redirect('/dashboard/signin');
     } else {
-        redirect('/dashboard/plans/new');
+        redirect('/dashboard/main');
     }
 }

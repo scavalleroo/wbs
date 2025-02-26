@@ -114,7 +114,7 @@ export default function PlanDetailsContent({ planData }: { planData: Plan }) {
                         plan: {
                             loading: true,
                             title: null,
-                            goals: null,
+                            goal: null,
                             end_date: null,
                             error: null,
                             tasks: []
@@ -181,7 +181,7 @@ export default function PlanDetailsContent({ planData }: { planData: Plan }) {
                         messages.map((message, index) => (
                             message.role === 'assistant' ? (
                                 message.response?.plan &&
-                                <PlanTimeline key={index} plan={message.response.plan} />
+                                <PlanTimeline key={index} plan={message.response.plan} isGenerating={isLoading || isLoadingMessages} />
                             ) : (
                                 <MessageBubble key={index} message={message} />
                             )

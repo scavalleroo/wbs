@@ -208,7 +208,7 @@ export default function PlanDetailsContent({ planData }: { planData: Plan }) {
                                     disabled={isLoading || isLoadingMessages}
                                     className="w-full p-4 resize-none overflow-hidden rounded-md border border-input bg-background ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                                     style={{
-                                        fontSize: '1.1rem',
+                                        fontSize: 'clamp(14px, 2.5vw, 18px)', // Responsive font size
                                         minHeight: '56px',
                                         maxHeight: '200px'
                                     }}

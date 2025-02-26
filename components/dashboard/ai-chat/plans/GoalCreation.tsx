@@ -9,7 +9,6 @@ import { InputInterface } from './components/InputInterface';
 import { GenerateAIButton } from './components/GenerateAIButton';
 import { LoadingGoalText, LoadingInput } from './components/LoadingGoalsText';
 import { Button } from '@/components/ui/button';
-import { init } from 'next/dist/compiled/webpack/webpack';
 
 const SmartGoalCreator: React.FC = () => {
     const [targetDate, setTargetDate] = useState<Date | undefined>(() => {
@@ -30,8 +29,8 @@ const SmartGoalCreator: React.FC = () => {
     const [openAIChat, setOpenAIChat] = useState(false);
     const [smartPlan, setSmartPlan] = useState<SmartPlan | null>(null);
 
-    const handleTargetDateChange = async (date: Date | undefined) => {
-        console.log('Selected date:', date);
+    // Modify handleTargetDateChange to not send the query
+    const handleTargetDateChange = (date: Date | undefined) => {
         if (date) {
             setTargetDate(date);
             const formattedDate = format(date, 'PPP');
@@ -40,13 +39,28 @@ const SmartGoalCreator: React.FC = () => {
             setUserInput(initialGoal);
             setManualGoal(initialGoal);
 
+            // Set the initial goal step without submitting
             setGoalSteps([{
                 text: initialGoal,
                 value: formattedDate,
                 type: 'date'
             }]);
 
-            await handleSubmit(initialGoal);
+        }
+    };
+
+    // Create a new function to handle the Next button click
+    const handleNextButtonClick = async () => {
+        if (!targetDate) return;
+
+        const formattedDate = format(targetDate, 'PPP');
+        const combinedGoal = `By ${formattedDate}, I aim to ${userInput}`;
+
+        setLoading(true);
+        try {
+            await handleSubmit(combinedGoal);
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -88,8 +102,14 @@ const SmartGoalCreator: React.FC = () => {
         setLoading(true);
         try {
             setGoal(goal.replace(`[${apiResponse?.otherPlaceholder}]`, userInput));
+
+            const message = initialGoal ?
+                JSON.stringify({ goal: initialGoal ? initialGoal : goal, userInput, currentDate: format(new Date(), 'PPP') })
+                :
+                JSON.stringify({ userInput });
+
             const fullResponse = await openAIService.sendMessage(
-                JSON.stringify({ goal: initialGoal ? initialGoal : goal, userInput, currentDate: format(new Date(), 'PPP') }),
+                message,
                 (content) => {
                     console.log('Stream update:', content);
                 }
@@ -191,12 +211,16 @@ const SmartGoalCreator: React.FC = () => {
                             <div className="space-y-4 sm:space-y-6 bg-white dark:bg-gray-800 rounded-lg p-3 sm:p-6 shadow-sm mb-4">
                                 <div className="flex flex-col items-center justify-center">
                                     {!loading && (
-                                        <h1 className='font-bold capitalize hover:text-zinc-950 dark:hover:text-white mb-4'>Pick the day to start</h1>
+                                        <h1 className='font-bold hover:text-zinc-950 dark:hover:text-white mb-4 text-lg'>Define your goal</h1>
                                     )}
 
                                     <ResponsiveDatePicker
-                                        targetDate={targetDate}
+                                        targetDate={targetDate!}
                                         handleTargetDateChange={handleTargetDateChange}
+                                        goal={userInput}
+                                        handleGoalChange={(goalText) => setUserInput(goalText)}
+                                        isLoading={loading}
+                                        handleSubmit={handleNextButtonClick}
                                     />
 
                                     {loading && (
@@ -207,13 +231,9 @@ const SmartGoalCreator: React.FC = () => {
                                 </div>
                             </div>
 
-                            {loading && (
-                                <LoadingInput />
-                            )}
-
                             <Button
-                                onClick={() => handleTargetDateChange(targetDate)}
-                                disabled={loading}
+                                onClick={handleNextButtonClick}
+                                disabled={loading || !targetDate || !userInput}
                                 size="default"
                                 className="sm:size-lg w-full text-base sm:text-lg dark:bg-blue-600 dark:hover:bg-blue-700 mt-4"
                             >

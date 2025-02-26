@@ -225,7 +225,7 @@ const PlanTimeline: React.FC<{ plan: PlanOpenAI }> = ({ plan }) => {
         );
     };
 
-    const filteredTasks = Object.entries(plan.tasks).filter(([period, task]) => {
+    const filteredTasks = Object.entries(plan.tasks || {}).filter(([_, task]) => {
         if (!searchQuery) return true;
 
         const query = searchQuery.toLowerCase();
@@ -326,11 +326,13 @@ const PlanTimeline: React.FC<{ plan: PlanOpenAI }> = ({ plan }) => {
                                                 </p>
 
                                                 <div className="mt-2 flex items-center gap-2 text-xs md:text-sm text-gray-500 dark:text-gray-400">
-                                                    <span className="flex items-center gap-1">
-                                                        <Zap className="w-3 h-3 md:w-4 md:h-4" />
-                                                        <span className="font-medium dark:text-gray-300">Metric:</span>
-                                                        {task.metric.value} ({task.metric.type})
-                                                    </span>
+                                                    {task.metric && (
+                                                        <span className="flex items-center gap-1">
+                                                            <Zap className="w-3 h-3 md:w-4 md:h-4" />
+                                                            <span className="font-medium dark:text-gray-300">Metric:</span>
+                                                            {task.metric.value} ({task.metric.type})
+                                                        </span>
+                                                    )}
                                                 </div>
                                             </div>
                                         </div>

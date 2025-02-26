@@ -55,6 +55,7 @@ export const InputInterface = ({
                                 <Input
                                     type="text"
                                     value={userInput}
+                                    style={{ fontSize: '1rem' }}
                                     onChange={handleInputChange}
                                     onKeyDown={(e) => {
                                         if (e.key === 'Enter') {
@@ -74,16 +75,16 @@ export const InputInterface = ({
                             className="h-10 sm:h-12 text-base sm:text-lg dark:bg-gray-700 dark:text-gray-200"
                         />
                     )}
-                    <Button
-                        onClick={() => handleSubmit()}
-                        disabled={loading}
-                        size="default"
-                        className="sm:size-lg w-full text-base sm:text-lg dark:bg-blue-600 dark:hover:bg-blue-700"
-                    >
-                        {loading ? 'Processing...' : 'Next'}
-                    </Button>
                 </div>
             )}
+            <Button
+                onClick={() => handleSubmit()}
+                disabled={loading}
+                size="default"
+                className="sm:size-lg w-full text-base sm:text-lg dark:bg-blue-600 dark:hover:bg-blue-700"
+            >
+                {loading ? 'Generating the next step...' : 'Next'}
+            </Button>
         </div>
     );
 };

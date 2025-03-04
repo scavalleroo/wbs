@@ -9,6 +9,7 @@ import { InputInterface } from './components/InputInterface';
 import { GenerateAIButton } from './components/GenerateAIButton';
 import { LoadingGoalText, LoadingInput } from './components/LoadingGoalsText';
 import { Button } from '@/components/ui/button';
+import { Sparkles } from 'lucide-react';
 
 const SmartGoalCreator: React.FC = () => {
     const [targetDate, setTargetDate] = useState<Date | undefined>(() => {
@@ -202,8 +203,8 @@ const SmartGoalCreator: React.FC = () => {
     }
 
     return (
-        <div className="h-full bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
-            <div className="w-full max-w-2xl mx-auto px-4 sm:px-6 py-4 sm:py-8">
+        <div className="h-full flex items-center justify-center">
+            <div className="w-full max-w-2xl mx-auto">
                 <div className="space-y-6">
                     {/* Date Picker (shown only when no goal is set) */}
                     {!goal && (
@@ -237,6 +238,7 @@ const SmartGoalCreator: React.FC = () => {
                                 size="default"
                                 className="sm:size-lg w-full text-base sm:text-lg dark:bg-blue-600 dark:hover:bg-blue-700 mt-4"
                             >
+                                <Sparkles className="h-6 w-6 mr-2" />
                                 {loading ? 'Generating the next step...' : 'Next'}
                             </Button>
 

@@ -1,4 +1,3 @@
-// CalendarView.tsx
 import React, { useState, useEffect } from 'react';
 import { Card, CardHeader, CardContent } from '@/components/ui/card';
 import { addDays, subDays } from 'date-fns';
@@ -7,17 +6,35 @@ import { PlanActivity } from '@/types/plan';
 import { useScreenSize } from '@/hooks/useScreenSize';
 import { MonthView } from './MonthView';
 import { WeekViewTimeGrid } from './WeekView/WeekViewTimeGrid';
-import { DayView } from './DayView';
 import { CalendarHeader } from './CalendarHeader';
 import { toast } from '@/hooks/use-toast';
 import { DayViewTimeGrid } from './DayView/DayViewTimeGrid';
+import { Button } from '@/components/ui/button';
+import { createClient } from '@/utils/supabase/client';
+import GoogleCalendarService from '@/services/GoogleCalendarService';
+import { CalendarSyncIcon } from 'lucide-react';
 
 const CalendarView = () => {
     const [currentDate, setCurrentDate] = useState(new Date());
     const [activities, setActivities] = useState<PlanActivity[]>([]);
     const [isLoading, setLoading] = useState(true);
     const [view, setView] = useState('week');
+    const [isSyncing, setSyncing] = useState(false);
+    const [isGoogleUser, setIsGoogleUser] = useState(false);
     const screenSize = useScreenSize();
+    const supabase = createClient();
+
+    useEffect(() => {
+        // Check if the user is logged in with Google
+        const checkGoogleAuth = async () => {
+            const { data } = await supabase.auth.getSession();
+            if (data.session && data.session.user.app_metadata.provider === 'google') {
+                setIsGoogleUser(true);
+            }
+        };
+
+        checkGoogleAuth();
+    }, []);
 
     useEffect(() => {
         if (screenSize === 'sm') {
@@ -111,6 +128,82 @@ const CalendarView = () => {
         }
     };
 
+    const handleGoogleCalendarSync = async () => {
+        setSyncing(true);
+        try {
+            // Check if user is authenticated with Google
+            if (!isGoogleUser) {
+                toast({
+                    title: "Error",
+                    description: "You need to be logged in with Google to sync your calendar",
+                    variant: "destructive",
+                });
+                return;
+            }
+
+            // Initialize Google API and fetch events
+            await GoogleCalendarService.initializeGoogleAPI();
+            const googleEvents = await GoogleCalendarService.fetchEvents(
+                new Date(currentDate.getFullYear(), currentDate.getMonth(), 1), // First day of current month
+                31 // Approximately one month of events
+            );
+
+            // Convert Google Calendar events to PlanActivity format
+            const newActivities = await GoogleCalendarService.convertToActivities(googleEvents);
+
+            // Save the new activities to your database using Supabase
+            const { data: savedActivities, error } = await supabase
+                .from('plan_activities')
+                .upsert(
+                    newActivities.map(activity => ({
+                        ...activity,
+                        // Add any required fields from your schema
+                        user_id: supabase.auth.getUser().then(res => res.data.user?.id),
+                        // If the activity has a google_event_id, use it to prevent duplicates
+                        ...(activity.google_event_id && { google_event_id: activity.google_event_id })
+                    })),
+                    {
+                        onConflict: 'google_event_id',
+                        ignoreDuplicates: false
+                    }
+                )
+                .select();
+
+            if (error) throw error;
+
+            // Refresh activities to show the newly added events
+            const refreshedActivities = await PlanService.fetchMonthActivities(currentDate);
+            setActivities(refreshedActivities || []);
+
+            toast({
+                title: "Success",
+                description: `Successfully synced ${googleEvents.length} events from Google Calendar`,
+                variant: "default",
+            });
+        } catch (error) {
+            console.error("Error syncing with Google Calendar:", error);
+
+            // Provide more specific error messages based on the error
+            let errorMessage = "Failed to sync with Google Calendar";
+
+            if (error instanceof Error) {
+                if (error.message.includes("scope") || error.message.includes("permission")) {
+                    errorMessage = "Additional calendar permissions required. Please reconnect your Google account.";
+                } else if (error.message.includes("token")) {
+                    errorMessage = "Your Google session has expired. Please log in again.";
+                }
+            }
+
+            toast({
+                title: "Error",
+                description: errorMessage,
+                variant: "destructive",
+            });
+        } finally {
+            setSyncing(false);
+        }
+    };
+
     const renderContent = () => {
         if (isLoading) {
             return (
@@ -134,7 +227,7 @@ const CalendarView = () => {
 
     return (
         <Card className="w-full max-w-6xl mx-auto">
-            <CardHeader>
+            <CardHeader className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <CalendarHeader
                     view={view}
                     currentDate={currentDate}
@@ -143,6 +236,16 @@ const CalendarView = () => {
                     onPrevious={goToPrevious}
                     onNext={goToNext}
                 />
+                <Button
+                    variant="outline"
+                    onClick={handleGoogleCalendarSync}
+                    disabled={isSyncing || !isGoogleUser}
+                    className="ml-auto"
+                    title={!isGoogleUser ? "You need to be logged in with Google to sync your calendar" : ""}
+                >
+                    <CalendarSyncIcon className={`mr-2 h-4 w-4 ${isSyncing ? 'animate-spin' : ''}`} />
+                    {isSyncing ? 'Syncing...' : 'Sync Google Calendar'}
+                </Button>
             </CardHeader>
             <CardContent>
                 {renderContent()}

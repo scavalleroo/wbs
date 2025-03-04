@@ -14,20 +14,20 @@ export const routes: IRoute[] = [
     collapse: false
   },
   {
-    name: 'Generate new plan',
-    path: '/dashboard/plans/new',
-    icon: (
-      <Sparkles className="-mt-[7px] h-4 w-4 stroke-2 text-inherit" />
-    ),
-    collapse: false,
-  },
-  {
     name: 'Calendar',
     path: '/dashboard/calendar',
     icon: (
       <Calendar className="-mt-[7px] h-4 w-4 stroke-2 text-inherit" />
     ),
     collapse: false
+  },
+  {
+    name: 'New plan',
+    path: '/dashboard/plans/new',
+    icon: (
+      <Sparkles className="-mt-[7px] h-4 w-4 stroke-2 text-inherit" />
+    ),
+    collapse: false,
   },
   {
     name: 'Profile Settings',

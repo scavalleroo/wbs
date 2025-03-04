@@ -4,6 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { LoadingInput } from './LoadingGoalsText';
 import { ApiResponse } from '@/types/plan';
+import { Sparkles } from 'lucide-react';
 
 interface InputInterfaceProps {
     loading: boolean;
@@ -83,6 +84,7 @@ export const InputInterface = ({
                 size="default"
                 className="sm:size-lg w-full text-base sm:text-lg dark:bg-blue-600 dark:hover:bg-blue-700"
             >
+                <Sparkles className="h-6 w-6 mr-2" />
                 {loading ? 'Generating the next step...' : 'Next'}
             </Button>
         </div>

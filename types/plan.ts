@@ -28,6 +28,9 @@ export interface PlanActivity {
     duration?: number;
     metric_type?: string;
     metric_target?: number;
+    google_event_id?: string;
+    source?: string;
+    location?: string;
 }
 
 export interface Message {

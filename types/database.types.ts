@@ -7,173 +7,152 @@ export type Json =
   | Json[]
 
 export type Database = {
-  graphql_public: {
-    Tables: {
-      [_ in never]: never
-    }
-    Views: {
-      [_ in never]: never
-    }
-    Functions: {
-      graphql: {
-        Args: {
-          operationName?: string
-          query?: string
-          variables?: Json
-          extensions?: Json
-        }
-        Returns: Json
-      }
-    }
-    Enums: {
-      [_ in never]: never
-    }
-    CompositeTypes: {
-      [_ in never]: never
-    }
-  }
   public: {
     Tables: {
-      plan_activities: {
+      activities: {
         Row: {
-          actual_result: string | null
-          completion_notes: string | null
+          cover: string | null
           created_at: string
+          description: string | null
           id: number
-          plan_id: number
-          scheduled_date: string
-          status: string | null
-          task_description: string
-          updated_at: string | null
-          week_id: number | null
-        }
-        Insert: {
-          actual_result?: string | null
-          completion_notes?: string | null
-          created_at?: string
-          id?: number
-          plan_id: number
-          scheduled_date: string
-          status?: string | null
-          task_description: string
-          updated_at?: string | null
-          week_id?: number | null
-        }
-        Update: {
-          actual_result?: string | null
-          completion_notes?: string | null
-          created_at?: string
-          id?: number
-          plan_id?: number
-          scheduled_date?: string
-          status?: string | null
-          task_description?: string
-          updated_at?: string | null
-          week_id?: number | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "plan_activities_plan_id_fkey"
-            columns: ["plan_id"]
-            isOneToOne: false
-            referencedRelation: "plans"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "plan_activities_week_id_fkey"
-            columns: ["week_id"]
-            isOneToOne: false
-            referencedRelation: "plan_weeks"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      plan_weeks: {
-        Row: {
-          created_at: string
-          description: string
-          end_date: string
-          id: number
-          metric_target: string | null
-          metric_type: string | null
-          plan_id: number
-          start_date: string
-          status: string | null
-          week_number: number
-        }
-        Insert: {
-          created_at?: string
-          description: string
-          end_date: string
-          id?: number
-          metric_target?: string | null
-          metric_type?: string | null
-          plan_id: number
-          start_date: string
-          status?: string | null
-          week_number: number
-        }
-        Update: {
-          created_at?: string
-          description?: string
-          end_date?: string
-          id?: number
-          metric_target?: string | null
-          metric_type?: string | null
-          plan_id?: number
-          start_date?: string
-          status?: string | null
-          week_number?: number
-        }
-        Relationships: [
-          {
-            foreignKeyName: "plan_weeks_plan_id_fkey"
-            columns: ["plan_id"]
-            isOneToOne: false
-            referencedRelation: "plans"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      plans: {
-        Row: {
-          created_at: string
-          deadline: string | null
-          goals: string[] | null
-          id: number
-          progress: number | null
-          status: string | null
-          thread_id: string | null
           title: string | null
-          updated_at: string | null
-          user_id: string
-          user_resources: string | null
+          url: string | null
         }
         Insert: {
+          cover?: string | null
           created_at?: string
-          deadline?: string | null
-          goals?: string[] | null
+          description?: string | null
           id?: number
-          progress?: number | null
-          status?: string | null
-          thread_id?: string | null
           title?: string | null
-          updated_at?: string | null
-          user_id: string
-          user_resources?: string | null
+          url?: string | null
         }
         Update: {
+          cover?: string | null
           created_at?: string
-          deadline?: string | null
-          goals?: string[] | null
+          description?: string | null
           id?: number
-          progress?: number | null
-          status?: string | null
-          thread_id?: string | null
           title?: string | null
+          url?: string | null
+        }
+        Relationships: []
+      }
+      user_daily_notes: {
+        Row: {
+          content: Json | null
+          created_at: string
+          date: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          content?: Json | null
+          created_at?: string
+          date: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          content?: Json | null
+          created_at?: string
+          date?: string
           updated_at?: string | null
           user_id?: string
-          user_resources?: string | null
+        }
+        Relationships: []
+      }
+      user_projects_notes: {
+        Row: {
+          content: Json | null
+          created_at: string
+          id: number
+          title: string
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          content?: Json | null
+          created_at?: string
+          id?: number
+          title: string
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          content?: Json | null
+          created_at?: string
+          id?: number
+          title?: string
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      user_stats: {
+        Row: {
+          break_time: number | null
+          created_at: string
+          date: string
+          goal_time: number | null
+          idle_time: number | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          break_time?: number | null
+          created_at?: string
+          date: string
+          goal_time?: number | null
+          idle_time?: number | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          break_time?: number | null
+          created_at?: string
+          date?: string
+          goal_time?: number | null
+          idle_time?: number | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      users_preferences: {
+        Row: {
+          created_at: string
+          devices: string[] | null
+          goal_break: number | null
+          goal_focus: number | null
+          goal_idle: number | null
+          spotify_access_token: string | null
+          spotify_refresh_token: string | null
+          tracking: boolean | null
+          user_id: string
+          visible: boolean | null
+        }
+        Insert: {
+          created_at?: string
+          devices?: string[] | null
+          goal_break?: number | null
+          goal_focus?: number | null
+          goal_idle?: number | null
+          spotify_access_token?: string | null
+          spotify_refresh_token?: string | null
+          tracking?: boolean | null
+          user_id: string
+          visible?: boolean | null
+        }
+        Update: {
+          created_at?: string
+          devices?: string[] | null
+          goal_break?: number | null
+          goal_focus?: number | null
+          goal_idle?: number | null
+          spotify_access_token?: string | null
+          spotify_refresh_token?: string | null
+          tracking?: boolean | null
+          user_id?: string
+          visible?: boolean | null
         }
         Relationships: []
       }

@@ -7,43 +7,50 @@ import { createClient } from '@/utils/supabase/client';
 import { useEffect, useState } from 'react';
 
 export default function GoogleSignInButton() {
-    const { theme } = useTheme();
+    const { resolvedTheme } = useTheme();
     const router = useRouter();
     const supabase = createClient();
-    const [isScriptLoaded, setIsScriptLoaded] = useState(false);
+    const [isClient, setIsClient] = useState(false);
 
     const initializeGoogleButton = () => {
-        const existingButton = document.getElementById("signInDiv");
-        if (existingButton) {
-            existingButton.innerHTML = '';
-        }
+        // Ensure this only runs on client
+        if (typeof window === 'undefined' || !window.google) return;
 
-        if (window.google) {
-            window.google.accounts.id.initialize({
-                client_id: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID!,
-                callback: handleSignInWithGoogle,
-                use_fedcm_for_prompt: true
-            });
+        const signInDiv = document.getElementById("signInDiv");
+        if (!signInDiv) return;
 
-            window.google.accounts.id.renderButton(
-                document.getElementById("signInDiv")!,
-                {
-                    type: "standard",
-                    shape: "pill",
-                    theme: "filled_black",
-                    text: "signin_with",
-                    size: "large",
-                    logo_alignment: "left",
-                }
-            );
-        }
+        // Clear existing content
+        signInDiv.innerHTML = '';
+
+        window.google.accounts.id.initialize({
+            client_id: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID!,
+            callback: handleSignInWithGoogle,
+            use_fedcm_for_prompt: true
+        });
+
+        window.google.accounts.id.renderButton(
+            signInDiv,
+            {
+                type: "standard",
+                shape: "pill",
+                theme: resolvedTheme === 'dark' ? "filled_black" : "outline",
+                text: "signin_with",
+                size: "large",
+                logo_alignment: "left",
+            }
+        );
     };
 
     useEffect(() => {
-        if (isScriptLoaded) {
+        // Only run on client
+        setIsClient(true);
+    }, []);
+
+    useEffect(() => {
+        if (isClient && window.google) {
             initializeGoogleButton();
         }
-    }, [isScriptLoaded, theme]);
+    }, [isClient, resolvedTheme]);
 
     const handleSignInWithGoogle = async (response: any) => {
         try {
@@ -58,11 +65,20 @@ export default function GoogleSignInButton() {
         }
     };
 
+    // Prevent rendering on server
+    if (!isClient) {
+        return null;
+    }
+
     return (
         <>
             <Script
                 src="https://accounts.google.com/gsi/client"
-                onLoad={() => setIsScriptLoaded(true)}
+                onLoad={() => {
+                    if (window.google) {
+                        initializeGoogleButton();
+                    }
+                }}
                 strategy="afterInteractive"
             />
             <div

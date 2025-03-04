@@ -3,7 +3,7 @@
 import { createContext, useContext, useEffect, useState } from 'react'
 import { supabase } from '@/lib/superbase'
 import type { SupabaseClient, Session } from '@supabase/supabase-js'
-import type { Database } from '@/types/supabase'
+import type { Database } from '@/types/database.types'
 import { useRouter } from 'next/navigation'
 
 type SupabaseContext = {

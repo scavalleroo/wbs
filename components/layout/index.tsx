@@ -7,6 +7,7 @@ import {
   UserDetailsContext
 } from '@/contexts/layout';
 import React, { useState } from 'react';
+import { TimerProvider } from '../timer/Timer';
 
 interface Props {
   children: React.ReactNode;
@@ -26,15 +27,17 @@ const DashboardLayout: React.FC<Props> = (props: Props) => {
         <OpenContext.Provider value={{ open, setOpen }}>
           <div className="dark:bg-background-900 flex h-full w-full bg-white">
             <Toaster />
-            <div className="h-full w-full dark:bg-zinc-950">
-              <main
-                className={`mx-2.5 flex-none transition-all dark:bg-zinc-950 md:pr-2 xl:ml-[328px]`}
-              >
-                <div className="mx-auto h-screen p-2 !pt-[90px] md:p-2 md:!pt-[118px]">
-                  {props.children}
-                </div>
-              </main>
-            </div>
+            <TimerProvider>
+              <div className="h-full w-full dark:bg-zinc-950">
+                <main
+                // className={`mx-2.5 flex-none transition-all dark:bg-zinc-950 md:pr-2 xl:ml-[328px]`}
+                >
+                  <div className="mx-auto h-screen p-2">
+                    {props.children}
+                  </div>
+                </main>
+              </div>
+            </TimerProvider>
           </div>
         </OpenContext.Provider>
       </UserDetailsContext.Provider>

@@ -1,23 +1,25 @@
-'use client'
+"use client";
 
-import { createClient } from '@/utils/supabase/client'
-import { useRouter } from 'next/navigation'
+import { createClient } from '@/utils/supabase/client';
+import { useRouter } from 'next/navigation';
+import { DropdownMenuShortcut } from "@/components/ui/dropdown-menu";
 
 export default function LogoutButton() {
-    const router = useRouter()
-    const supabase = createClient()
+    const router = useRouter();
+    const supabase = createClient();
 
     const handleSignOut = async () => {
-        await supabase.auth.signOut()
-        router.push('/dashboard/signin')
+        await supabase.auth.signOut();
+        router.push('/dashboard/signin');
     }
 
     return (
-        <button
+        <div
             onClick={handleSignOut}
-            className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded"
+            className="flex justify-between items-center w-full cursor-pointer"
         >
             Sign Out
-        </button>
-    )
+            <DropdownMenuShortcut>⇧⌘Q</DropdownMenuShortcut>
+        </div>
+    );
 }

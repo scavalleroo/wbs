@@ -36,6 +36,54 @@ export type Database = {
         }
         Relationships: []
       }
+      followers: {
+        Row: {
+          created_at: string | null
+          followed_id: string | null
+          follower_id: string | null
+          id: string
+        }
+        Insert: {
+          created_at?: string | null
+          followed_id?: string | null
+          follower_id?: string | null
+          id?: string
+        }
+        Update: {
+          created_at?: string | null
+          followed_id?: string | null
+          follower_id?: string | null
+          id?: string
+        }
+        Relationships: []
+      }
+      notifications: {
+        Row: {
+          created_at: string | null
+          id: string
+          is_read: boolean | null
+          recipient_id: string | null
+          sender_id: string | null
+          type: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          is_read?: boolean | null
+          recipient_id?: string | null
+          sender_id?: string | null
+          type: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          is_read?: boolean | null
+          recipient_id?: string | null
+          sender_id?: string | null
+          type?: string
+        }
+        Relationships: []
+      }
       user_daily_notes: {
         Row: {
           content: Json | null

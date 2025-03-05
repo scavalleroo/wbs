@@ -26,7 +26,7 @@ export function useNotifications(userId: string) {
       .from('notifications')
       .select(`
         id, 
-        type,
+        type, 
         read,
         created_at
       `)

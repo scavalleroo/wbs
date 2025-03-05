@@ -48,7 +48,7 @@ export function Navbar({ user, userDetails, activeTab, setActiveTab }: NavbarPro
                         <p className='text-xs hidden md:block'>Friends</p>
                     </div> */}
                 </div>
-                <NavbarUser userDetails={userDetails} />
+                <NavbarUser user={user} userDetails={userDetails} />
             </div>
         </div>
     );

@@ -26,12 +26,10 @@ export default function MainPage(props: Props) {
             title="Focus, Break, Report"
             description="Dashboard"
         >
-            <div className="h-full w-full">
-                <Tabs defaultValue="focus" className="flex flex-col w-full h-full relative">
-                    <Navbar user={props.user} userDetails={props.userDetails} activeTab={activeTab} setActiveTab={setActiveTab} />
-                    <TabComponentFocus user={props.user} />
-                </Tabs>
-            </div>
+            <Tabs defaultValue="focus">
+                <Navbar user={props.user} userDetails={props.userDetails} activeTab={activeTab} setActiveTab={setActiveTab} />
+                <TabComponentFocus user={props.user} />
+            </Tabs>
         </DashboardLayout>
     );
 }

@@ -130,19 +130,19 @@ export const RealtimeEditor: React.FC<RealtimeEditorProps> = ({
 
   return (
     <EditorRoot key={`editor-${rowId}`}>
-      <div className="relative w-full h-full overflow-y-auto">
+      <div className="relative w-full h-full overflow-hidden">
         {isSaving && (
-          <div className="absolute bottom-2 right-2 text-xs text-muted-foreground">
+          <div className="absolute bottom-2 right-2 text-xs text-muted-foreground z-10">
             Saving...
           </div>
         )}
         {!isSaving && lastSaved && (
-          <div className="absolute bottom-2 right-2 text-xs text-muted-foreground">
+          <div className="absolute bottom-2 right-2 text-xs text-muted-foreground z-10">
             Last saved: {lastSaved.toLocaleTimeString()}
           </div>
         )}
         <EditorContent
-          className="border p-4 rounded-sm overflow-auto flex-grow bg-background break-all h-full"
+          className="border p-4 rounded-sm overflow-auto w-full h-full bg-background break-all"
           extensions={extensions}
           editorProps={{
             handleDOMEvents: {

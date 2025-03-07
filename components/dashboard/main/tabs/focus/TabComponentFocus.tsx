@@ -9,10 +9,7 @@ interface FocusTabContentProps {
 
 export function TabComponentFocus({ user }: FocusTabContentProps) {
     return (
-        <TabsContent
-            value="focus"
-            className="flex flex-row w-full justify-between items-center relative mt-0 overflow-y-auto"
-        >
+        <TabsContent value="focus">
             <Editor user={user} />
         </TabsContent>
     );

@@ -159,19 +159,18 @@ export const Editor: React.FC<EditorProps> = ({
     <Tabs
       value={activeTab}
       onValueChange={handleTabChange}
-      className='flex flex-col w-full h-[calc(100vh-156px)] max-w-screen-lg mx-auto'
+      className='flex flex-col w-full h-[calc(100vh-156px)] max-h-[calc(100vh-156px)] max-w-screen-lg mx-auto'
     >
       <div className="flex-shrink-0 my-4"> {/* This wrapper prevents the header from scrolling */}
         <TabsList>
-          <TabsTrigger value="daily">Daily Notes</TabsTrigger>
-          <TabsTrigger value="project">Project Notes</TabsTrigger>
+          <TabsTrigger value="daily">Daily</TabsTrigger>
+          <TabsTrigger value="project">Project</TabsTrigger>
         </TabsList>
       </div>
 
       <TabsContent
         value="daily"
-        className="flex flex-col h-full"
-        // Hidden tabs should take no space
+        className="flex flex-col h-full overflow-hidden" // Add overflow-hidden here
         style={{ display: activeTab === 'daily' ? 'flex' : 'none' }}
       >
         <div className="flex-shrink-0 flex items-center justify-between mb-4">
@@ -216,7 +215,7 @@ export const Editor: React.FC<EditorProps> = ({
             <ChevronRight className="h-4 w-4" />
           </Button>
         </div>
-        <div className="flex-grow overflow-y-auto"> {/* This wrapper enables scrolling only for the editor */}
+        <div className="flex-grow overflow-y-auto h-full">
           {dailyNote && !loading && (
             <RealtimeEditor
               key={`daily-${dailyNote.id}`}
@@ -234,8 +233,7 @@ export const Editor: React.FC<EditorProps> = ({
 
       <TabsContent
         value="project"
-        className="flex flex-col h-full"
-        // Hidden tabs should take no space
+        className="flex flex-col h-full overflow-hidden" // Add overflow-hidden here
         style={{ display: activeTab === 'project' ? 'flex' : 'none' }}
       >
         <div className="flex-shrink-0 mb-4"> {/* Fixed position at top */}
@@ -282,7 +280,7 @@ export const Editor: React.FC<EditorProps> = ({
             </div>
           )}
         </div>
-        <div className="flex-grow overflow-y-auto"> {/* Scrollable editor area */}
+        <div className="flex-grow overflow-y-auto h-full">
           {selectedProject && (
             <RealtimeEditor
               key={`project-${selectedProject.id}`}

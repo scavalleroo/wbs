@@ -180,7 +180,7 @@ export const FocusTabs: React.FC<FocusTabsProps> = ({
     <Tabs
       value={activeTab}
       onValueChange={handleTabChange}
-      className='flex flex-col w-full h-[calc(100vh-156px)] max-h-[calc(100vh-156px)] max-w-screen-lg mx-auto sm:px-2 px-4'
+      className='flex flex-col w-full h-[calc(100vh-156px)] max-h-[calc(100vh-156px)] max-w-screen-lg mx-auto px-2'
     >
       <div className="flex-shrink-0 my-4"> {/* This wrapper prevents the header from scrolling */}
         <TabsList>
@@ -194,7 +194,7 @@ export const FocusTabs: React.FC<FocusTabsProps> = ({
         className="flex flex-col h-full overflow-hidden" // Add overflow-hidden here
         style={{ display: activeTab === 'daily' ? 'flex' : 'none' }}
       >
-        <div className="flex-shrink-0 flex items-center justify-between mb-4">
+        <div className="flex-shrink-0 flex items-center justify-between">
           <Button
             className="bg-muted text-muted-foreground px-2 py-2 rounded-full"
             variant="outline"

@@ -69,7 +69,6 @@ export const RealtimeEditor: React.FC<RealtimeEditorProps> = ({
     const rowIdChanged = rowId !== prevRowIdRef.current;
 
     if (contentChanged || rowIdChanged) {
-      console.log('Editor content or rowId changed, updating state:', { rowIdChanged, contentChanged });
       setContent(initialContent);
       setLocalContent(initialContent);
       prevInitialContentRef.current = initialContent;
@@ -131,19 +130,19 @@ export const RealtimeEditor: React.FC<RealtimeEditorProps> = ({
 
   return (
     <EditorRoot key={`editor-${rowId}`}>
-      <div className="relative">
+      <div className="relative w-full h-full overflow-y-auto">
         {isSaving && (
-          <div className="absolute top-2 right-2 text-xs text-muted-foreground">
+          <div className="absolute bottom-2 right-2 text-xs text-muted-foreground">
             Saving...
           </div>
         )}
         {!isSaving && lastSaved && (
-          <div className="absolute top-2 right-2 text-xs text-muted-foreground">
+          <div className="absolute bottom-2 right-2 text-xs text-muted-foreground">
             Last saved: {lastSaved.toLocaleTimeString()}
           </div>
         )}
         <EditorContent
-          className="border p-4 rounded-sm overflow-auto flex-grow bg-background break-all"
+          className="border p-4 rounded-sm overflow-auto flex-grow bg-background break-all h-full"
           extensions={extensions}
           editorProps={{
             handleDOMEvents: {

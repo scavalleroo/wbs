@@ -5,10 +5,11 @@ import { RealtimeEditor } from './RealtimeEditor';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { User } from '@supabase/supabase-js';
 import { Button } from '@/components/ui/button';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Plus } from 'lucide-react';
 import DateRadioGroup from './date-radio-group';
 import { useNotes } from '@/hooks/use-notes';
 import { JSONContent } from 'novel';
+import { ProjectNote } from '@/lib/project';
 
 interface EditorProps {
   user: User | null | undefined;
@@ -19,6 +20,7 @@ export const Editor: React.FC<EditorProps> = ({
 }) => {
   const [activeTab, setActiveTab] = useState<'daily' | 'project'>('daily');
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const [selectedProject, setSelectedProject] = useState<ProjectNote | null>(null);
   const [contentEditor, setContentEditor] = useState<JSONContent | null>(null);
   const [isOverflowing, setIsOverflowing] = useState(true);
   const [days, setDays] = useState<Date[]>(
@@ -30,21 +32,19 @@ export const Editor: React.FC<EditorProps> = ({
   );
 
   const {
+    projectNotes,
+    projectNote,
     dailyNote,
     loading,
-    saveNotes,
-    fetchNotes,
+    error,
+    saveDailyNotes,
+    saveProjectNotes,
+    fetchDailyNotes,
+    fetchProjectNotes,
+    fetchAllProjectNotes,
   } = useNotes({ user });
 
-  useEffect(() => {
-    fetchNotes(selectedDate);
-  }, [selectedDate]);
-
-  const handleDateChange = (date: Date) => {
-    saveNotes(selectedDate, contentEditor as JSONContent, dailyNote?.id as number);
-    setSelectedDate(date);
-  };
-
+  // Handle window resize for overflow detection
   useEffect(() => {
     const checkOverflow = () => {
       setIsOverflowing(window.innerWidth < 1024);
@@ -57,23 +57,124 @@ export const Editor: React.FC<EditorProps> = ({
     };
   }, []);
 
+  // When dailyNote changes, update contentEditor
   useEffect(() => {
-    setContentEditor(dailyNote?.content as JSONContent);
+    if (dailyNote) {
+      setContentEditor(dailyNote.content as JSONContent);
+    }
   }, [dailyNote]);
+
+  // When projectNote changes, update selectedProject
+  useEffect(() => {
+    if (projectNote) {
+      setSelectedProject(projectNote);
+      setContentEditor(projectNote.content as JSONContent);
+    }
+  }, [projectNote]);
+
+  // Set default project when projectNotes loads
+  useEffect(() => {
+    const fetchProject = async () => {
+      if (projectNotes.length > 0 && !selectedProject) {
+        await fetchProjectNotes(projectNotes[0].id);
+      }
+    };
+
+    fetchProject();
+  }, [projectNotes, selectedProject]);
+
+  // Load appropriate data when tab changes
+  useEffect(() => {
+    const fetchData = async () => {
+      if (activeTab === 'project') {
+        await fetchAllProjectNotes();
+      } else if (activeTab === 'daily') {
+        await fetchDailyNotes(selectedDate);
+      }
+    };
+
+    fetchData();
+  }, [activeTab]);
+
+  // Handle date changes for daily notes
+  useEffect(() => {
+    fetchDailyNotes(selectedDate);
+  }, [selectedDate]);
+
+  // Save changes before changing tabs
+  const handleTabChange = async (value: string) => {
+    try {
+      // Save current tab's content before switching
+      if (activeTab === 'daily' && dailyNote && contentEditor) {
+        await saveDailyNotes(selectedDate, contentEditor, dailyNote.id);
+      } else if (activeTab === 'project' && selectedProject && contentEditor) {
+        console.log("Saving project notes:", selectedProject.title);
+        await saveProjectNotes(
+          selectedProject.title || "Untitled Project",
+          contentEditor,
+          selectedProject.id
+        );
+        setSelectedProject(null);
+      } else {
+        console.warn("No content to save before switching tabs:", activeTab);
+      }
+
+      // Then change the tab
+      setActiveTab(value as 'daily' | 'project');
+    } catch (error) {
+      console.error("Error saving during tab change:", error);
+      // Still change the tab even if saving fails
+      setActiveTab(value as 'daily' | 'project');
+    }
+  };
+
+  const handleDateChange = async (date: Date) => {
+    // Only save if we have both a note and content
+    if (dailyNote && contentEditor) {
+      await saveDailyNotes(selectedDate, contentEditor, dailyNote.id);
+    }
+    setSelectedDate(date);
+  };
+
+  // Handle project switching
+  const handleProjectSwitch = async (project: ProjectNote) => {
+    try {
+      // Only save current project if we have one selected and content to save
+      if (selectedProject && contentEditor) {
+        await saveProjectNotes(
+          selectedProject.title || "Untitled Project",
+          contentEditor,
+          selectedProject.id
+        );
+      }
+
+      // After saving, fetch the new project
+      await fetchProjectNotes(project.id);
+    } catch (error) {
+      console.error("Error switching projects:", error);
+    }
+  };
 
   return (
     <Tabs
       value={activeTab}
-      onValueChange={(value) => setActiveTab(value as 'daily' | 'project')}
-      className="w-full h-full"
+      onValueChange={handleTabChange}
+      className='flex flex-col w-full h-[calc(100vh-156px)] max-w-screen-lg mx-auto'
     >
-      <TabsList>
-        <TabsTrigger value="daily">Daily Notes</TabsTrigger>
-        <TabsTrigger value="project">Project Notes</TabsTrigger>
-      </TabsList>
+      <div className="flex-shrink-0 my-4"> {/* This wrapper prevents the header from scrolling */}
+        <TabsList>
+          <TabsTrigger value="daily">Daily Notes</TabsTrigger>
+          <TabsTrigger value="project">Project Notes</TabsTrigger>
+        </TabsList>
+      </div>
 
-      <TabsContent value="daily">
-        <div className="flex items-center justify-between mb-2">
+      <TabsContent
+        value="daily"
+        className="flex flex-col h-full"
+        // Hidden tabs should take no space
+        style={{ display: activeTab === 'daily' ? 'flex' : 'none' }}
+      >
+        <div className="flex-shrink-0 flex items-center justify-between mb-4">
           <Button
             className="bg-muted text-muted-foreground px-2 py-2 rounded-full"
             variant="outline"
@@ -95,7 +196,7 @@ export const Editor: React.FC<EditorProps> = ({
             selectedDate={selectedDate}
             days={days}
             isOverflowing={isOverflowing}
-            isPending={false}
+            isPending={loading}
             onChangeDate={handleDateChange} />
           <Button
             className="bg-muted text-muted-foreground px-2 py-2 rounded-full"
@@ -115,27 +216,86 @@ export const Editor: React.FC<EditorProps> = ({
             <ChevronRight className="h-4 w-4" />
           </Button>
         </div>
-        {dailyNote && !loading && (
-          <RealtimeEditor
-            key={dailyNote.id} // This helps force a remount when changing notes
-            tableName="user_daily_notes"
-            rowId={dailyNote.id}
-            initalLastSaved={dailyNote.updated_at ? new Date(dailyNote.updated_at) : undefined}
-            initialContent={dailyNote.content as JSONContent}
-            onContentUpdate={(content) => {
-              setContentEditor(content);
-            }}
-          />
-        )}
+        <div className="flex-grow overflow-y-auto"> {/* This wrapper enables scrolling only for the editor */}
+          {dailyNote && !loading && (
+            <RealtimeEditor
+              key={`daily-${dailyNote.id}`}
+              tableName="user_daily_notes"
+              rowId={dailyNote.id}
+              initalLastSaved={dailyNote.updated_at ? new Date(dailyNote.updated_at) : undefined}
+              initialContent={dailyNote.content as JSONContent}
+              onContentUpdate={(content) => {
+                setContentEditor(content);
+              }}
+            />
+          )}
+        </div>
       </TabsContent>
 
-      <TabsContent value="project">
-        {/* {selectedProjectNotes && (
-          <RealtimeEditor
-            tableName="user_projects_notes"
-            rowId={selectedProjectNotes.id}
-          />
-        )} */}
+      <TabsContent
+        value="project"
+        className="flex flex-col h-full"
+        // Hidden tabs should take no space
+        style={{ display: activeTab === 'project' ? 'flex' : 'none' }}
+      >
+        <div className="flex-shrink-0 mb-4"> {/* Fixed position at top */}
+          {projectNotes.length === 0 ? (
+            <div className="flex flex-col items-center justify-center p-4 text-center border rounded-md border-dashed">
+              <p className="text-muted-foreground mb-2">No project notes available.</p>
+              <p className="text-sm text-muted-foreground">Create a project to start taking notes.</p>
+            </div>
+          ) : (
+            <div className="flex flex-col space-y-2">
+              <div className="flex gap-2 overflow-x-auto">
+                {projectNotes.map((project) => (
+                  <Button
+                    key={project.id}
+                    variant="ghost"
+                    className={`flex-1 min-h-10 flex flex-col items-center 
+                      rounded-md border-2 border-muted bg-popover 
+                      py-1 md:px-1 md:py-0.5 hover:bg-accent hover:text-accent-foreground 
+                      cursor-pointer text-sm transition-colors duration-200
+                      ${selectedProject?.id === project.id
+                        ? "bg-primary text-primary-foreground border-primary"
+                        : "bg-secondary border-transparent"}
+                      whitespace-nowrap justify-center`}
+                    onClick={() => handleProjectSwitch(project)}
+                  >
+                    <p className="text-xs">
+                      {project.title || "Untitled Project"}
+                    </p>
+                  </Button>
+                ))}
+                <Button
+                  variant="ghost"
+                  className="flex-1 min-h-10 flex flex-col items-center 
+                    rounded-md border-2 border-muted bg-popover 
+                    py-1 md:px-1 md:py-0.5 hover:bg-accent hover:text-accent-foreground 
+                    cursor-pointer text-sm transition-colors duration-200
+                    bg-secondary border-transparent
+                    whitespace-nowrap justify-center"
+                  onClick={() => { }}
+                >
+                  <Plus className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          )}
+        </div>
+        <div className="flex-grow overflow-y-auto"> {/* Scrollable editor area */}
+          {selectedProject && (
+            <RealtimeEditor
+              key={`project-${selectedProject.id}`}
+              tableName="user_projects_notes"
+              rowId={selectedProject.id}
+              initalLastSaved={selectedProject.updated_at ? new Date(selectedProject.updated_at) : undefined}
+              initialContent={selectedProject.content as JSONContent}
+              onContentUpdate={(content) => {
+                setContentEditor(content);
+              }}
+            />
+          )}
+        </div>
       </TabsContent>
     </Tabs>
   );

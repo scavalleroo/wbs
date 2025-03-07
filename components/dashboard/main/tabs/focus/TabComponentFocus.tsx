@@ -1,6 +1,6 @@
 import React from 'react';
 import { TabsContent } from '@/components/ui/tabs';
-import { Editor } from './editor/advanced-editor';
+import { FocusTabs } from './editor/focus-tabs';
 import { User } from '@supabase/supabase-js';
 
 interface FocusTabContentProps {
@@ -10,7 +10,7 @@ interface FocusTabContentProps {
 export function TabComponentFocus({ user }: FocusTabContentProps) {
     return (
         <TabsContent value="focus">
-            <Editor user={user} />
+            <FocusTabs user={user} />
         </TabsContent>
     );
 }

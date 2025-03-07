@@ -29,6 +29,7 @@ import NotesController from "./notes-controller";
 import { defaultExtensions } from './extensions';
 import { createClient } from '@/utils/supabase/client';
 import { useDebounce } from '@/hooks/use-debounce';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 // Extend the existing extensions with slash command
 const extensions = [...defaultExtensions, slashCommand];
@@ -130,88 +131,92 @@ export const RealtimeEditor: React.FC<RealtimeEditorProps> = ({
 
   return (
     <EditorRoot key={`editor-${rowId}`}>
-      <div className="relative w-full h-full overflow-hidden">
+      <div className="relative w-full h-full">
         {isSaving && (
           <div className="absolute bottom-2 right-2 text-xs text-muted-foreground z-10">
             Saving...
           </div>
         )}
         {!isSaving && lastSaved && (
-          <div className="absolute bottom-2 right-2 text-xs text-muted-foreground z-10">
+          <div className="absolute bottom-2 right-4 text-xs text-muted-foreground z-10">
             Last saved: {lastSaved.toLocaleTimeString()}
           </div>
         )}
-        <EditorContent
-          className="border p-4 rounded-sm overflow-auto w-full h-full bg-background break-all"
-          extensions={extensions}
-          editorProps={{
-            handleDOMEvents: {
-              keydown: (_view, event) => handleCommandNavigation(event),
-            },
-            handlePaste: (view, event) => handleImagePaste(view, event, uploadFn),
-            handleDrop: (view, event, _slice, moved) => handleImageDrop(view, event, moved, uploadFn),
-            attributes: {
-              id: "debouncedEditor",
-              class: `prose prose-lg dark:prose-invert prose-headings:font-title font-default focus:outline-none max-w-full`,
-            },
-          }}
-          initialContent={initialContent}
-          onUpdate={({ editor }) => handleContentUpdate(editor)}
-          immediatelyRender={false}
-          slotAfter={<ImageResizer />}
-          onContentError={(error) => {
-            console.error("Content error", error);
-          }}
-        >
-          <NotesController
-            initialValue={initialContent}
-            setCurrentContent={setLocalContent}
-          />
-
-          {/* Command Palette */}
-          <EditorCommand className="z-50 h-auto max-h-[330px] overflow-y-auto rounded-md border border-muted bg-background px-1 py-2 shadow-md transition-all">
-            <EditorCommandEmpty className="px-2 text-muted-foreground">
-              No results
-            </EditorCommandEmpty>
-            <EditorCommandList>
-              {suggestionItems.map((item: any) => (
-                <EditorCommandItem
-                  value={item.title}
-                  onCommand={(val) => item.command?.(val)}
-                  className={`flex w-full items-center space-x-2 rounded-md px-2 py-1 text-left text-sm hover:bg-accent aria-selected:bg-accent`}
-                  key={item.title}
-                >
-                  <div className="flex h-10 w-10 items-center justify-center rounded-md border border-muted bg-background">
-                    {item.icon}
-                  </div>
-                  <div>
-                    <p className="font-medium">{item.title}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {item.description}
-                    </p>
-                  </div>
-                </EditorCommandItem>
-              ))}
-            </EditorCommandList>
-          </EditorCommand>
-
-          {/* Editor Bubble */}
-          <EditorBubble
-            tippyOptions={{
-              placement: "top",
+        <ScrollArea className="w-full h-full">
+          <EditorContent
+            className="border p-4 rounded-sm w-full h-full bg-background break-all"
+            extensions={extensions}
+            editorProps={{
+              handleDOMEvents: {
+                keydown: (_view, event) => handleCommandNavigation(event),
+              },
+              handlePaste: (view, event) => handleImagePaste(view, event, uploadFn),
+              handleDrop: (view, event, _slice, moved) => handleImageDrop(view, event, moved, uploadFn),
+              attributes: {
+                id: "debouncedEditor",
+                class: `prose prose-lg dark:prose-invert prose-headings:font-title font-default focus:outline-none max-w-full`,
+              },
             }}
-            className="flex w-fit max-w-[90vw] overflow-hidden rounded-md border border-muted bg-background shadow-xl"
+            initialContent={initialContent}
+            onUpdate={({ editor }) => handleContentUpdate(editor)}
+            immediatelyRender={false}
+            slotAfter={<ImageResizer />}
+            onContentError={(error) => {
+              console.error("Content error", error);
+            }}
           >
-            <Separator orientation="vertical" />
-            <NodeSelector open={openNode} onOpenChange={setOpenNode} />
-            <Separator orientation="vertical" />
-            <LinkSelector open={openLink} onOpenChange={setOpenLink} />
-            <Separator orientation="vertical" />
-            <TextButtons />
-            <Separator orientation="vertical" />
-            <ColorSelector open={openColor} onOpenChange={setOpenColor} />
-          </EditorBubble>
-        </EditorContent>
+            <NotesController
+              initialValue={initialContent}
+              setCurrentContent={setLocalContent}
+            />
+
+            {/* Command Palette */}
+            <EditorCommand className="z-50 h-auto max-h-[330px] rounded-md border border-muted bg-background px-1 py-2 shadow-md transition-all">
+              <ScrollArea className="h-full">
+                <EditorCommandEmpty className="px-2 text-muted-foreground">
+                  No results
+                </EditorCommandEmpty>
+                <EditorCommandList>
+                  {suggestionItems.map((item: any) => (
+                    <EditorCommandItem
+                      value={item.title}
+                      onCommand={(val) => item.command?.(val)}
+                      className={`flex w-full items-center space-x-2 rounded-md px-2 py-1 text-left text-sm hover:bg-accent aria-selected:bg-accent`}
+                      key={item.title}
+                    >
+                      <div className="flex h-10 w-10 items-center justify-center rounded-md border border-muted bg-background">
+                        {item.icon}
+                      </div>
+                      <div>
+                        <p className="font-medium">{item.title}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {item.description}
+                        </p>
+                      </div>
+                    </EditorCommandItem>
+                  ))}
+                </EditorCommandList>
+              </ScrollArea>
+            </EditorCommand>
+
+            {/* Editor Bubble */}
+            <EditorBubble
+              tippyOptions={{
+                placement: "top",
+              }}
+              className="flex w-fit max-w-[90vw] overflow-hidden rounded-md border border-muted bg-background shadow-xl"
+            >
+              <Separator orientation="vertical" />
+              <NodeSelector open={openNode} onOpenChange={setOpenNode} />
+              <Separator orientation="vertical" />
+              <LinkSelector open={openLink} onOpenChange={setOpenLink} />
+              <Separator orientation="vertical" />
+              <TextButtons />
+              <Separator orientation="vertical" />
+              <ColorSelector open={openColor} onOpenChange={setOpenColor} />
+            </EditorBubble>
+          </EditorContent>
+        </ScrollArea>
       </div>
     </EditorRoot>
   );

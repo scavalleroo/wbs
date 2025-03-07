@@ -10,12 +10,13 @@ import DateRadioGroup from './date-radio-group';
 import { useNotes } from '@/hooks/use-notes';
 import { JSONContent } from 'novel';
 import { ProjectNote } from '@/lib/project';
+import CreateProjectDialog from '../create-project-dialog';
 
-interface EditorProps {
+interface FocusTabsProps {
   user: User | null | undefined;
 }
 
-export const Editor: React.FC<EditorProps> = ({
+export const FocusTabs: React.FC<FocusTabsProps> = ({
   user
 }) => {
   const [activeTab, setActiveTab] = useState<'daily' | 'project'>('daily');
@@ -42,6 +43,7 @@ export const Editor: React.FC<EditorProps> = ({
     fetchDailyNotes,
     fetchProjectNotes,
     fetchAllProjectNotes,
+    createProjectNote,
   } = useNotes({ user });
 
   // Handle window resize for overflow detection
@@ -159,7 +161,7 @@ export const Editor: React.FC<EditorProps> = ({
     <Tabs
       value={activeTab}
       onValueChange={handleTabChange}
-      className='flex flex-col w-full h-[calc(100vh-156px)] max-h-[calc(100vh-156px)] max-w-screen-lg mx-auto'
+      className='flex flex-col w-full h-[calc(100vh-156px)] max-h-[calc(100vh-156px)] max-w-screen-lg mx-auto sm:px-0 px-4'
     >
       <div className="flex-shrink-0 my-4"> {/* This wrapper prevents the header from scrolling */}
         <TabsList>
@@ -264,18 +266,11 @@ export const Editor: React.FC<EditorProps> = ({
                     </p>
                   </Button>
                 ))}
-                <Button
-                  variant="ghost"
-                  className="flex-1 min-h-10 flex flex-col items-center 
-                    rounded-md border-2 border-muted bg-popover 
-                    py-1 md:px-1 md:py-0.5 hover:bg-accent hover:text-accent-foreground 
-                    cursor-pointer text-sm transition-colors duration-200
-                    bg-secondary border-transparent
-                    whitespace-nowrap justify-center"
-                  onClick={() => { }}
-                >
-                  <Plus className="h-4 w-4" />
-                </Button>
+                <CreateProjectDialog onCreateProject={async (title) => {
+                  await createProjectNote(title);
+                  await fetchAllProjectNotes();
+                  setSelectedProject(null);
+                }} />
               </div>
             </div>
           )}

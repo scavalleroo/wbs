@@ -3,7 +3,6 @@ import { JSONContent } from "novel";
 import { toast } from 'sonner';
 import { createClient } from '@/utils/supabase/client';
 import { DailyNote, ProjectNote } from '@/lib/project';
-import { set } from 'react-hook-form';
 
 // Supabase client setup
 const supabase = createClient();
@@ -257,10 +256,18 @@ export function useNotes({ user }: UseNotesParams) {
                 .from('user_projects_notes')
                 .select('*')
                 .eq('user_id', user.id)
-                .order('created_at', { ascending: false });
+                .order('updated_at', { ascending: false });
 
             if (error) {
                 throw error;
+            }
+
+            // If no projects exist yet, create a default "Untitled project"
+            if (!data || data.length === 0) {
+                const newProject = await createProjectNote("Untitled project");
+                if (newProject) {
+                    return [newProject];
+                }
             }
 
             setProjectNotes(data as ProjectNote[]);
@@ -271,6 +278,50 @@ export function useNotes({ user }: UseNotesParams) {
             setError('Failed to load project notes');
             toast.error('Failed to load project notes');
             return [];
+        } finally {
+            setLoading(false);
+        }
+    }, [user]);
+
+    // Create a new project note
+    const createProjectNote = useCallback(async (title: string) => {
+        if (!user) {
+            setLoading(false);
+            return null;
+        }
+
+        try {
+            setLoading(true);
+
+            // Create a new project note
+            const { data, error } = await supabase
+                .from('user_projects_notes')
+                .insert({
+                    user_id: user.id,
+                    title: title,
+                    content: defaultEditorContent,
+                    created_at: new Date().toISOString()
+                })
+                .select()
+                .single();
+
+            if (error) {
+                console.error('Error creating project note:', error);
+                toast.error(`Failed to create project "${title}"`);
+                return null;
+            }
+
+            // Add the new note to the project notes list
+            setProjectNotes(prev => [data as ProjectNote, ...prev]);
+
+            setError(null);
+            toast.success(`Project "${title}" created successfully`);
+            return data as ProjectNote;
+        } catch (err) {
+            console.error('Unexpected error creating project note:', err);
+            setError('Failed to create project note');
+            toast.error('Unexpected error creating project note');
+            return null;
         } finally {
             setLoading(false);
         }
@@ -287,5 +338,6 @@ export function useNotes({ user }: UseNotesParams) {
         saveProjectNotes,
         fetchProjectNotes,
         fetchAllProjectNotes,
+        createProjectNote,
     };
 }

@@ -57,9 +57,9 @@ const CreateProjectDialog: React.FC<CreateProjectDialogProps> = ({
             </DialogTrigger>
             <DialogContent>
                 <DialogHeader>
-                    <DialogTitle>Create New Project</DialogTitle>
+                    <DialogTitle>Create New Page</DialogTitle>
                     <DialogDescription>
-                        Enter a title for your new project
+                        Enter a title for your new page
                     </DialogDescription>
                 </DialogHeader>
                 <div className="grid gap-4 py-4">
@@ -77,7 +77,7 @@ const CreateProjectDialog: React.FC<CreateProjectDialogProps> = ({
                                 }
                             }}
                             className="col-span-3"
-                            placeholder="Enter project name"
+                            placeholder="Enter page name"
                         />
                     </div>
                 </div>
@@ -95,7 +95,7 @@ const CreateProjectDialog: React.FC<CreateProjectDialogProps> = ({
                         onClick={handleCreate}
                         disabled={!projectTitle.trim() || isCreating}
                     >
-                        {isCreating ? 'Creating...' : 'Create Project'}
+                        {isCreating ? 'Creating...' : 'Create Page'}
                     </Button>
                 </DialogFooter>
             </DialogContent>

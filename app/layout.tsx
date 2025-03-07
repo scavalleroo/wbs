@@ -1,4 +1,5 @@
 import "./globals.css";
+import "./prosemirror.css";
 import { Inter } from 'next/font/google'
 import { ThemeProvider } from '@/app/theme-provider'
 import SupabaseProvider from "./supabase-provider";

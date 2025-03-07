@@ -12,12 +12,8 @@ import {
   JSONContent,
   type EditorInstance,
 } from "novel";
-import {
-  handleCommandNavigation,
-  handleImagePaste,
-  handleImageDrop,
-  ImageResizer
-} from "novel";
+import { handleCommandNavigation, ImageResizer } from "novel";
+import { handleImagePaste, handleImageDrop, } from "novel";
 import { Separator } from "@/components/ui/separator";
 import { NodeSelector } from "./selectors/node-selector";
 import { LinkSelector } from "./selectors/link-selector";
@@ -31,7 +27,6 @@ import { createClient } from '@/utils/supabase/client';
 import { useDebounce } from '@/hooks/use-debounce';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
-// Extend the existing extensions with slash command
 const extensions = [...defaultExtensions, slashCommand];
 
 interface RealtimeEditorProps {
@@ -132,19 +127,21 @@ export const RealtimeEditor: React.FC<RealtimeEditorProps> = ({
   return (
     <EditorRoot key={`editor-${rowId}`}>
       <div className="relative w-full h-full">
-        {isSaving && (
-          <div className="absolute bottom-2 right-2 text-xs text-muted-foreground z-10">
-            Saving...
-          </div>
-        )}
-        {!isSaving && lastSaved && (
-          <div className="absolute bottom-2 right-4 text-xs text-muted-foreground z-10">
-            Last saved: {lastSaved.toLocaleTimeString()}
-          </div>
-        )}
+        <div className="absolute bottom-2 right-2 flex items-center gap-2 z-10">
+          {isSaving && (
+            <div className="text-xs text-muted-foreground">
+              Saving...
+            </div>
+          )}
+          {!isSaving && lastSaved && (
+            <div className="text-xs text-muted-foreground">
+              Last saved: {lastSaved.toLocaleTimeString()}
+            </div>
+          )}
+        </div>
         <ScrollArea className="w-full h-full">
           <EditorContent
-            className="border p-4 rounded-sm w-full h-full bg-background break-all"
+            className="w-full h-full break-all"
             extensions={extensions}
             editorProps={{
               handleDOMEvents: {
@@ -153,9 +150,8 @@ export const RealtimeEditor: React.FC<RealtimeEditorProps> = ({
               handlePaste: (view, event) => handleImagePaste(view, event, uploadFn),
               handleDrop: (view, event, _slice, moved) => handleImageDrop(view, event, moved, uploadFn),
               attributes: {
-                id: "debouncedEditor",
                 class: `prose prose-lg dark:prose-invert prose-headings:font-title font-default focus:outline-none max-w-full`,
-              },
+              }
             }}
             initialContent={initialContent}
             onUpdate={({ editor }) => handleContentUpdate(editor)}
@@ -218,6 +214,6 @@ export const RealtimeEditor: React.FC<RealtimeEditorProps> = ({
           </EditorContent>
         </ScrollArea>
       </div>
-    </EditorRoot>
+    </EditorRoot >
   );
 };

@@ -143,40 +143,63 @@ export function useNotes({ user }: UseNotesParams) {
 
 
     // Fix existing saveProjectNotes function
-    const saveProjectNotes = useCallback(async (title: string, content: JSONContent, rowId: number) => {
+    const saveProjectNotes = useCallback(async (
+        projectId: number,
+        options: { content?: JSONContent; title?: string }
+    ) => {
         if (!user) return false;
 
         setLoading(true);
 
         try {
-            // Only save if content has changed
-            if (
-                JSON.stringify(content) === JSON.stringify(defaultEditorContent) ||
-                JSON.stringify(content) === JSON.stringify(previousContentRef.current)
-            ) {
-                return false;
+            const { content, title } = options;
+            const updateData: Record<string, any> = {
+                updated_at: new Date().toISOString(),
+            };
+
+            // Add content to update data if provided
+            if (content) {
+                // Only update content if it has changed
+                if (
+                    JSON.stringify(content) === JSON.stringify(defaultEditorContent) ||
+                    JSON.stringify(content) === JSON.stringify(previousContentRef.current)
+                ) {
+                    // If we're only updating title, continue
+                    if (!title) return false;
+                } else {
+                    updateData.content = content;
+                    previousContentRef.current = content;
+                }
             }
 
-            // Upsert the note
+            // Add title to update data if provided
+            if (title) {
+                updateData.title = title;
+            }
+
+            // Don't proceed if there's nothing to update
+            if (Object.keys(updateData).length === 1) return false; // Only updated_at exists
+
+            // Update the note
             const { error } = await supabase
-                .from('user_projects_notes') // Fixed table name (plural)
-                .update({
-                    content: content,
-                    updated_at: new Date().toISOString(),
-                })
-                .eq('id', rowId);
+                .from('user_projects_notes')
+                .update(updateData)
+                .eq('id', projectId);
 
             if (error) {
-                console.error('Error saving notes:', error);
-                toast.error(`Failed to save notes for ${title}`);
+                console.error('Error saving project note:', error);
+                toast.error(`Failed to save project ${title ? `"${title}"` : ''}`);
                 return false;
             }
 
-            previousContentRef.current = content;
+            if (title) {
+                toast.success(`Project renamed successfully`);
+            }
+
             return true;
         } catch (err) {
-            console.error('Unexpected error saving notes:', err);
-            toast.error('Unexpected error saving notes');
+            console.error('Unexpected error saving project note:', err);
+            toast.error('Failed to update project');
             return false;
         } finally {
             setLoading(false);
@@ -327,6 +350,45 @@ export function useNotes({ user }: UseNotesParams) {
         }
     }, [user]);
 
+    // Delete a project note
+    const deleteProjectNote = useCallback(async (noteId: number) => {
+        if (!user) {
+            setLoading(false);
+            return false;
+        }
+
+        try {
+            setLoading(true);
+
+            // Delete the project note
+            const { error } = await supabase
+                .from('user_projects_notes')
+                .delete()
+                .eq('id', noteId)
+                .eq('user_id', user.id); // Ensure users can only delete their own notes
+
+            if (error) {
+                console.error('Error deleting project note:', error);
+                toast.error('Failed to delete project');
+                return false;
+            }
+
+            // Remove the deleted note from the project notes list
+            setProjectNotes(prev => prev.filter(note => note.id !== noteId));
+
+            setError(null);
+            toast.success('Project deleted successfully');
+            return true;
+        } catch (err) {
+            console.error('Unexpected error deleting project note:', err);
+            setError('Failed to delete project note');
+            toast.error('Unexpected error deleting project note');
+            return false;
+        } finally {
+            setLoading(false);
+        }
+    }, [user]);
+
     return {
         dailyNote,
         projectNote,
@@ -339,5 +401,6 @@ export function useNotes({ user }: UseNotesParams) {
         fetchProjectNotes,
         fetchAllProjectNotes,
         createProjectNote,
+        deleteProjectNote,
     };
 }

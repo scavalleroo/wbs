@@ -11,6 +11,8 @@ import { useNotes } from '@/hooks/use-notes';
 import { JSONContent } from 'novel';
 import { ProjectNote } from '@/lib/project';
 import CreateProjectDialog from '../create-project-dialog';
+import ProjectDialogs from './project-dialogs';
+import { set } from 'react-hook-form';
 
 interface FocusTabsProps {
   user: User | null | undefined;
@@ -44,6 +46,7 @@ export const FocusTabs: React.FC<FocusTabsProps> = ({
     fetchProjectNotes,
     fetchAllProjectNotes,
     createProjectNote,
+    deleteProjectNote,
   } = useNotes({ user });
 
   // Handle window resize for overflow detection
@@ -110,11 +113,12 @@ export const FocusTabs: React.FC<FocusTabsProps> = ({
       if (activeTab === 'daily' && dailyNote && contentEditor) {
         await saveDailyNotes(selectedDate, contentEditor, dailyNote.id);
       } else if (activeTab === 'project' && selectedProject && contentEditor) {
-        console.log("Saving project notes:", selectedProject.title);
         await saveProjectNotes(
-          selectedProject.title || "Untitled Project",
-          contentEditor,
-          selectedProject.id
+          selectedProject.id,
+          {
+            title: selectedProject.title || "Untitled Project",
+            content: contentEditor,
+          }
         );
         setSelectedProject(null);
       } else {
@@ -144,9 +148,11 @@ export const FocusTabs: React.FC<FocusTabsProps> = ({
       // Only save current project if we have one selected and content to save
       if (selectedProject && contentEditor) {
         await saveProjectNotes(
-          selectedProject.title || "Untitled Project",
-          contentEditor,
-          selectedProject.id
+          selectedProject.id,
+          {
+            title: selectedProject.title || "Untitled Project",
+            content: contentEditor,
+          }
         );
       }
 
@@ -157,16 +163,29 @@ export const FocusTabs: React.FC<FocusTabsProps> = ({
     }
   };
 
+  const handleRenameProject = async (id: number, newTitle: string) => {
+    console.log('Renaming project', id, 'to', newTitle);
+    await saveProjectNotes(id, { title: newTitle });
+    await fetchAllProjectNotes();
+    setSelectedProject(null);
+  };
+
+  const handleDeleteProject = async (id: number) => {
+    await deleteProjectNote(id);
+    await fetchAllProjectNotes();
+    setSelectedProject(null);
+  };
+
   return (
     <Tabs
       value={activeTab}
       onValueChange={handleTabChange}
-      className='flex flex-col w-full h-[calc(100vh-156px)] max-h-[calc(100vh-156px)] max-w-screen-lg mx-auto sm:px-0 px-4'
+      className='flex flex-col w-full h-[calc(100vh-156px)] max-h-[calc(100vh-156px)] max-w-screen-lg mx-auto sm:px-2 px-4'
     >
       <div className="flex-shrink-0 my-4"> {/* This wrapper prevents the header from scrolling */}
         <TabsList>
           <TabsTrigger value="daily">Daily</TabsTrigger>
-          <TabsTrigger value="project">Project</TabsTrigger>
+          <TabsTrigger value="project">Pages</TabsTrigger>
         </TabsList>
       </div>
 
@@ -277,16 +296,27 @@ export const FocusTabs: React.FC<FocusTabsProps> = ({
         </div>
         <div className="flex-grow overflow-y-auto h-full">
           {selectedProject && (
-            <RealtimeEditor
-              key={`project-${selectedProject.id}`}
-              tableName="user_projects_notes"
-              rowId={selectedProject.id}
-              initalLastSaved={selectedProject.updated_at ? new Date(selectedProject.updated_at) : undefined}
-              initialContent={selectedProject.content as JSONContent}
-              onContentUpdate={(content) => {
-                setContentEditor(content);
-              }}
-            />
+            <div className='flex flex-col h-full w-full overflow-hidden'>
+              <div className="self-end">
+                <ProjectDialogs
+                  project={selectedProject!}
+                  onRenameProject={handleRenameProject}
+                  onDeleteProject={handleDeleteProject}
+                />
+              </div>
+              <div className="flex-grow overflow-y-auto h-full">
+                <RealtimeEditor
+                  key={`project-${selectedProject.id}`}
+                  tableName="user_projects_notes"
+                  rowId={selectedProject.id}
+                  initalLastSaved={selectedProject.updated_at ? new Date(selectedProject.updated_at) : undefined}
+                  initialContent={selectedProject.content as JSONContent}
+                  onContentUpdate={(content) => {
+                    setContentEditor(content);
+                  }}
+                />
+              </div>
+            </div>
           )}
         </div>
       </TabsContent>

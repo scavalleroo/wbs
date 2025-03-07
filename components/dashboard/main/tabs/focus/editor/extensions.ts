@@ -16,9 +16,19 @@ import {
 import { UploadImagesPlugin } from "novel";
 
 import { cx } from "class-variance-authority";
+import GlobalDragHandle from "tiptap-extension-global-drag-handle";
+import AutoJoiner from 'tiptap-extension-auto-joiner'
 
 const aiHighlight = AIHighlight;
-const placeholder = Placeholder;
+const placeholder = Placeholder.configure({
+  placeholder: ({ node }) => {
+    if (node.type.name === 'taskItem' || node.type.name === 'bulletList' || node.type.name === 'orderedList') {
+      return '' // Empty string for list items
+    }
+    return 'Write \'/\' for commands...'
+  }
+});
+
 const tiptapLink = TiptapLink.configure({
   HTMLAttributes: {
     class: cx(
@@ -122,4 +132,11 @@ export const defaultExtensions = [
   Color,
   HighlightExtension,
   TiptapUnderline,
+  GlobalDragHandle.configure({
+    dragHandleWidth: 20,
+    scrollTreshold: 100     // default
+  }),
+  AutoJoiner.configure({
+      elementsToJoin: ["bulletList", "orderedList"] // default
+  }),
 ];

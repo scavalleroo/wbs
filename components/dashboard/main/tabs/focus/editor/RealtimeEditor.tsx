@@ -26,6 +26,8 @@ import { defaultExtensions } from './extensions';
 import { createClient } from '@/utils/supabase/client';
 import { useDebounce } from '@/hooks/use-debounce';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import ProjectDialogs from './project-dialogs';
+import { ProjectNote } from '@/lib/project';
 
 const extensions = [...defaultExtensions, slashCommand];
 
@@ -34,6 +36,9 @@ interface RealtimeEditorProps {
   rowId: string | number;
   initialContent?: JSONContent;
   initalLastSaved?: Date;
+  selectedProject?: ProjectNote;
+  handleRenameProject?: (id: number, newTitle: string) => Promise<void>;
+  handleDeleteProject?: (id: number) => Promise<void>;
   onContentUpdate?: (content: JSONContent) => void;
 }
 
@@ -42,6 +47,9 @@ export const RealtimeEditor: React.FC<RealtimeEditorProps> = ({
   rowId,
   initialContent = {},
   initalLastSaved,
+  selectedProject,
+  handleRenameProject,
+  handleDeleteProject,
   onContentUpdate
 }) => {
   const supabase = createClient();
@@ -126,22 +134,10 @@ export const RealtimeEditor: React.FC<RealtimeEditorProps> = ({
 
   return (
     <EditorRoot key={`editor-${rowId}`}>
-      <div className="relative w-full h-full">
-        <div className="absolute bottom-2 right-2 flex items-center gap-2 z-10">
-          {isSaving && (
-            <div className="text-xs text-muted-foreground">
-              Saving...
-            </div>
-          )}
-          {!isSaving && lastSaved && (
-            <div className="text-xs text-muted-foreground">
-              Last saved: {lastSaved.toLocaleTimeString()}
-            </div>
-          )}
-        </div>
-        <ScrollArea className="w-full h-full">
+      <div className="flex flex-col w-full h-full">
+        <ScrollArea className="w-full flex-grow">
           <EditorContent
-            className="w-full h-full break-all"
+            className="w-full break-all"
             extensions={extensions}
             editorProps={{
               handleDOMEvents: {
@@ -213,7 +209,37 @@ export const RealtimeEditor: React.FC<RealtimeEditorProps> = ({
             </EditorBubble>
           </EditorContent>
         </ScrollArea>
+
+        {/* Footer with justified content - Last saved on left, ProjectDialogs on right */}
+        <div className="flex justify-between items-center z-10 py-2 border-t">
+          <div className="flex items-center gap-2">
+            {isSaving && (
+              <div className="text-xs text-muted-foreground">
+                Saving...
+              </div>
+            )}
+            {!isSaving && lastSaved && (
+              <div className="text-xs text-muted-foreground">
+                Last saved: {lastSaved.toLocaleTimeString()}
+              </div>
+            )}
+          </div>
+
+
+          {
+            selectedProject &&
+            handleRenameProject &&
+            handleDeleteProject && (
+              <div>
+                <ProjectDialogs
+                  project={selectedProject!}
+                  onRenameProject={handleRenameProject}
+                  onDeleteProject={handleDeleteProject}
+                />
+              </div>
+            )}
+        </div>
       </div>
-    </EditorRoot >
+    </EditorRoot>
   );
 };

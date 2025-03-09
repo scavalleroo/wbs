@@ -236,7 +236,7 @@ export const FocusTabs: React.FC<FocusTabsProps> = ({
             <ChevronRight className="h-4 w-4" />
           </Button>
         </div>
-        <div className="flex-grow overflow-y-auto h-full">
+        <div className="flex-grow overflow-y-auto h-full mt-4">
           {dailyNote && !loading && (
             <RealtimeEditor
               key={`daily-${dailyNote.id}`}
@@ -297,13 +297,6 @@ export const FocusTabs: React.FC<FocusTabsProps> = ({
         <div className="flex-grow overflow-y-auto h-full">
           {selectedProject && (
             <div className='flex flex-col h-full w-full overflow-hidden'>
-              <div className="self-end">
-                <ProjectDialogs
-                  project={selectedProject!}
-                  onRenameProject={handleRenameProject}
-                  onDeleteProject={handleDeleteProject}
-                />
-              </div>
               <div className="flex-grow overflow-y-auto h-full">
                 <RealtimeEditor
                   key={`project-${selectedProject.id}`}
@@ -311,6 +304,9 @@ export const FocusTabs: React.FC<FocusTabsProps> = ({
                   rowId={selectedProject.id}
                   initalLastSaved={selectedProject.updated_at ? new Date(selectedProject.updated_at) : undefined}
                   initialContent={selectedProject.content as JSONContent}
+                  handleDeleteProject={handleDeleteProject}
+                  handleRenameProject={handleRenameProject}
+                  selectedProject={selectedProject}
                   onContentUpdate={(content) => {
                     setContentEditor(content);
                   }}

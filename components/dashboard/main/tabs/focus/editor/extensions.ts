@@ -20,14 +20,7 @@ import GlobalDragHandle from "tiptap-extension-global-drag-handle";
 import AutoJoiner from 'tiptap-extension-auto-joiner'
 
 const aiHighlight = AIHighlight;
-const placeholder = Placeholder.configure({
-  placeholder: ({ node }) => {
-    if (node.type.name === 'taskItem' || node.type.name === 'bulletList' || node.type.name === 'orderedList') {
-      return '' // Empty string for list items
-    }
-    return 'Write \'/\' for commands...'
-  }
-});
+const placeholder = Placeholder;
 
 const tiptapLink = TiptapLink.configure({
   HTMLAttributes: {

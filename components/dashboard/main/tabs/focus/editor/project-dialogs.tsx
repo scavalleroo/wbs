@@ -10,14 +10,7 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import {
-    DropdownMenu,
-    DropdownMenuTrigger,
-    DropdownMenuItem,
-    DropdownMenuContent,
-    DropdownMenuSeparator
-} from '@/components/ui/dropdown-menu';
-import { MoreHorizontal, Pencil, Trash } from 'lucide-react';
+import { Pencil, Trash } from 'lucide-react';
 import { ProjectNote } from '@/lib/project';
 
 interface ProjectDialogsProps {
@@ -69,33 +62,34 @@ const ProjectDialogs: React.FC<ProjectDialogsProps> = ({
     };
 
     return (
-        <div className="flex-shrink-0">
-            {/* Project Menu */}
-            <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                        <MoreHorizontal className="h-4 w-4" />
-                        <span className="sr-only">Open menu</span>
-                    </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                    <DropdownMenuItem onSelect={() => {
+        <div className="flex items-center space-x-1 flex-shrink-0">
+            {/* Action Buttons */}
+            <div className="flex items-center">
+                {/* Rename Button - Shows icon only on small screens */}
+                <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
                         setNewProjectTitle(project.title);
                         setIsRenameOpen(true);
-                    }}>
-                        <Pencil className="mr-2 h-4 w-4" />
-                        Rename page
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem
-                        onSelect={() => setIsDeleteOpen(true)}
-                        className="text-destructive"
-                    >
-                        <Trash className="mr-2 h-4 w-4" />
-                        Delete page
-                    </DropdownMenuItem>
-                </DropdownMenuContent>
-            </DropdownMenu>
+                    }}
+                    className="h-8 px-2 sm:px-3"
+                >
+                    <Pencil className="h-4 w-4" />
+                    <span className="sr-only sm:not-sr-only sm:ml-2">Rename</span>
+                </Button>
+
+                {/* Delete Button - Shows icon only on small screens */}
+                <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setIsDeleteOpen(true)}
+                    className="h-8 px-2 sm:px-3 text-destructive hover:text-destructive"
+                >
+                    <Trash className="h-4 w-4" />
+                    <span className="sr-only sm:not-sr-only sm:ml-2">Delete</span>
+                </Button>
+            </div>
 
             {/* Rename Project Dialog */}
             <Dialog open={isRenameOpen} onOpenChange={setIsRenameOpen}>

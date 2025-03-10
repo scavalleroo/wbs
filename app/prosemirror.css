@@ -19,6 +19,7 @@
 }
 
 /* Custom image styles */
+
 .ProseMirror img {
     transition: filter 0.1s ease-in-out;
 
@@ -58,6 +59,7 @@
 }
 
 /* Custom TODO list checkboxes – shoutout to this awesome tutorial: https://moderncss.dev/pure-css-custom-checkbox-style/ */
+
 ul[data-type="taskList"] li>label {
     margin-right: 0.2rem;
     user-select: none;
@@ -115,6 +117,7 @@ ul[data-type="taskList"] li[data-checked="true"]>div>p {
 }
 
 /* Overwrite tippy-box original max-width */
+
 .tippy-box {
     max-width: 400px !important;
 }

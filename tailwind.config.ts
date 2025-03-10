@@ -87,7 +87,8 @@ export default {
   },
   plugins: [
 	require("tailwindcss-animate"),
-	require('@tailwindcss/typography'),addVariablesForColors,
+	require('@tailwindcss/typography'),
+	addVariablesForColors,
 	function ({ matchUtilities, theme }: any) {
 		matchUtilities(
 			{

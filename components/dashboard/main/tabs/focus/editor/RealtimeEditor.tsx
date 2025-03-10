@@ -8,7 +8,6 @@ import {
   EditorCommandEmpty,
   EditorCommandList,
   EditorCommandItem,
-  EditorBubble,
   JSONContent,
   type EditorInstance,
 } from "novel";
@@ -21,13 +20,16 @@ import { ColorSelector } from "./selectors/color-selector";
 import { TextButtons } from "./selectors/text-buttons";
 import { slashCommand, suggestionItems } from "./slash-command";
 import { uploadFn } from "./image-upload";
-import NotesController from "./notes-controller";
 import { defaultExtensions } from './extensions';
 import { createClient } from '@/utils/supabase/client';
 import { useDebounce } from '@/hooks/use-debounce';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import ProjectDialogs from './project-dialogs';
 import { ProjectNote } from '@/lib/project';
+import GenerativeMenuSwitch from './generative/generative-menu-switch';
+import { MathSelector } from './selectors/math-selector';
+
+// const hljs = require("highlight.js");
 
 const extensions = [...defaultExtensions, slashCommand];
 
@@ -58,11 +60,14 @@ export const RealtimeEditor: React.FC<RealtimeEditorProps> = ({
   const [openNode, setOpenNode] = useState(false);
   const [openColor, setOpenColor] = useState(false);
   const [openLink, setOpenLink] = useState(false);
+  const [openAI, setOpenAI] = useState(false);
+
   const [isSaving, setIsSaving] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | undefined>(initalLastSaved);
   const editorRef = useRef<EditorInstance | null>(null);
   const prevRowIdRef = useRef<string | number>(rowId);
   const prevInitialContentRef = useRef<JSONContent>(initialContent);
+
 
   // Create a debounced version of the content
   const debouncedContent = useDebounce(localContent, 2000);
@@ -132,8 +137,19 @@ export const RealtimeEditor: React.FC<RealtimeEditorProps> = ({
     onContentUpdate?.(newContent);
   }, []);
 
+  //Apply Codeblock Highlighting on the HTML from editor.getHTML()
+  // const highlightCodeblocks = (content: string) => {
+  //   const doc = new DOMParser().parseFromString(content, "text/html");
+  //   doc.querySelectorAll("pre code").forEach((el) => {
+  //     // @ts-ignore
+  //     // https://highlightjs.readthedocs.io/en/latest/api.html?highlight=highlightElement#highlightelement
+  //     hljs.highlightElement(el);
+  //   });
+  //   return new XMLSerializer().serializeToString(doc);
+  // };
+
   return (
-    <EditorRoot key={`editor-${rowId}`}>
+    <EditorRoot>
       <div className="flex flex-col w-full h-full">
         <ScrollArea className="w-full flex-grow">
           <EditorContent
@@ -157,56 +173,44 @@ export const RealtimeEditor: React.FC<RealtimeEditorProps> = ({
               console.error("Content error", error);
             }}
           >
-            <NotesController
-              initialValue={initialContent}
-              setCurrentContent={setLocalContent}
-            />
 
             {/* Command Palette */}
-            <EditorCommand className="z-50 h-auto max-h-[330px] rounded-md border border-muted bg-background px-1 py-2 shadow-md transition-all">
-              <ScrollArea className="h-full">
-                <EditorCommandEmpty className="px-2 text-muted-foreground">
-                  No results
-                </EditorCommandEmpty>
-                <EditorCommandList>
-                  {suggestionItems.map((item: any) => (
-                    <EditorCommandItem
-                      value={item.title}
-                      onCommand={(val) => item.command?.(val)}
-                      className={`flex w-full items-center space-x-2 rounded-md px-2 py-1 text-left text-sm hover:bg-accent aria-selected:bg-accent`}
-                      key={item.title}
-                    >
-                      <div className="flex h-10 w-10 items-center justify-center rounded-md border border-muted bg-background">
-                        {item.icon}
-                      </div>
-                      <div>
-                        <p className="font-medium">{item.title}</p>
-                        <p className="text-xs text-muted-foreground">
-                          {item.description}
-                        </p>
-                      </div>
-                    </EditorCommandItem>
-                  ))}
-                </EditorCommandList>
-              </ScrollArea>
+            <EditorCommand className="z-50 h-auto max-h-[330px] overflow-y-auto rounded-md border border-muted bg-background px-1 py-2 shadow-md transition-all">
+              <EditorCommandEmpty className="px-2 text-muted-foreground">No results</EditorCommandEmpty>
+              <EditorCommandList>
+                {suggestionItems.map((item) => (
+                  <EditorCommandItem
+                    value={item.title}
+                    onCommand={(val) => item.command!(val)}
+                    className="flex w-full items-center space-x-2 rounded-md px-2 py-1 text-left text-sm hover:bg-accent aria-selected:bg-accent"
+                    key={item.title}
+                  >
+                    <div className="flex h-10 w-10 items-center justify-center rounded-md border border-muted bg-background">
+                      {item.icon}
+                    </div>
+                    <div>
+                      <p className="font-medium">{item.title}</p>
+                      <p className="text-xs text-muted-foreground">{item.description}</p>
+                    </div>
+                  </EditorCommandItem>
+                ))}
+              </EditorCommandList>
             </EditorCommand>
 
-            {/* Editor Bubble */}
-            <EditorBubble
-              tippyOptions={{
-                placement: "top",
-              }}
-              className="flex w-fit max-w-[90vw] overflow-hidden rounded-md border border-muted bg-background shadow-xl"
-            >
+            <GenerativeMenuSwitch open={openAI} onOpenChange={setOpenAI}>
               <Separator orientation="vertical" />
               <NodeSelector open={openNode} onOpenChange={setOpenNode} />
               <Separator orientation="vertical" />
+
               <LinkSelector open={openLink} onOpenChange={setOpenLink} />
+              <Separator orientation="vertical" />
+              <MathSelector />
               <Separator orientation="vertical" />
               <TextButtons />
               <Separator orientation="vertical" />
               <ColorSelector open={openColor} onOpenChange={setOpenColor} />
-            </EditorBubble>
+            </GenerativeMenuSwitch>
+
           </EditorContent>
         </ScrollArea>
 

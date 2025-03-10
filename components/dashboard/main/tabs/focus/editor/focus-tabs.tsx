@@ -5,14 +5,12 @@ import { RealtimeEditor } from './RealtimeEditor';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { User } from '@supabase/supabase-js';
 import { Button } from '@/components/ui/button';
-import { ChevronLeft, ChevronRight, Plus } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Plus, Calendar } from 'lucide-react';
 import DateRadioGroup from './date-radio-group';
 import { useNotes } from '@/hooks/use-notes';
 import { JSONContent } from 'novel';
 import { ProjectNote } from '@/lib/project';
 import CreateProjectDialog from '../create-project-dialog';
-import ProjectDialogs from './project-dialogs';
-import { set } from 'react-hook-form';
 
 interface FocusTabsProps {
   user: User | null | undefined;
@@ -176,17 +174,43 @@ export const FocusTabs: React.FC<FocusTabsProps> = ({
     setSelectedProject(null);
   };
 
+  // Add Google Calendar event
+  const handleAddCalendarEvent = () => {
+    const title = selectedProject?.title || "New Task";
+    const date = selectedDate.toISOString().split('T')[0];
+    const startTime = '10:00:00';
+    const endTime = '11:00:00';
+
+    // Format the date and time for Google Calendar
+    const startDateTime = `${date}T${startTime}`;
+    const endDateTime = `${date}T${endTime}`;
+
+    // Create Google Calendar URL
+    const googleCalendarUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(title)}&dates=${startDateTime.replace(/[-:]/g, '')}/${endDateTime.replace(/[-:]/g, '')}&details=${encodeURIComponent('Event created from Focus Notes app')}`;
+
+    // Open in a new tab
+    window.open(googleCalendarUrl, '_blank');
+  };
+
   return (
     <Tabs
       value={activeTab}
       onValueChange={handleTabChange}
       className='flex flex-col w-full h-[calc(100vh-156px)] max-h-[calc(100vh-156px)] max-w-screen-lg mx-auto px-2'
     >
-      <div className="flex-shrink-0 my-4"> {/* This wrapper prevents the header from scrolling */}
+      <div className="flex-shrink-0 my-4 flex justify-between items-center"> {/* Modified to include both tabs and calendar button */}
         <TabsList>
           <TabsTrigger value="daily">Daily</TabsTrigger>
           <TabsTrigger value="project">Pages</TabsTrigger>
         </TabsList>
+        <Button
+          onClick={handleAddCalendarEvent}
+          variant="outline"
+          className="ml-4 flex items-center gap-2"
+        >
+          <Calendar className="h-4 w-4" />
+          <span>Add to Calendar</span>
+        </Button>
       </div>
 
       <TabsContent

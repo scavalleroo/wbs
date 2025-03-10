@@ -28,6 +28,7 @@ import ProjectDialogs from './project-dialogs';
 import { ProjectNote } from '@/lib/project';
 import GenerativeMenuSwitch from './generative/generative-menu-switch';
 import { MathSelector } from './selectors/math-selector';
+import { EventSelector } from './selectors/event-selector';
 
 // const hljs = require("highlight.js");
 
@@ -61,6 +62,7 @@ export const RealtimeEditor: React.FC<RealtimeEditorProps> = ({
   const [openColor, setOpenColor] = useState(false);
   const [openLink, setOpenLink] = useState(false);
   const [openAI, setOpenAI] = useState(false);
+  const [openEvent, setOpenEvent] = useState(false);
 
   const [isSaving, setIsSaving] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | undefined>(initalLastSaved);
@@ -199,9 +201,10 @@ export const RealtimeEditor: React.FC<RealtimeEditorProps> = ({
 
             <GenerativeMenuSwitch open={openAI} onOpenChange={setOpenAI}>
               <Separator orientation="vertical" />
+              <EventSelector open={openEvent} onOpenChange={setOpenEvent} /> {/* Add the new component here */}
+              <Separator orientation="vertical" />
               <NodeSelector open={openNode} onOpenChange={setOpenNode} />
               <Separator orientation="vertical" />
-
               <LinkSelector open={openLink} onOpenChange={setOpenLink} />
               <Separator orientation="vertical" />
               <MathSelector />

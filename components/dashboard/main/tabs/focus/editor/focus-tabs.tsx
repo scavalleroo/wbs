@@ -174,24 +174,6 @@ export const FocusTabs: React.FC<FocusTabsProps> = ({
     setSelectedProject(null);
   };
 
-  // Add Google Calendar event
-  const handleAddCalendarEvent = () => {
-    const title = selectedProject?.title || "New Task";
-    const date = selectedDate.toISOString().split('T')[0];
-    const startTime = '10:00:00';
-    const endTime = '11:00:00';
-
-    // Format the date and time for Google Calendar
-    const startDateTime = `${date}T${startTime}`;
-    const endDateTime = `${date}T${endTime}`;
-
-    // Create Google Calendar URL
-    const googleCalendarUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(title)}&dates=${startDateTime.replace(/[-:]/g, '')}/${endDateTime.replace(/[-:]/g, '')}&details=${encodeURIComponent('Event created from Focus Notes app')}`;
-
-    // Open in a new tab
-    window.open(googleCalendarUrl, '_blank');
-  };
-
   return (
     <Tabs
       value={activeTab}
@@ -203,14 +185,6 @@ export const FocusTabs: React.FC<FocusTabsProps> = ({
           <TabsTrigger value="daily">Daily</TabsTrigger>
           <TabsTrigger value="project">Pages</TabsTrigger>
         </TabsList>
-        <Button
-          onClick={handleAddCalendarEvent}
-          variant="outline"
-          className="ml-4 flex items-center gap-2"
-        >
-          <Calendar className="h-4 w-4" />
-          <span>Add to Calendar</span>
-        </Button>
       </div>
 
       <TabsContent

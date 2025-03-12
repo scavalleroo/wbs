@@ -2,6 +2,18 @@
 @tailwind components;
 @tailwind utilities;
 
+@font-face {
+  font-family: 'Volkswagen Bold';
+  src: url('../public/Volkswagen-Bold.otf') format('opentype');
+  font-weight: bold;
+  font-style: normal;
+  font-display: swap;
+}
+
+.volkswagen-bold {
+  font-family: 'Volkswagen Bold', sans-serif;
+}
+
 body {
   font-family: Arial, Helvetica, sans-serif;
 }
@@ -42,6 +54,11 @@ body {
     --novel-highlight-orange: #faebdd;
     --novel-highlight-pink: #faf1f5;
     --novel-highlight-gray: #f1f1ef;
+
+    --weko-green: #90E696;
+    --weko-blue: #1CACE6;
+
+    --weko-gradient: linear-gradient(90deg, var(--weko-green), var(--weko-blue));
   }
 
   .dark {
@@ -106,4 +123,9 @@ body {
 /* For scroll area */
 [data-radix-scroll-area-viewport]>div {
   height: 100% !important;
+}
+
+.loginButton iframe {
+  min-width: 0px !important;
+  min-height: 0px !important;
 }

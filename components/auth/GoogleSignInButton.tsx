@@ -71,7 +71,7 @@ export default function GoogleSignInButton() {
     }
 
     return (
-        <>
+        <div className='loginButton'>
             <Script
                 src="https://accounts.google.com/gsi/client"
                 onLoad={() => {
@@ -90,6 +90,6 @@ export default function GoogleSignInButton() {
                     width: '100%'
                 }}
             ></div>
-        </>
+        </div>
     );
 }

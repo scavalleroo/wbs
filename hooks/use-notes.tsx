@@ -26,7 +26,16 @@ const firstLoginEditorContent: JSONContent = {
             content: [
                 {
                     type: 'text',
-                    text: 'Welcome to your daily notes!'
+                    text: 'Must Do:'
+                }
+            ]
+        },
+        {
+            type: 'paragraph',
+            content: [
+                {
+                    type: 'text',
+                    text: 'Could Do:'
                 }
             ]
         }

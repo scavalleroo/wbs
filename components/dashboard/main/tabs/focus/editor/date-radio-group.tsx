@@ -14,6 +14,7 @@ interface DateRadioGroupProps {
 const DateRadioGroup = ({ selectedDate, days, isOverflowing, isPending, onChangeDate }: DateRadioGroupProps) => {
     const [date, setDate] = useState<Date>(selectedDate);
     const [finalDays, setFinalDays] = useState<Date[]>(days);
+    const maxOverflow = 2;
 
     useEffect(() => {
         let finalDays: Date[] = [];
@@ -26,11 +27,11 @@ const DateRadioGroup = ({ selectedDate, days, isOverflowing, isPending, onChange
             }
 
             if (selectedIndex <= 1) {
-                finalDays = days.slice(0, 4);
-            } else if (selectedIndex >= days.length - 2) {
-                finalDays = days.slice(-4);
+                finalDays = days.slice(0, maxOverflow);
+            } else if (selectedIndex >= days.length - (maxOverflow - 2)) {
+                finalDays = days.slice(-maxOverflow);
             } else {
-                finalDays = days.slice(selectedIndex - 1, selectedIndex + 3);
+                finalDays = days.slice(selectedIndex - 1, selectedIndex + (maxOverflow - 1));
             }
         } else {
             finalDays = days;

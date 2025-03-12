@@ -152,10 +152,10 @@ export const RealtimeEditor: React.FC<RealtimeEditorProps> = ({
 
   return (
     <EditorRoot>
-      <div className="flex flex-col w-full h-full">
-        <ScrollArea className="w-full flex-grow">
+      <div className="flex flex-col w-full h-full bg-neutral-900">
+        <ScrollArea className="w-full flex-grow radius-lg">
           <EditorContent
-            className="w-full break-all"
+            className="w-full break-all radius-lg"
             extensions={extensions}
             editorProps={{
               handleDOMEvents: {
@@ -226,8 +226,8 @@ export const RealtimeEditor: React.FC<RealtimeEditorProps> = ({
               </div>
             )}
             {!isSaving && lastSaved && (
-              <div className="text-xs text-muted-foreground">
-                Last saved: {lastSaved.toLocaleTimeString()}
+              <div className="text-xs text-muted-foreground p-2 sm:p-4">
+                Last saved: {lastSaved.toUTCString()}
               </div>
             )}
           </div>

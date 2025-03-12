@@ -5,7 +5,7 @@ import { RealtimeEditor } from './RealtimeEditor';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { User } from '@supabase/supabase-js';
 import { Button } from '@/components/ui/button';
-import { ChevronLeft, ChevronRight, Plus, Calendar } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Plus, Calendar, Book } from 'lucide-react';
 import DateRadioGroup from './date-radio-group';
 import { useNotes } from '@/hooks/use-notes';
 import { JSONContent } from 'novel';
@@ -180,61 +180,115 @@ export const FocusTabs: React.FC<FocusTabsProps> = ({
       onValueChange={handleTabChange}
       className='flex flex-col w-full h-[calc(100vh-156px)] max-h-[calc(100vh-156px)] max-w-screen-lg mx-auto px-2'
     >
-      <div className="flex-shrink-0 my-4 flex justify-between items-center"> {/* Modified to include both tabs and calendar button */}
-        <TabsList>
-          <TabsTrigger value="daily">Daily</TabsTrigger>
-          <TabsTrigger value="project">Pages</TabsTrigger>
+      <div className="flex-shrink-0 my-4 flex justify-between items-center gap-2 sm:gap-4">
+        {/* Left side: Tab buttons */}
+        <TabsList className="flex-shrink-0">
+          <TabsTrigger value="daily">
+            <p className="md:block hidden">Daily</p>
+            <Calendar className="md:hidden block size-5" />
+          </TabsTrigger>
+          <TabsTrigger value="project">
+            <p className="md:block hidden">Pages</p>
+            <Book className="md:hidden block size-5" />
+          </TabsTrigger>
         </TabsList>
+
+        {/* Right side: Conditional controls based on active tab */}
+        {activeTab === 'daily' && (
+          <div className="flex-grow flex items-center justify-end gap-1 sm:gap-2">
+            <Button
+              className="bg-muted text-muted-foreground px-2 py-2 rounded-full"
+              variant="outline"
+              onClick={() => {
+                const newDays = days.map((day) => {
+                  const newDate = new Date(day);
+                  newDate.setDate(newDate.getDate() - 1);
+                  return newDate;
+                });
+                setDays(newDays);
+                const newDate = new Date(selectedDate);
+                newDate.setDate(newDate.getDate() - 1);
+                handleDateChange(newDate);
+              }}
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+            <DateRadioGroup
+              selectedDate={selectedDate}
+              days={days}
+              isOverflowing={isOverflowing}
+              isPending={loading}
+              onChangeDate={handleDateChange}
+            />
+            <Button
+              className="bg-muted text-muted-foreground px-2 py-2 rounded-full"
+              variant="outline"
+              onClick={() => {
+                const newDays = days.map((day) => {
+                  const newDate = new Date(day);
+                  newDate.setDate(newDate.getDate() + 1);
+                  return newDate;
+                });
+                setDays(newDays);
+                const newDate = new Date(selectedDate);
+                newDate.setDate(newDate.getDate() + 1);
+                handleDateChange(newDate);
+              }}
+            >
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          </div>
+        )}
+
+        {activeTab === 'project' && (
+          <div className="flex-grow flex items-center justify-end overflow-x-auto w-full">
+            {projectNotes.length === 0 ? (
+              <div className="flex items-center justify-end">
+                <CreateProjectDialog onCreateProject={async (title) => {
+                  await createProjectNote(title);
+                  await fetchAllProjectNotes();
+                  setSelectedProject(null);
+                }} />
+              </div>
+            ) : (
+              <div className="flex gap-2 overflow-x-auto w-full">
+                {projectNotes.map((project) => (
+                  <Button
+                    key={project.id}
+                    variant="ghost"
+                    className={`min-h-10 flex flex-col items-center 
+                    rounded-md border-2 border-muted bg-popover 
+                    py-1 md:px-1 md:py-0.5 hover:bg-accent hover:text-accent-foreground 
+                    cursor-pointer text-sm transition-colors duration-200
+                    ${selectedProject?.id === project.id
+                        ? "bg-primary text-primary-foreground border-primary"
+                        : "bg-secondary border-transparent"}
+                    whitespace-nowrap justify-center`}
+                    onClick={() => handleProjectSwitch(project)}
+                  >
+                    <p className="text-xs">
+                      {project.title || "Untitled Project"}
+                    </p>
+                  </Button>
+                ))}
+                <CreateProjectDialog onCreateProject={async (title) => {
+                  await createProjectNote(title);
+                  await fetchAllProjectNotes();
+                  setSelectedProject(null);
+                }} />
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       <TabsContent
         value="daily"
-        className="flex flex-col h-full overflow-hidden" // Add overflow-hidden here
+        className="flex flex-col h-full overflow-hidden"
         style={{ display: activeTab === 'daily' ? 'flex' : 'none' }}
       >
-        <div className="flex-shrink-0 flex items-center justify-between">
-          <Button
-            className="bg-muted text-muted-foreground px-2 py-2 rounded-full"
-            variant="outline"
-            onClick={() => {
-              const newDays = days.map((day) => {
-                const newDate = new Date(day);
-                newDate.setDate(newDate.getDate() - 1);
-                return newDate;
-              });
-              setDays(newDays);
-              const newDate = new Date(selectedDate);
-              newDate.setDate(newDate.getDate() - 1);
-              handleDateChange(newDate);
-            }}
-          >
-            <ChevronLeft className="h-4 w-4" />
-          </Button>
-          <DateRadioGroup
-            selectedDate={selectedDate}
-            days={days}
-            isOverflowing={isOverflowing}
-            isPending={loading}
-            onChangeDate={handleDateChange} />
-          <Button
-            className="bg-muted text-muted-foreground px-2 py-2 rounded-full"
-            variant="outline"
-            onClick={() => {
-              const newDays = days.map((day) => {
-                const newDate = new Date(day);
-                newDate.setDate(newDate.getDate() + 1);
-                return newDate;
-              });
-              setDays(newDays);
-              const newDate = new Date(selectedDate);
-              newDate.setDate(newDate.getDate() + 1);
-              handleDateChange(newDate);
-            }}
-          >
-            <ChevronRight className="h-4 w-4" />
-          </Button>
-        </div>
-        <div className="flex-grow overflow-y-auto h-full mt-4">
+        {/* Remove the date navigation from here, as it's now in the header */}
+        <div className="flex-grow overflow-y-auto h-full" style={{ borderRadius: '1rem' }}>
           {dailyNote && !loading && (
             <RealtimeEditor
               key={`daily-${dailyNote.id}`}
@@ -252,47 +306,11 @@ export const FocusTabs: React.FC<FocusTabsProps> = ({
 
       <TabsContent
         value="project"
-        className="flex flex-col h-full overflow-hidden" // Add overflow-hidden here
+        className="flex flex-col h-full overflow-hidden"
         style={{ display: activeTab === 'project' ? 'flex' : 'none' }}
       >
-        <div className="flex-shrink-0 mb-4"> {/* Fixed position at top */}
-          {projectNotes.length === 0 ? (
-            <div className="flex flex-col items-center justify-center p-4 text-center border rounded-md border-dashed">
-              <p className="text-muted-foreground mb-2">No project notes available.</p>
-              <p className="text-sm text-muted-foreground">Create a project to start taking notes.</p>
-            </div>
-          ) : (
-            <div className="flex flex-col space-y-2">
-              <div className="flex gap-2 overflow-x-auto">
-                {projectNotes.map((project) => (
-                  <Button
-                    key={project.id}
-                    variant="ghost"
-                    className={`flex-1 min-h-10 flex flex-col items-center 
-                      rounded-md border-2 border-muted bg-popover 
-                      py-1 md:px-1 md:py-0.5 hover:bg-accent hover:text-accent-foreground 
-                      cursor-pointer text-sm transition-colors duration-200
-                      ${selectedProject?.id === project.id
-                        ? "bg-primary text-primary-foreground border-primary"
-                        : "bg-secondary border-transparent"}
-                      whitespace-nowrap justify-center`}
-                    onClick={() => handleProjectSwitch(project)}
-                  >
-                    <p className="text-xs">
-                      {project.title || "Untitled Project"}
-                    </p>
-                  </Button>
-                ))}
-                <CreateProjectDialog onCreateProject={async (title) => {
-                  await createProjectNote(title);
-                  await fetchAllProjectNotes();
-                  setSelectedProject(null);
-                }} />
-              </div>
-            </div>
-          )}
-        </div>
-        <div className="flex-grow overflow-y-auto h-full">
+        {/* Remove the project selection from here, as it's now in the header */}
+        <div className="flex-grow overflow-y-auto h-full" style={{ borderRadius: '1rem' }}>
           {selectedProject && (
             <div className='flex flex-col h-full w-full overflow-hidden'>
               <div className="flex-grow overflow-y-auto h-full">
@@ -316,4 +334,4 @@ export const FocusTabs: React.FC<FocusTabsProps> = ({
       </TabsContent>
     </Tabs>
   );
-};
+}

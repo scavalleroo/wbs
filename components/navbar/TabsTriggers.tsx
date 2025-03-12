@@ -1,5 +1,5 @@
 import { TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { ChartArea, Coffee, Laptop } from "lucide-react"
+import { ChartArea, Coffee, Notebook } from "lucide-react"
 import { Dispatch, SetStateAction } from "react"
 import { TabValue } from "../dashboard/main"
 
@@ -21,8 +21,8 @@ export function TabsTriggers({ activeTab, setActiveTab }: MainNavProps) {
                 <ChartArea className="md:hidden block size-5" />
             </TabsTrigger>
             <TabsTrigger onClick={() => handleTabChange('focus')} value="focus">
-                <p className="md:block hidden">Focus</p>
-                <Laptop className="md:hidden block size-5" />
+                <p className="md:block hidden">Notes</p>
+                <Notebook className="md:hidden block size-5" />
             </TabsTrigger>
             <TabsTrigger onClick={() => handleTabChange('break')} style={activeTab == 'break' ? { backgroundColor: "#1CACE6" } : {}} value="break">
                 <p className="md:block hidden">Break</p>

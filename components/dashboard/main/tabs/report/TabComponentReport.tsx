@@ -424,8 +424,8 @@ export function TabComponentReport({ user }: FocusTabContentProps) {
                                                 )}
                                             </div>
                                             <Button type="submit" disabled={loading}>
-                                                {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Ban className="mr-2 h-4 w-4" />}
-                                                Block Site
+                                                {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <PlusCircle className="mr-2 h-4 w-4" />}
+                                                Add site
                                             </Button>
                                         </form>
                                     </CollapsibleContent>

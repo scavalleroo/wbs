@@ -141,7 +141,7 @@ export const RealtimeEditor: React.FC<RealtimeEditorProps> = ({
 
   return (
     <EditorRoot>
-      <div className="flex flex-col w-full h-full dark:bg-neutral-900 bg-neutral-100">
+      <div className="flex flex-col w-full h-full dark:bg-neutral-900 bg-neutral-50">
         <ScrollArea className="w-full flex-grow radius-lg">
           <EditorContent
             className="w-full break-all radius-lg"

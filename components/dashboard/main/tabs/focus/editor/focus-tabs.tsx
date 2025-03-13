@@ -180,7 +180,7 @@ export const FocusTabs: React.FC<FocusTabsProps> = ({
     <Tabs
       value={activeTab}
       onValueChange={handleTabChange}
-      className='flex flex-col w-full sm:h-[calc(100vh-156px)] h-[calc(100vh-70px)] max-h-[calc(100vh-70px)] sm:max-h-[calc(100vh-156px)] max-w-screen-lg mx-auto px-2'
+      className='flex flex-col w-full sm:h-[calc(100vh-156px)] h-[calc(100vh-80px)] max-h-[calc(100vh-80px)] sm:max-h-[calc(100vh-156px)] max-w-screen-lg mx-auto px-2'
     >
       <div className="flex-shrink-0 mb-4">
         <div className="bg-gradient-to-r from-blue-500 to-indigo-600 rounded-xl p-4 shadow-md">

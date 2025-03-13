@@ -14,6 +14,7 @@ export interface BlockedSiteAttempt {
     user_id: string;
     domain: string;
     blocked_site_id: number;
+    bypassed: boolean;
 }
   
 export interface UseBlockedSiteParams {

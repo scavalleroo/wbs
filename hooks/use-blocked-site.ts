@@ -2,7 +2,7 @@ import { useState, useCallback } from 'react';
 import { toast } from 'sonner';
 import { createClient } from '@/utils/supabase/client';
 import { BlockedSite, BlockedSiteAttempt, UseBlockedSiteParams } from '@/types/report.types';
-import { startOfDay, isToday } from 'date-fns';
+import { startOfDay, isToday, subDays } from 'date-fns';
 
 // Supabase client setup
 const supabase = createClient();
@@ -155,7 +155,7 @@ export function useBlockedSite({ user }: UseBlockedSiteParams) {
   }, [user]);
 
   // Record an access attempt to a blocked site
-  const recordAttempt = useCallback(async (domain: string, blockedSiteId: number) => {
+  const recordAttempt = useCallback(async (domain: string, blockedSiteId: number, bypassed = false) => {
     if (!user) return null;
 
     try {
@@ -165,19 +165,22 @@ export function useBlockedSite({ user }: UseBlockedSiteParams) {
           user_id: user.id,
           domain: domain,
           blocked_site_id: blockedSiteId,
+          bypassed: bypassed
         })
         .select()
         .single();
       
       if (error) throw error;
       
-      // Check if this breaks a streak
-      const site = blockedSites.find(s => s.id === blockedSiteId);
-      if (site) {
-        const todayAttempts = await getTodayAttemptsForSite(domain);
-        if (todayAttempts >= (site.max_daily_visits || 3)) {
-          // Daily limit exceeded, update streak
-          await updateStreak(false);
+      // Check if this breaks a streak (only if bypassed)
+      if (bypassed) {
+        const site = blockedSites.find(s => s.id === blockedSiteId);
+        if (site) {
+          const todayAttempts = await getTodayBypassedAttemptsForSite(domain);
+          if (todayAttempts >= (site.max_daily_visits || 3)) {
+            // Daily bypass limit exceeded, update streak
+            await updateStreak(false);
+          }
         }
       }
       
@@ -188,8 +191,8 @@ export function useBlockedSite({ user }: UseBlockedSiteParams) {
     }
   }, [user, blockedSites]);
 
-  // Helper to get today's attempts for a specific site
-  const getTodayAttemptsForSite = useCallback(async (domain: string) => {
+  // Helper to get today's bypassed attempts for a specific site
+  const getTodayBypassedAttemptsForSite = useCallback(async (domain: string) => {
     if (!user) return 0;
     
     try {
@@ -200,14 +203,38 @@ export function useBlockedSite({ user }: UseBlockedSiteParams) {
         .select('*')
         .eq('user_id', user.id)
         .eq('domain', domain)
+        .eq('bypassed', true)
         .gte('created_at', today);
       
       if (error) throw error;
       
       return data?.length || 0;
     } catch (err) {
-      console.error('Error getting today\'s attempts:', err);
+      console.error('Error getting today\'s bypassed attempts:', err);
       return 0;
+    }
+  }, [user]);
+
+  // Get bypass attempts for a specified number of days
+  const getBypassAttempts = useCallback(async (days = 7) => {
+    if (!user) return [];
+    
+    try {
+      const startDate = subDays(new Date(), days).toISOString();
+      
+      const { data, error } = await supabase
+        .from('blocked_site_attempts')
+        .select('*')
+        .eq('user_id', user.id)
+        .gte('created_at', startDate)
+        .order('created_at', { ascending: false });
+      
+      if (error) throw error;
+      
+      return data as BlockedSiteAttempt[];
+    } catch (err) {
+      console.error('Error getting bypass attempts:', err);
+      return [];
     }
   }, [user]);
 
@@ -229,8 +256,8 @@ export function useBlockedSite({ user }: UseBlockedSiteParams) {
         .maybeSingle();
       
       if (data) {
-        // Record the attempt
-        await recordAttempt(normalizedDomain, data.id);
+        // Record the attempt (not bypassed by default)
+        await recordAttempt(normalizedDomain, data.id, false);
         return true;
       }
       
@@ -318,7 +345,8 @@ export function useBlockedSite({ user }: UseBlockedSiteParams) {
         .select(`
           domain,
           blocked_site_id,
-          created_at
+          created_at,
+          bypassed
         `)
         .eq('user_id', user.id)
         .order('created_at', { ascending: false });
@@ -340,6 +368,7 @@ export function useBlockedSite({ user }: UseBlockedSiteParams) {
             domain: attempt.domain,
             count: 0,
             todayCount: 0,
+            bypassedCount: 0,
             lastAttempt: null,
             maxDailyVisits: site?.max_daily_visits || 3
           };
@@ -348,9 +377,14 @@ export function useBlockedSite({ user }: UseBlockedSiteParams) {
         // Increment total count
         acc[attempt.domain].count++;
         
-        // Check if attempt is from today
-        if (isToday(new Date(attempt.created_at))) {
-          acc[attempt.domain].todayCount++;
+        // Increment bypassed count if the attempt was bypassed
+        if (attempt.bypassed) {
+          acc[attempt.domain].bypassedCount++;
+          
+          // Check if bypass attempt is from today
+          if (isToday(new Date(attempt.created_at))) {
+            acc[attempt.domain].todayCount++;
+          }
         }
         
         // Track the most recent attempt
@@ -418,6 +452,7 @@ export function useBlockedSite({ user }: UseBlockedSiteParams) {
     checkIfBlocked,
     getBlockedSiteStats,
     getRecentAttempts,
+    getBypassAttempts, // Added new function
     updateMaxDailyVisits,
     getStreak
   };

@@ -139,20 +139,9 @@ export const RealtimeEditor: React.FC<RealtimeEditorProps> = ({
     onContentUpdate?.(newContent);
   }, []);
 
-  //Apply Codeblock Highlighting on the HTML from editor.getHTML()
-  // const highlightCodeblocks = (content: string) => {
-  //   const doc = new DOMParser().parseFromString(content, "text/html");
-  //   doc.querySelectorAll("pre code").forEach((el) => {
-  //     // @ts-ignore
-  //     // https://highlightjs.readthedocs.io/en/latest/api.html?highlight=highlightElement#highlightelement
-  //     hljs.highlightElement(el);
-  //   });
-  //   return new XMLSerializer().serializeToString(doc);
-  // };
-
   return (
     <EditorRoot>
-      <div className="flex flex-col w-full h-full bg-neutral-900">
+      <div className="flex flex-col w-full h-full dark:bg-neutral-900 bg-neutral-100">
         <ScrollArea className="w-full flex-grow radius-lg">
           <EditorContent
             className="w-full break-all radius-lg"

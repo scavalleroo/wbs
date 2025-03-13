@@ -55,6 +55,24 @@ export default function NavbarUser({ user, userDetails }: NavbarUserProps) {
                     <DropdownMenuSeparator />
                     <DropdownMenuGroup>
                         <DropdownMenuItem
+                            onClick={() => setTheme('light')}
+                            className="flex items-center"
+                        >
+                            <HiOutlineSun className="h-4 w-4 stroke-2 mr-2" />
+                            Light mode
+                            {theme === 'light' && <DropdownMenuShortcut>✓</DropdownMenuShortcut>}
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                            onClick={() => setTheme('dark')}
+                            className="flex items-center"
+                        >
+                            <HiOutlineMoon className="h-4 w-4 stroke-2 mr-2" />
+                            Dark mode
+                            {theme === 'dark' && <DropdownMenuShortcut>✓</DropdownMenuShortcut>}
+                        </DropdownMenuItem>
+                    </DropdownMenuGroup>
+                    {/* <DropdownMenuGroup>
+                        <DropdownMenuItem
                             disabled
                             className="cursor-not-allowed opacity-50"
                         >
@@ -68,7 +86,7 @@ export default function NavbarUser({ user, userDetails }: NavbarUserProps) {
                             Settings <span className="text-xs ml-2 opacity-80">🚧</span>
                             <DropdownMenuShortcut>⌘S</DropdownMenuShortcut>
                         </DropdownMenuItem>
-                    </DropdownMenuGroup>
+                    </DropdownMenuGroup> */}
                     <DropdownMenuSeparator />
                     <DropdownMenuItem>
                         <LogoutButton />

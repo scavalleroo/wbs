@@ -180,7 +180,7 @@ export const FocusTabs: React.FC<FocusTabsProps> = ({
       onValueChange={handleTabChange}
       className='flex flex-col w-full h-[calc(100vh-156px)] max-h-[calc(100vh-156px)] max-w-screen-lg mx-auto px-2'
     >
-      <div className="flex-shrink-0 my-4 flex justify-between items-center gap-2 sm:gap-4">
+      <div className="flex-shrink-0 my-2 sm:my-4 flex justify-between items-center gap-2 sm:gap-4">
         {/* Left side: Tab buttons */}
         <TabsList className="flex-shrink-0">
           <TabsTrigger value="daily">

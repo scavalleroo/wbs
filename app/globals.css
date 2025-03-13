@@ -128,4 +128,6 @@ body {
 .loginButton iframe {
   min-width: 0px !important;
   min-height: 0px !important;
+  border-radius: 1rem;
+  background-color: var(--background);
 }

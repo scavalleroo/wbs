@@ -18,7 +18,6 @@ export function TabsTriggers({ activeTab, setActiveTab }: MainNavProps) {
             <TabsTrigger
                 onClick={() => handleTabChange('report')}
                 className="dark:hover:bg-neutral-900 hover:bg-neutral-200"
-                style={activeTab == 'report' ? { backgroundColor: "#E0D51D", color: "#000" } : {}}
                 value="report"
             >
                 <p className="md:block hidden">Report</p>
@@ -35,7 +34,6 @@ export function TabsTriggers({ activeTab, setActiveTab }: MainNavProps) {
             <TabsTrigger
                 onClick={() => handleTabChange('break')}
                 className="dark:hover:bg-neutral-900 hover:bg-neutral-200"
-                style={activeTab == 'break' ? { backgroundColor: "#1CACE6" } : {}}
                 value="break"
             >
                 <p className="md:block hidden">Break</p>

@@ -71,25 +71,16 @@ export default function NavbarUser({ user, userDetails }: NavbarUserProps) {
                             {theme === 'dark' && <DropdownMenuShortcut>✓</DropdownMenuShortcut>}
                         </DropdownMenuItem>
                     </DropdownMenuGroup>
-                    {/* <DropdownMenuGroup>
-                        <DropdownMenuItem
-                            disabled
-                            className="cursor-not-allowed opacity-50"
-                        >
-                            Profile <span className="text-xs ml-2 opacity-80">🚧</span>
-                            <DropdownMenuShortcut>⇧⌘P</DropdownMenuShortcut>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                            disabled
-                            className="cursor-not-allowed opacity-50"
-                        >
-                            Settings <span className="text-xs ml-2 opacity-80">🚧</span>
-                            <DropdownMenuShortcut>⌘S</DropdownMenuShortcut>
-                        </DropdownMenuItem>
-                    </DropdownMenuGroup> */}
                     <DropdownMenuSeparator />
                     <DropdownMenuItem>
                         <LogoutButton />
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                        onClick={() => window.open('/privacy-policy', '_blank')}
+                        className="flex items-center"
+                    >
+                        Privacy Policy
                     </DropdownMenuItem>
                 </DropdownMenuContent>
             </DropdownMenu>

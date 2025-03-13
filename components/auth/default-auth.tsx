@@ -29,14 +29,14 @@ export default async function DefaultAuth() {
                                 alt="Weko Logo"
                                 width={128}
                                 height={128}
-                                className="block dark:block"
+                                className="hidden dark:block"
                             />
                             <Image
-                                src="/logoTransparentB.svg"
+                                src="/logoTransparentC.svg"
                                 alt="Weko Logo"
                                 width={128}
                                 height={128}
-                                className="hidden dark:hidden"
+                                className="dark:hidden"
                             />
                         </div>
                         <div className="flex flex-col space-y-2 text-center">

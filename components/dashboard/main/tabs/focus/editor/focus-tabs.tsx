@@ -24,8 +24,9 @@ export const FocusTabs: React.FC<FocusTabsProps> = ({
   const [selectedProject, setSelectedProject] = useState<ProjectNote | null>(null);
   const [contentEditor, setContentEditor] = useState<JSONContent | null>(null);
   const [isOverflowing, setIsOverflowing] = useState(true);
+  const nDays = 5;
   const [days, setDays] = useState<Date[]>(
-    Array.from({ length: 7 }, (_, i) => {
+    Array.from({ length: nDays }, (_, i) => {
       const date = new Date();
       date.setDate(date.getDate() - 1 + i);
       return date;
@@ -197,7 +198,7 @@ export const FocusTabs: React.FC<FocusTabsProps> = ({
         {activeTab === 'daily' && (
           <div className="flex-grow flex items-center justify-end gap-1 sm:gap-2">
             <Button
-              className="bg-muted text-muted-foreground px-2 py-2 rounded-full"
+              className="px-2 py-2 rounded-full"
               variant="outline"
               onClick={() => {
                 const newDays = days.map((day) => {
@@ -221,7 +222,7 @@ export const FocusTabs: React.FC<FocusTabsProps> = ({
               onChangeDate={handleDateChange}
             />
             <Button
-              className="bg-muted text-muted-foreground px-2 py-2 rounded-full"
+              className="px-2 py-2 rounded-full"
               variant="outline"
               onClick={() => {
                 const newDays = days.map((day) => {
@@ -256,17 +257,18 @@ export const FocusTabs: React.FC<FocusTabsProps> = ({
                   <Button
                     key={project.id}
                     variant="ghost"
-                    className={`min-h-10 flex flex-col items-center 
-                    rounded-md border-2 border-muted bg-popover 
-                    py-1 md:px-1 md:py-0.5 hover:bg-accent hover:text-accent-foreground 
-                    cursor-pointer text-sm transition-colors duration-200
-                    ${selectedProject?.id === project.id
+                    className={`min-h-10 w-32 flex flex-col items-center 
+            rounded-md border-2 border-muted bg-popover 
+            py-1 md:px-1 md:py-0.5 
+            hover:bg-primary hover:text-primary-foreground hover:border-primary
+            cursor-pointer text-sm transition-colors duration-200
+            ${selectedProject?.id === project.id
                         ? "bg-primary text-primary-foreground border-primary"
                         : "bg-secondary border-transparent"}
-                    whitespace-nowrap justify-center`}
+            whitespace-nowrap justify-center`}
                     onClick={() => handleProjectSwitch(project)}
                   >
-                    <p className="text-xs">
+                    <p className="text-xs truncate w-full text-center">
                       {project.title || "Untitled Project"}
                     </p>
                   </Button>

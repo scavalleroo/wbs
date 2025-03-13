@@ -68,13 +68,13 @@ const DateRadioGroup = ({ selectedDate, days, isOverflowing, isPending, onChange
                         flex-col relative 
                         items-center 
                         rounded-md border-2 border-muted bg-popover 
-                        py-1 md:px-1 md:py-0.5 hover:bg-accent hover:text-accent-foreground 
+                        py-1 md:px-1 md:py-0.5
+                        hover:bg-primary hover:text-primary-foreground hover:border-primary
                         cursor-pointer
                         text-sm 
                         border border-transparent
                         transition-colors duration-200
                         bg-secondary 
-                        hover:bg-accent 
                         peer-data-[state=checked]:bg-primary 
                         peer-data-[state=checked]:text-primary-foreground
                         peer-data-[state=checked]:border-primary
@@ -94,7 +94,7 @@ const DateRadioGroup = ({ selectedDate, days, isOverflowing, isPending, onChange
                             {day.toDateString() === new Date().toDateString() ? ` ${day.getDate()}` : ''}
                         </p>
                         {day.toDateString() === new Date().toDateString() && !isOverflowing ? (
-                            <p className={`text-xs ${day.toDateString() !== date.toDateString() ? 'text-primary' : 'text-primary-foreground'}`}>Today</p>
+                            <p className={`text-xs`}>Today</p>
                         ) : <p className="text-xs">{day.toLocaleString('default', { weekday: 'short' })} {day.getDate()}</p>}
 
                     </Label>

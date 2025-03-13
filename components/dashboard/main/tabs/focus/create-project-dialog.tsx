@@ -46,7 +46,8 @@ const CreateProjectDialog: React.FC<CreateProjectDialogProps> = ({
                     variant="ghost"
                     className="flex-1 min-h-10 flex flex-col items-center 
                                     rounded-md border-2 border-muted bg-popover 
-                                    py-1 md:px-1 md:py-0.5 hover:bg-accent hover:text-accent-foreground 
+                                    py-1 md:px-1 md:py-0.5 
+                                    hover:bg-primary hover:text-primary-foreground hover:border-primary
                                     cursor-pointer text-sm transition-colors duration-200
                                     bg-secondary border-transparent
                                     whitespace-nowrap justify-center"

@@ -10,21 +10,34 @@ interface MainNavProps {
 
 export function TabsTriggers({ activeTab, setActiveTab }: MainNavProps) {
     const handleTabChange = (tab: TabValue) => {
-        // logCustomEvent('handleTabChange', { tab: tab });
         setActiveTab(tab);
     }
 
     return (
         <TabsList>
-            <TabsTrigger onClick={() => handleTabChange('report')} style={activeTab == 'report' ? { backgroundColor: "#E0D51D", color: "#000" } : {}} value="report">
+            <TabsTrigger
+                onClick={() => handleTabChange('report')}
+                className="dark:hover:bg-neutral-900 hover:bg-neutral-200"
+                style={activeTab == 'report' ? { backgroundColor: "#E0D51D", color: "#000" } : {}}
+                value="report"
+            >
                 <p className="md:block hidden">Report</p>
                 <ChartArea className="md:hidden block size-5" />
             </TabsTrigger>
-            <TabsTrigger onClick={() => handleTabChange('focus')} value="focus">
+            <TabsTrigger
+                onClick={() => handleTabChange('focus')}
+                className="dark:hover:bg-neutral-900 hover:bg-neutral-200"
+                value="focus"
+            >
                 <p className="md:block hidden">Notes</p>
                 <Notebook className="md:hidden block size-5" />
             </TabsTrigger>
-            <TabsTrigger onClick={() => handleTabChange('break')} style={activeTab == 'break' ? { backgroundColor: "#1CACE6" } : {}} value="break">
+            <TabsTrigger
+                onClick={() => handleTabChange('break')}
+                className="dark:hover:bg-neutral-900 hover:bg-neutral-200"
+                style={activeTab == 'break' ? { backgroundColor: "#1CACE6" } : {}}
+                value="break"
+            >
                 <p className="md:block hidden">Break</p>
                 <Coffee className="md:hidden block size-5" />
             </TabsTrigger>

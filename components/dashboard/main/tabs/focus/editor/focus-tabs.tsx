@@ -184,11 +184,13 @@ export const FocusTabs: React.FC<FocusTabsProps> = ({
       <div className="flex-shrink-0 my-2 sm:my-4 flex justify-between items-center gap-2 sm:gap-4">
         {/* Left side: Tab buttons */}
         <TabsList className="flex-shrink-0">
-          <TabsTrigger value="daily">
+          <TabsTrigger value="daily"
+            className="dark:hover:bg-neutral-900 hover:bg-neutral-200">
             <p className="md:block hidden">Daily</p>
             <Calendar className="md:hidden block size-5" />
           </TabsTrigger>
-          <TabsTrigger value="project">
+          <TabsTrigger value="project"
+            className="dark:hover:bg-neutral-900 hover:bg-neutral-200">
             <p className="md:block hidden">Pages</p>
             <Book className="md:hidden block size-5" />
           </TabsTrigger>

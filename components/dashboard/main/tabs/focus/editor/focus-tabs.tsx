@@ -184,7 +184,7 @@ export const FocusTabs: React.FC<FocusTabsProps> = ({
     >
       <div className="flex-shrink-0 mb-4">
         <div className="bg-gradient-to-r from-blue-500 to-indigo-600 rounded-xl p-4 shadow-md">
-          <div className="flex flex-row items-center justify-between gap-3 w-full">
+          <div className="flex flex-row items-center justify-between w-full">
             {/* Header Title and Description */}
             <div className="flex items-center space-x-3">
               <div className="bg-white bg-opacity-20 p-2 rounded-full sm:block hidden">
@@ -203,7 +203,7 @@ export const FocusTabs: React.FC<FocusTabsProps> = ({
             </div>
 
             {/* Tab Controls - Always visible */}
-            <div className="w-full w-auto">
+            <div className="flex-shrink-0">
               <TabsList className="bg-neutral-900/30 dark:bg-neutral-50/30">
                 <TabsTrigger value="daily" className="data-[state=active]:bg-white data-[state=active]:text-indigo-600 text-white">
                   <Calendar className="h-4 w-4 mr-0 sm:mr-1" />

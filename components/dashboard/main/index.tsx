@@ -7,6 +7,8 @@ import { Tabs } from '@/components/ui/tabs';
 import { User } from '@supabase/supabase-js';
 import { useState } from 'react';
 import { TabComponentFocus } from './tabs/focus/TabComponentFocus';
+import { TabComponentReport } from './tabs/report/TabComponentReport';
+import { TabComponentBreak } from './tabs/break/TabComponentBreak';
 
 interface Props {
     user: User | null | undefined;
@@ -28,7 +30,9 @@ export default function MainPage(props: Props) {
         >
             <Tabs defaultValue="focus">
                 <Navbar user={props.user} userDetails={props.userDetails} activeTab={activeTab} setActiveTab={setActiveTab} />
-                <TabComponentFocus user={props.user} />
+                {activeTab == 'report' && (<TabComponentReport user={props.user} />)}
+                {activeTab == 'focus' && (<TabComponentFocus user={props.user} />)}
+                {activeTab == 'break' && (<TabComponentBreak user={props.user} />)}
             </Tabs>
         </DashboardLayout>
     );

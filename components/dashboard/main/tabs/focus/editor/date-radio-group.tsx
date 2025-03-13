@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Label } from '@/components/ui/label';
+import { Button } from '@/components/ui/button';
 import { Loader } from 'lucide-react';
 
 interface DateRadioGroupProps {
@@ -41,66 +40,53 @@ const DateRadioGroup = ({ selectedDate, days, isOverflowing, isPending, onChange
         setDate(selectedDate);
     }, [selectedDate, isOverflowing]);
 
-    return (
-        <RadioGroup
-            value={date.toDateString()}
-            className="flex flex-row gap-1 overflow-x-hidden w-full px-1"
-            onValueChange={(value) => {
-                const selectedDay = days.find(day =>
-                    day.toDateString() === value
-                );
-                if (selectedDay) {
-                    setDate(selectedDay);
-                    onChangeDate(selectedDay);
-                }
-            }}
-        >
-            {finalDays.map((day, index) => (
-                <div className="flex-grow" key={index}>
-                    <RadioGroupItem
-                        value={day.toDateString()}
-                        id={day.toDateString()}
-                        className="peer sr-only"
-                    />
-                    <Label
-                        htmlFor={day.toDateString()}
-                        className="flex min-h-10 
-                        flex-col relative 
-                        items-center 
-                        rounded-md border-2 border-muted bg-popover 
-                        py-1 md:px-1 md:py-0.5
-                        hover:bg-primary hover:text-primary-foreground hover:border-primary
-                        cursor-pointer
-                        text-sm 
-                        border border-transparent
-                        transition-colors duration-200
-                        bg-secondary 
-                        peer-data-[state=checked]:bg-primary 
-                        peer-data-[state=checked]:text-primary-foreground
-                        peer-data-[state=checked]:border-primary
-                        whitespace-nowrap
-                        text-nowrap w-full h-full justify-center
-                        "
-                    >
-                        {isPending && day.toDateString() == date.toDateString() ? <Loader className="absolute text-muted-foreground top-1 right-2 h-4 w-4 animate-[spin_3s_linear_infinite]" /> : ''}
-                        <p
-                            className={`text-xs`}
-                        >
-                            {
-                                index === 0 ?
-                                    `${day.toLocaleString('default', { month: 'short' })} ${day.getFullYear()}` :
-                                    `${day.toLocaleString('default', { month: 'short' })}`
-                            }
-                            {day.toDateString() === new Date().toDateString() ? ` ${day.getDate()}` : ''}
-                        </p>
-                        {day.toDateString() === new Date().toDateString() && !isOverflowing ? (
-                            <p className={`text-xs`}>Today</p>
-                        ) : <p className="text-xs">{day.toLocaleString('default', { weekday: 'short' })} {day.getDate()}</p>}
+    const formatDateLabel = (day: Date, index: number) => {
+        const isToday = day.toDateString() === new Date().toDateString();
 
-                    </Label>
-                </div>
+        if (isOverflowing) {
+            return `${day.getDate()} ${day.toLocaleString('default', { month: 'short' })}${isToday ? ' (Today)' : ''}`;
+        }
+
+        return (
+            <>
+                <span className="block text-xs">
+                    {index === 0 ? `${day.toLocaleString('default', { month: 'short' })} ${day.getFullYear()}` :
+                        `${day.toLocaleString('default', { month: 'short' })}`}
+                </span>
+                <span className="block text-xs">
+                    {isToday ? 'Today' : `${day.toLocaleString('default', { weekday: 'short' })} ${day.getDate()}`}
+                </span>
+            </>
+        );
+    };
+
+    return (
+        <div className="flex gap-1 overflow-x-auto w-full">
+            {finalDays.map((day, index) => (
+                <Button
+                    key={day.toDateString()}
+                    variant="ghost"
+                    size="sm"
+                    className={`
+                        rounded-md border px-3 py-1 text-sm transition-colors relative flex-1
+                        ${day.toDateString() === selectedDate.toDateString()
+                            ? "bg-white text-indigo-600 border-transparent"
+                            : "bg-transparent text-white border-white border-opacity-30 hover:bg-white hover:bg-opacity-20"}
+                        whitespace-nowrap
+                    `}
+                    onClick={() => {
+                        setDate(day);
+                        onChangeDate(day);
+                    }}
+                    disabled={isPending && day.toDateString() === selectedDate.toDateString()}
+                >
+                    {isPending && day.toDateString() === selectedDate.toDateString() && (
+                        <Loader className="absolute top-1 right-1 h-3 w-3 animate-spin text-indigo-600" />
+                    )}
+                    {formatDateLabel(day, index)}
+                </Button>
             ))}
-        </RadioGroup>
+        </div>
     );
 };
 

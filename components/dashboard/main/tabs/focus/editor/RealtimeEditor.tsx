@@ -142,69 +142,67 @@ export const RealtimeEditor: React.FC<RealtimeEditorProps> = ({
   return (
     <EditorRoot>
       <div className="flex flex-col w-full h-full dark:bg-neutral-900 bg-neutral-50">
-        <ScrollArea className="w-full flex-grow radius-lg">
-          <EditorContent
-            className="w-full break-all radius-lg"
-            extensions={extensions}
-            editorProps={{
-              handleDOMEvents: {
-                keydown: (_view, event) => handleCommandNavigation(event),
-              },
-              handlePaste: (view, event) => handleImagePaste(view, event, uploadFn),
-              handleDrop: (view, event, _slice, moved) => handleImageDrop(view, event, moved, uploadFn),
-              attributes: {
-                class: `prose prose-lg dark:prose-invert prose-headings:font-title font-default focus:outline-none max-w-full`,
-              }
-            }}
-            initialContent={initialContent}
-            onUpdate={({ editor }) => handleContentUpdate(editor)}
-            immediatelyRender={false}
-            slotAfter={<ImageResizer />}
-            onContentError={(error) => {
-              console.error("Content error", error);
-            }}
-          >
+        <EditorContent
+          className="w-full break-all radius-lg h-full"
+          extensions={extensions}
+          editorProps={{
+            handleDOMEvents: {
+              keydown: (_view, event) => handleCommandNavigation(event),
+            },
+            handlePaste: (view, event) => handleImagePaste(view, event, uploadFn),
+            handleDrop: (view, event, _slice, moved) => handleImageDrop(view, event, moved, uploadFn),
+            attributes: {
+              class: `prose prose-lg dark:prose-invert prose-headings:font-title font-default focus:outline-none max-w-full`,
+            }
+          }}
+          initialContent={initialContent}
+          onUpdate={({ editor }) => handleContentUpdate(editor)}
+          immediatelyRender={false}
+          slotAfter={<ImageResizer />}
+          onContentError={(error) => {
+            console.error("Content error", error);
+          }}
+        >
 
-            {/* Command Palette */}
-            <EditorCommand className="z-50 h-auto max-h-[330px] overflow-y-auto rounded-md border border-muted bg-background px-1 py-2 shadow-md transition-all">
-              <EditorCommandEmpty className="px-2 text-muted-foreground">No results</EditorCommandEmpty>
-              <EditorCommandList>
-                {suggestionItems.map((item) => (
-                  <EditorCommandItem
-                    value={item.title}
-                    onCommand={(val) => item.command!(val)}
-                    className="flex w-full items-center space-x-2 rounded-md px-2 py-1 text-left text-sm hover:bg-accent aria-selected:bg-accent"
-                    key={item.title}
-                  >
-                    <div className="flex h-10 w-10 items-center justify-center rounded-md border border-muted bg-background">
-                      {item.icon}
-                    </div>
-                    <div>
-                      <p className="font-medium">{item.title}</p>
-                      <p className="text-xs text-muted-foreground">{item.description}</p>
-                    </div>
-                  </EditorCommandItem>
-                ))}
-              </EditorCommandList>
-            </EditorCommand>
+          {/* Command Palette */}
+          <EditorCommand className="z-50 h-auto max-h-[330px] overflow-y-auto rounded-md border border-muted bg-background px-1 py-2 shadow-md transition-all">
+            <EditorCommandEmpty className="px-2 text-muted-foreground">No results</EditorCommandEmpty>
+            <EditorCommandList>
+              {suggestionItems.map((item) => (
+                <EditorCommandItem
+                  value={item.title}
+                  onCommand={(val) => item.command!(val)}
+                  className="flex w-full items-center space-x-2 rounded-md px-2 py-1 text-left text-sm hover:bg-accent aria-selected:bg-accent"
+                  key={item.title}
+                >
+                  <div className="flex h-10 w-10 items-center justify-center rounded-md border border-muted bg-background">
+                    {item.icon}
+                  </div>
+                  <div>
+                    <p className="font-medium">{item.title}</p>
+                    <p className="text-xs text-muted-foreground">{item.description}</p>
+                  </div>
+                </EditorCommandItem>
+              ))}
+            </EditorCommandList>
+          </EditorCommand>
 
-            <GenerativeMenuSwitch open={openAI} onOpenChange={setOpenAI}>
-              <Separator orientation="vertical" />
-              <EventSelector open={openEvent} onOpenChange={setOpenEvent} /> {/* Add the new component here */}
-              <Separator orientation="vertical" />
-              <NodeSelector open={openNode} onOpenChange={setOpenNode} />
-              <Separator orientation="vertical" />
-              <LinkSelector open={openLink} onOpenChange={setOpenLink} />
-              <Separator orientation="vertical" />
-              <MathSelector />
-              <Separator orientation="vertical" />
-              <TextButtons />
-              <Separator orientation="vertical" />
-              <ColorSelector open={openColor} onOpenChange={setOpenColor} />
-            </GenerativeMenuSwitch>
+          <GenerativeMenuSwitch open={openAI} onOpenChange={setOpenAI}>
+            <Separator orientation="vertical" />
+            <EventSelector open={openEvent} onOpenChange={setOpenEvent} /> {/* Add the new component here */}
+            <Separator orientation="vertical" />
+            <NodeSelector open={openNode} onOpenChange={setOpenNode} />
+            <Separator orientation="vertical" />
+            <LinkSelector open={openLink} onOpenChange={setOpenLink} />
+            <Separator orientation="vertical" />
+            <MathSelector />
+            <Separator orientation="vertical" />
+            <TextButtons />
+            <Separator orientation="vertical" />
+            <ColorSelector open={openColor} onOpenChange={setOpenColor} />
+          </GenerativeMenuSwitch>
 
-          </EditorContent>
-        </ScrollArea>
+        </EditorContent>
 
         {/* Footer with justified content - Last saved on left, ProjectDialogs on right */}
         <div className="sm:flex hidden justify-between items-center z-10 py-2 border-t">

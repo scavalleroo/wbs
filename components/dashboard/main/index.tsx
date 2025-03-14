@@ -9,6 +9,7 @@ import { useState } from 'react';
 import { TabComponentFocus } from './tabs/focus/TabComponentFocus';
 import { TabComponentReport } from './tabs/report/TabComponentReport';
 import { TabComponentBreak } from './tabs/break/TabComponentBreak';
+import MoodTrackingModal from './moodTracking/MoodTrackingModal';
 
 interface Props {
     user: User | null | undefined;
@@ -28,6 +29,7 @@ export default function MainPage(props: Props) {
             title="Focus, Break, Report"
             description="Dashboard"
         >
+            <MoodTrackingModal user={props.user} />
             <Tabs defaultValue="focus">
                 <Navbar user={props.user} userDetails={props.userDetails} activeTab={activeTab} setActiveTab={setActiveTab} />
                 {activeTab == 'report' && (<TabComponentReport user={props.user} />)}

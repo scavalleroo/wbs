@@ -171,48 +171,12 @@ export function useBlockedSite({ user }: UserIdParam) {
       
       if (error) throw error;
       
-      // Check if this breaks a streak (only if bypassed)
-      if (bypassed) {
-        const site = blockedSites.find(s => s.id === blockedSiteId);
-        if (site) {
-          const todayAttempts = await getTodayBypassedAttemptsForSite(domain);
-          if (todayAttempts >= (site.max_daily_visits || 3)) {
-            // Daily bypass limit exceeded, update streak
-            await updateStreak(false);
-          }
-        }
-      }
-      
       return data as BlockedSiteAttempt;
     } catch (err) {
       console.error('Error recording access attempt:', err);
       return null;
     }
   }, [user, blockedSites]);
-
-  // Helper to get today's bypassed attempts for a specific site
-  const getTodayBypassedAttemptsForSite = useCallback(async (domain: string) => {
-    if (!user) return 0;
-    
-    try {
-      const today = startOfDay(new Date()).toISOString();
-      
-      const { data, error } = await supabase
-        .from('blocked_site_attempts')
-        .select('*')
-        .eq('user_id', user.id)
-        .eq('domain', domain)
-        .eq('bypassed', true)
-        .gte('created_at', today);
-      
-      if (error) throw error;
-      
-      return data?.length || 0;
-    } catch (err) {
-      console.error('Error getting today\'s bypassed attempts:', err);
-      return 0;
-    }
-  }, [user]);
 
   // Get bypass attempts for a specified number of days
   const getBypassAttempts = useCallback(async (days = 7) => {
@@ -266,70 +230,6 @@ export function useBlockedSite({ user }: UserIdParam) {
       return false;
     }
   }, [user, recordAttempt]);
-
-  // Update user streak
-  const updateStreak = useCallback(async (maintained = true) => {
-    if (!user) return;
-    
-    try {
-      // Get current streak
-      const { data: streakData } = await supabase
-        .from('blocked_site_streaks')
-        .select('*')
-        .eq('user_id', user.id)
-        .maybeSingle();
-      
-      if (!streakData) {
-        // Create first streak record
-        await supabase.from('blocked_site_streaks').insert({
-          user_id: user.id,
-          streak_days: maintained ? 1 : 0,
-          last_perfect_day: new Date().toISOString().split('T')[0]
-        });
-        return;
-      }
-      
-      // Update existing streak
-      if (maintained) {
-        await supabase
-          .from('blocked_site_streaks')
-          .update({
-            streak_days: streakData.streak_days + 1,
-            last_perfect_day: new Date().toISOString().split('T')[0]
-          })
-          .eq('id', streakData.id);
-      } else {
-        // Reset streak
-        await supabase
-          .from('blocked_site_streaks')
-          .update({
-            streak_days: 0,
-            last_perfect_day: new Date().toISOString().split('T')[0]
-          })
-          .eq('id', streakData.id);
-      }
-    } catch (err) {
-      console.error('Error updating streak:', err);
-    }
-  }, [user]);
-
-  // Get current streak days
-  const getStreak = useCallback(async () => {
-    if (!user) return 0;
-    
-    try {
-      const { data } = await supabase
-        .from('blocked_site_streaks')
-        .select('streak_days')
-        .eq('user_id', user.id)
-        .maybeSingle();
-      
-      return data?.streak_days || 0;
-    } catch (err) {
-      console.error('Error getting streak:', err);
-      return 0;
-    }
-  }, [user]);
 
   // Get statistics for blocked sites (number of attempts)
   const getBlockedSiteStats = useCallback(async () => {
@@ -452,7 +352,6 @@ export function useBlockedSite({ user }: UserIdParam) {
     getBlockedSiteStats,
     getRecentAttempts,
     getBypassAttempts, // Added new function
-    updateMaxDailyVisits,
-    getStreak
+    updateMaxDailyVisits
   };
 }

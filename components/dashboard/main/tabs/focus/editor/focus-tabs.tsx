@@ -186,7 +186,7 @@ export const FocusTabs: React.FC<FocusTabsProps> = ({
       <div className="space-y-0 max-w-screen-lg mx-auto px-2 w-full">
         {/* Selection Header Area */}
         <div className="flex-shrink-0 relative z-10">
-          <div className="bg-gradient-to-r from-blue-500 to-indigo-600 rounded-t-xl p-4 shadow-md">
+          <div className="bg-gradient-to-b from-blue-500 via-indigo-600/80 to-transparent rounded-t-xl p-4 shadow-md relative">
             <div className="flex flex-row items-center justify-between w-full">
               {/* Header Title and Description */}
               <div className="flex items-center space-x-3">
@@ -222,11 +222,11 @@ export const FocusTabs: React.FC<FocusTabsProps> = ({
 
             {/* Daily Notes Carousel Selection */}
             {activeTab === 'daily' && (
-              <div className="mt-3 bg-white bg-opacity-10 rounded-lg p-2">
+              <div className="mt-3">
                 <div className="flex items-center gap-2">
                   <p className="text-white text-sm whitespace-nowrap flex-shrink-0 sm:block hidden">Select date</p>
 
-                  <div className="carousel-container relative flex items-center justify-center gap-2 overflow-hidden w-full px-8">
+                  <div className="carousel-container relative flex items-center justify-center gap-2 overflow-hidden w-auto px-8">
                     <Button
                       className="absolute left-0 p-1 rounded-full hover:bg-white hover:bg-opacity-20 z-10"
                       variant="ghost"
@@ -245,7 +245,7 @@ export const FocusTabs: React.FC<FocusTabsProps> = ({
                       <ChevronLeft className="h-4 w-4 text-white" />
                     </Button>
 
-                    <div className="carousel-items flex items-center gap-2 overflow-x-auto w-full py-4 px-2 scrollbar-hide">
+                    <div className="carousel-items flex items-center gap-2 overflow-x-auto w-auto py-4 px-2 scrollbar-hide">
                       {days.map((day) => {
                         const isSelected = day.toDateString() === selectedDate.toDateString();
                         return (
@@ -288,7 +288,7 @@ export const FocusTabs: React.FC<FocusTabsProps> = ({
 
             {/* Project Pages Carousel Selection */}
             {activeTab === 'project' && (
-              <div className="mt-3 bg-white bg-opacity-10 rounded-lg p-2">
+              <div className="mt-3">
                 <div className="flex items-center gap-2">
                   <p className="text-white text-sm whitespace-nowrap flex-shrink-0 sm:block hidden">Your pages</p>
 
@@ -329,7 +329,7 @@ export const FocusTabs: React.FC<FocusTabsProps> = ({
             )}
 
             {/* Connection Element - Creates visual flow from header to content */}
-            <div className="connector-element h-4 bg-gradient-to-b from-indigo-600 to-transparent -mb-4 rounded-b-xl z-20" />
+            {/* <div className="connector-element h-4 bg-gradient-to-b from-indigo-600 to-transparent -mb-4 rounded-b-xl z-20" /> */}
           </div>
         </div>
 
@@ -337,7 +337,7 @@ export const FocusTabs: React.FC<FocusTabsProps> = ({
         <div className="relative z-0 border-t-0 rounded-b-xl overflow-hidden">
           <TabsContent
             value="daily"
-            className="flex flex-col h-full pt-4"
+            className="flex flex-col h-full"
             style={{ display: activeTab === 'daily' ? 'flex' : 'none' }}
           >
             <Card className="flex-grow h-full shadow-md bg-neutral-100 dark:bg-neutral-800 border-t-4 border-indigo-500 rounded-xl">
@@ -358,7 +358,7 @@ export const FocusTabs: React.FC<FocusTabsProps> = ({
 
           <TabsContent
             value="project"
-            className="flex flex-col h-full pt-4"
+            className="flex flex-col h-full"
             style={{ display: activeTab === 'project' ? 'flex' : 'none' }}
           >
             <Card className="flex-grow overflow-y-auto h-full shadow-md bg-neutral-100 dark:bg-neutral-800 border-t-4 border-indigo-500 rounded-xl">

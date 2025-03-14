@@ -210,11 +210,11 @@ export const FocusTabs: React.FC<FocusTabsProps> = ({
                 <TabsList className="bg-neutral-900/30 dark:bg-neutral-50/30">
                   <TabsTrigger value="daily" className="data-[state=active]:bg-white data-[state=active]:text-indigo-600 text-white">
                     <Calendar className="h-4 w-4 mr-0 sm:mr-1" />
-                    <span className="sm:block hidden">Daily Notes</span>
+                    <span className="sm:block hidden">Diary</span>
                   </TabsTrigger>
                   <TabsTrigger value="project" className="data-[state=active]:bg-white data-[state=active]:text-indigo-600 text-white">
                     <Book className="h-4 w-4 mr-0 sm:mr-1" />
-                    <span className="sm:block hidden">Page Notes</span>
+                    <span className="sm:block hidden">Pages</span>
                   </TabsTrigger>
                 </TabsList>
               </div>

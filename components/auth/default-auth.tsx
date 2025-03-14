@@ -59,7 +59,8 @@ export default async function DefaultAuth() {
                         </Link>{" "}
                         and{" "}
                         <Link
-                            href="/#"
+                            href="/privacy-policy"
+                            target="_blank"
                             className="underline underline-offset-4 hover:text-primary"
                         >
                             Privacy Policy

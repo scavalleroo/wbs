@@ -39,7 +39,8 @@ export async function updateSession(request: NextRequest) {
         if (
             !user &&
             !request.nextUrl.pathname.startsWith('/dashboard/signin') &&
-            !request.nextUrl.pathname.startsWith('/auth')
+            !request.nextUrl.pathname.startsWith('/auth') &&
+            !request.nextUrl.pathname.startsWith('/privacy-policy')
         ) {
             const url = request.nextUrl.clone()
             url.pathname = '/dashboard/signin'

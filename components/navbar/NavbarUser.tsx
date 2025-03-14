@@ -72,15 +72,15 @@ export default function NavbarUser({ user, userDetails }: NavbarUserProps) {
                         </DropdownMenuItem>
                     </DropdownMenuGroup>
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem>
-                        <LogoutButton />
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
                     <DropdownMenuItem
                         onClick={() => window.open('/privacy-policy', '_blank')}
                         className="flex items-center"
                     >
                         Privacy Policy
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem>
+                        <LogoutButton />
                     </DropdownMenuItem>
                 </DropdownMenuContent>
             </DropdownMenu>

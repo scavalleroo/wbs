@@ -4,7 +4,7 @@
 
 @media screen and (max-width: 640px) {
     .ProseMirror {
-        font-size: 0.95rem;
+        font-size: 1rem;
         line-height: 1.4;
         /* Changed to 1 as requested */
         /* Makes text smaller on mobile */

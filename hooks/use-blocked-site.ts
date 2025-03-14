@@ -1,17 +1,16 @@
 import { useState, useCallback } from 'react';
 import { toast } from 'sonner';
 import { createClient } from '@/utils/supabase/client';
-import { BlockedSite, BlockedSiteAttempt, UseBlockedSiteParams } from '@/types/report.types';
+import { BlockedSite, BlockedSiteAttempt } from '@/types/report.types';
 import { startOfDay, isToday, subDays } from 'date-fns';
+import { UserIdParam } from '@/types/types';
 
-// Supabase client setup
-const supabase = createClient();
-
-export function useBlockedSite({ user }: UseBlockedSiteParams) {
+export function useBlockedSite({ user }: UserIdParam) {
   const [blockedSites, setBlockedSites] = useState<BlockedSite[]>([]);
   const [attempts, setAttempts] = useState<BlockedSiteAttempt[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const supabase = createClient();
   
   // Fetch all blocked sites for the user
   const fetchBlockedSites = useCallback(async () => {

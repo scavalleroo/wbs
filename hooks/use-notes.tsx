@@ -1,57 +1,18 @@
 import { useState, useCallback, useRef } from 'react';
 import { JSONContent } from "novel";
 import { toast } from 'sonner';
-import { createClient } from '@/utils/supabase/client';
 import { DailyNote, ProjectNote } from '@/lib/project';
+import { UserIdParam } from '@/types/types';
+import { defaultEditorContent, firstLoginEditorContent } from '@/utils/constants';
+import { createClient } from '@/utils/supabase/client';
 
-// Supabase client setup
-const supabase = createClient();
-
-// Default content for new notes
-const defaultEditorContent: JSONContent = {
-    type: 'doc',
-    content: [
-        {
-            type: 'paragraph',
-            content: []
-        }
-    ]
-};
-
-const firstLoginEditorContent: JSONContent = {
-    type: 'doc',
-    content: [
-        {
-            type: 'paragraph',
-            content: [
-                {
-                    type: 'text',
-                    text: 'Must Do:'
-                }
-            ]
-        },
-        {
-            type: 'paragraph',
-            content: [
-                {
-                    type: 'text',
-                    text: 'Could Do:'
-                }
-            ]
-        }
-    ]
-};
-
-interface UseNotesParams {
-    user: { id: string } | null | undefined;
-}
-
-export function useNotes({ user }: UseNotesParams) {
+export function useNotes({ user }: UserIdParam) {
     const [dailyNote, setDailyNote] = useState<DailyNote | null>(null);
     const [projectNote, setProjectNote] = useState<ProjectNote | null>(null);
     const [projectNotes, setProjectNotes] = useState<ProjectNote[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const supabase = createClient();
 
     // Ref to track the previous content for comparison
     const previousContentRef = useRef<JSONContent | null>(null);

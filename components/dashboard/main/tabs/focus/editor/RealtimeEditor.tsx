@@ -141,7 +141,7 @@ export const RealtimeEditor: React.FC<RealtimeEditorProps> = ({
 
   return (
     <EditorRoot>
-      <div className="flex flex-col w-full h-full dark:bg-neutral-900 bg-neutral-50">
+      <div className="flex flex-col w-full h-full bg-neutral-100 dark:bg-neutral-800" style={{ borderRadius: '1rem' }}>
         <EditorContent
           className="w-full break-all radius-lg h-full"
           extensions={extensions}
@@ -152,7 +152,7 @@ export const RealtimeEditor: React.FC<RealtimeEditorProps> = ({
             handlePaste: (view, event) => handleImagePaste(view, event, uploadFn),
             handleDrop: (view, event, _slice, moved) => handleImageDrop(view, event, moved, uploadFn),
             attributes: {
-              class: `prose prose-lg dark:prose-invert prose-headings:font-title font-default focus:outline-none max-w-full`,
+              class: `prose prose-lg dark:prose-invert prose-headings:font-title font-default focus:outline-none max-w-full radius-lg`,
             }
           }}
           initialContent={initialContent}

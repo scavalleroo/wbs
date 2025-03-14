@@ -27,7 +27,7 @@ const DashboardLayout: React.FC<Props> = (props: Props) => {
         <OpenContext.Provider value={{ open, setOpen }}>
           <Toaster />
           <TimerProvider>
-            <main className='className="mx-auto h-screen p-2"'>
+            <main className='mx-auto h-screen bg-neutral-50 dark:bg-neutral-900'>
               {props.children}
             </main>
           </TimerProvider>

@@ -16,7 +16,3 @@ export interface BlockedSiteAttempt {
     blocked_site_id: number;
     bypassed: boolean;
 }
-  
-export interface UseBlockedSiteParams {
-    user: { id: string } | null | undefined;
-}

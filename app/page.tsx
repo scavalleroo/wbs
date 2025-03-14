@@ -7,7 +7,7 @@ export default async function Home() {
 
     if (!user) {
         return redirect('/dashboard/signin');
-    } else {
-        redirect('/dashboard/main');
     }
+
+    return redirect('/dashboard/main');
 }

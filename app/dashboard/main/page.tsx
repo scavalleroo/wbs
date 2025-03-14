@@ -4,10 +4,10 @@ import { getUserDetails, getUser } from '@/utils/supabase/queries';
 import { createClient } from '@/utils/supabase/server';
 
 export default async function Account() {
-    const supabase = createClient();
+    const supabase = await createClient();
     const [user, userDetails] = await Promise.all([
-        getUser(await supabase),
-        getUserDetails(await supabase)
+        getUser(supabase),
+        getUserDetails(supabase)
     ]);
 
     if (!user) {

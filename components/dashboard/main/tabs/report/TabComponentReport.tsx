@@ -277,7 +277,7 @@ export function TabComponentReport({ user }: FocusTabContentProps) {
                 </div>
 
                 {/* Unified Card with Tabs */}
-                <Card className="shadow-md bg-neutral-50 dark:bg-neutral-900">
+                <Card className="shadow-md bg-neutral-100 dark:bg-neutral-800">
                     <div className="p-4 border-b">
                         <Tabs defaultValue="overview" className="w-full">
                             <TabsList>

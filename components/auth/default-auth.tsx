@@ -4,7 +4,7 @@ import Image from "next/image";
 
 export default async function DefaultAuth() {
     return (
-        <div className="relative min-h-screen grid w-full lg:max-w-none lg:grid-cols-2 lg:px-0 dark:bg-neutral-900 bg-neutral-50">
+        <div className="relative min-h-screen grid w-full lg:max-w-none lg:grid-cols-2 lg:px-0 bg-neutral-100 dark:bg-neutral-800">
             <div className="relative hidden h-full flex-col p-10 text-white dark:border-r lg:flex">
                 <div className="absolute inset-0" style={{
                     background: 'linear-gradient(180deg, var(--weko-green), var(--weko-blue))'

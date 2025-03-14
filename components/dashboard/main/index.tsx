@@ -1,22 +1,24 @@
-/*eslint-disable*/
 'use client';
 
 import DashboardLayout from '@/components/layout';
 import Navbar from '@/components/navbar/Navbar';
 import { Tabs } from '@/components/ui/tabs';
-import { User } from '@supabase/supabase-js';
 import { useState } from 'react';
 import { TabComponentFocus } from './tabs/focus/TabComponentFocus';
 import { TabComponentReport } from './tabs/report/TabComponentReport';
 import { TabComponentBreak } from './tabs/break/TabComponentBreak';
 import MoodTrackingModal from './moodTracking/MoodTrackingModal';
+import { User } from '@supabase/supabase-js';
+
+interface UserDetails {
+    id: string;
+}
 
 interface Props {
     user: User | null | undefined;
-    userDetails: { [x: string]: any } | null | any;
+    userDetails: UserDetails | null;
 }
 
-// Define a type for tabs
 export type TabValue = 'focus' | 'break' | 'report';
 
 export default function MainPage(props: Props) {

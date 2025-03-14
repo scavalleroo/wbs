@@ -1,20 +1,27 @@
-import { supabase } from '@/lib/superbase';
 import { Mood } from '@/types/mood.types';
-import { useEffect, useState } from 'react';
+import { UserIdParam } from '@/types/types';
+import { createClient } from '@/utils/supabase/client';
+import { useEffect, useState, useCallback, useRef } from 'react';
+import { toast } from 'sonner';
 
-interface UseMoodParams {
-    user: { id: string } | null | undefined;
-}
-
-const useMood = ({ user }: UseMoodParams) => {
+const useMood = ({ user }: UserIdParam) => {
     const [mood, setMood] = useState<Mood | null>(null);
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
+    const supabase = createClient();
+    const fetchInProgress = useRef(false);
 
-    const fetchMood = async () => {
+    const fetchMood = useCallback(async () => {
+        // Prevent concurrent fetches
+        if (fetchInProgress.current) return null;
+
         try {
+            fetchInProgress.current = true;
             setLoading(true);            
-            if (!user?.id) throw new Error("User not authenticated");
+            if (!user?.id) {
+                setMood(null);
+                return null;
+            }
             
             // Get today's date at midnight (start of day)
             const today = new Date();
@@ -33,25 +40,37 @@ const useMood = ({ user }: UseMoodParams) => {
     
             if (data) {
                 setMood(data);
+            } else {
+                setMood(null);
             }
             
+            setError(null);
             return data;
-        } catch (error) {
-            setError(error instanceof Error ? error.message : String(error));
+        } catch (err) {
+            console.error('Error fetching mood:', err);
+            const errorMessage = err instanceof Error ? err.message : String(err);
+            setError(errorMessage);
+            toast.error('Failed to load mood data');
             return null;
         } finally {
             setLoading(false);
+            fetchInProgress.current = false;
         }
-    };
+    }, [user?.id]);
 
-    const hasMoodForToday = async (): Promise<boolean> => {
+    const hasMoodForToday = useCallback(async (): Promise<boolean> => {
         const todayMood = await fetchMood();
         return !!todayMood;
-    };
+    }, [fetchMood]);
 
-    const submitMood = async (moodRating: number, description: string) => {
+    const submitMood = useCallback(async (moodRating: number, description: string) => {
+        if (!user?.id) {
+            toast.error('You must be logged in to record mood');
+            return null;
+        }
+
         try {
-            if (!user?.id) throw new Error("User not authenticated");
+            setLoading(true);
             
             const { data, error } = await supabase
                 .from('mood_tracking')
@@ -61,23 +80,39 @@ const useMood = ({ user }: UseMoodParams) => {
                     description: description || null,
                     created_at: new Date().toISOString()
                 }])
-                .select(); // Add this to get the inserted row back
+                .select();
     
             if (error) throw error;
-            await fetchMood();
-        } catch (error) {
-            console.error("Insert error:", error);
-            setError(error instanceof Error ? error.message : String(error));
-            throw error;
-        }
-    };
-
-    // Apply the same session check to skipMood
-    const skipMood = async () => {
-        try {
-            if (!user?.id) throw new Error("User not authenticated");
             
-            const { error } = await supabase
+            // Update the local state directly with the new data
+            if (data && data[0]) {
+                setMood(data[0]);
+                toast.success('Mood recorded successfully');
+            }
+            
+            setError(null);
+            return data?.[0] || null;
+        } catch (err) {
+            console.error("Insert error:", err);
+            const errorMessage = err instanceof Error ? err.message : String(err);
+            setError(errorMessage);
+            toast.error('Failed to record mood');
+            return null;
+        } finally {
+            setLoading(false);
+        }
+    }, [user?.id]);
+
+    const skipMood = useCallback(async () => {
+        if (!user?.id) {
+            toast.error('You must be logged in to skip mood recording');
+            return null;
+        }
+
+        try {
+            setLoading(true);
+            
+            const { data, error } = await supabase
                 .from('mood_tracking')
                 .insert([{ 
                     user_id: user.id, 
@@ -85,26 +120,60 @@ const useMood = ({ user }: UseMoodParams) => {
                     description: null,
                     created_at: new Date().toISOString(),
                     skipped: true
-                }]);
-
+                }])
+                .select();
+    
             if (error) throw error;
-
-            // Refresh mood data after skipping
-            await fetchMood();
-        } catch (error) {
-            setError(error instanceof Error ? error.message : String(error));
-            throw error;
-        }
-    };
-
-    // Load mood data on initial component mount and when user changes
-    useEffect(() => {
-        if (user?.id) {
-            fetchMood();
+    
+            // Update local state directly
+            if (data && data[0]) {
+                setMood(data[0]);
+                toast.success('Mood tracking skipped for today');
+            }
+            
+            setError(null);
+            return data?.[0] || null;
+        } catch (err) {
+            console.error("Skip error:", err);
+            const errorMessage = err instanceof Error ? err.message : String(err);
+            setError(errorMessage);
+            toast.error('Failed to skip mood recording');
+            return null;
+        } finally {
+            setLoading(false);
         }
     }, [user?.id]);
 
-    return { mood, loading, error, fetchMood, submitMood, skipMood, hasMoodForToday };
+    // Load mood data when user changes
+    useEffect(() => {
+        let isMounted = true;
+        
+        if (user?.id) {
+            // Small delay to prevent rapid consecutive requests
+            const timer = setTimeout(() => {
+                if (isMounted) {
+                    fetchMood();
+                }
+            }, 100);
+            
+            return () => {
+                isMounted = false;
+                clearTimeout(timer);
+            };
+        } else {
+            setMood(null);
+        }
+    }, [user?.id, fetchMood]);
+
+    return { 
+        mood, 
+        loading, 
+        error, 
+        fetchMood, 
+        submitMood, 
+        skipMood, 
+        hasMoodForToday 
+    };
 };
 
 export default useMood;

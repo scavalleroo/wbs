@@ -4,7 +4,6 @@ import useMood from '@/hooks/use-mood';
 import {
     Dialog,
     DialogContent,
-    DialogDescription,
     DialogFooter,
     DialogHeader,
     DialogTitle,
@@ -26,6 +25,9 @@ const MoodTrackingModal = ({ user }: MoodTrackingModalProps) => {
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     useEffect(() => {
+        // Don't check for mood if user isn't logged in
+        if (!user) return;
+
         const checkMood = async () => {
             const moodExists = await hasMoodForToday();
             if (!moodExists) {
@@ -35,9 +37,11 @@ const MoodTrackingModal = ({ user }: MoodTrackingModalProps) => {
 
         // Check if user has already submitted mood today
         checkMood();
-    }, []);
+    }, [user, hasMoodForToday]); // Add proper dependencies
 
     const handleMoodSubmit = async () => {
+        if (!user) return; // Ensure user is logged in
+
         if (moodRating === 0) {
             alert('Please select a mood before submitting.');
             return;
@@ -55,6 +59,8 @@ const MoodTrackingModal = ({ user }: MoodTrackingModalProps) => {
     };
 
     const handleSkip = async () => {
+        if (!user) return; // Ensure user is logged in
+
         setIsSubmitting(true);
         try {
             await skipMood();
@@ -65,6 +71,9 @@ const MoodTrackingModal = ({ user }: MoodTrackingModalProps) => {
             setIsSubmitting(false);
         }
     };
+
+    // Don't render the dialog if user isn't logged in
+    if (!user) return null;
 
     return (
         <Dialog open={isOpen} onOpenChange={setIsOpen}>

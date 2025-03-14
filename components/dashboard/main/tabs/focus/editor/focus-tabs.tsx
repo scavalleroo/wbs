@@ -320,7 +320,7 @@ export const FocusTabs: React.FC<FocusTabsProps> = ({
           style={{ display: activeTab === 'daily' ? 'flex' : 'none' }}
         >
           {/* Remove the date navigation from here, as it's now in the header */}
-          <Card className="flex-grow h-full shadow-md bg-neutral-50 dark:bg-neutral-900">
+          <Card className="flex-grow h-full shadow-md bg-neutral-100 dark:bg-neutral-800">
             {dailyNote && !loading && (
               <RealtimeEditor
                 key={`daily-${dailyNote.id}`}
@@ -342,7 +342,7 @@ export const FocusTabs: React.FC<FocusTabsProps> = ({
           style={{ display: activeTab === 'project' ? 'flex' : 'none' }}
         >
           {/* Remove the project selection from here, as it's now in the header */}
-          <Card className="flex-grow overflow-y-auto h-full shadow-md bg-neutral-50 dark:bg-neutral-900">
+          <Card className="flex-grow overflow-y-auto h-full shadow-md bg-neutral-100 dark:bg-neutral-800">
             {selectedProject && (
               <RealtimeEditor
                 key={`project-${selectedProject.id}`}

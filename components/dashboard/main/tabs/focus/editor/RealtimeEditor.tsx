@@ -23,12 +23,12 @@ import { uploadFn } from "./image-upload";
 import { defaultExtensions } from './extensions';
 import { createClient } from '@/utils/supabase/client';
 import { useDebounce } from '@/hooks/use-debounce';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import ProjectDialogs from './project-dialogs';
 import { ProjectNote } from '@/lib/project';
 import GenerativeMenuSwitch from './generative/generative-menu-switch';
 import { MathSelector } from './selectors/math-selector';
 import { EventSelector } from './selectors/event-selector';
+import { formatRelativeTime } from '@/lib/utils';
 
 // const hljs = require("highlight.js");
 
@@ -143,7 +143,7 @@ export const RealtimeEditor: React.FC<RealtimeEditorProps> = ({
     <EditorRoot>
       <div className="flex flex-col w-full h-full bg-neutral-100 dark:bg-neutral-800" style={{ borderRadius: '1rem' }}>
         <EditorContent
-          className="w-full break-all radius-lg h-full"
+          className="w-full break-words radius-lg h-full"
           extensions={extensions}
           editorProps={{
             handleDOMEvents: {
@@ -205,7 +205,7 @@ export const RealtimeEditor: React.FC<RealtimeEditorProps> = ({
         </EditorContent>
 
         {/* Footer with justified content - Last saved on left, ProjectDialogs on right */}
-        <div className="sm:flex hidden justify-between items-center z-10 py-2 border-t">
+        <div className="flex justify-between items-center z-10 py-2 border-t">
           <div className="flex items-center gap-2">
             {isSaving && (
               <div className="text-xs text-muted-foreground">
@@ -214,7 +214,7 @@ export const RealtimeEditor: React.FC<RealtimeEditorProps> = ({
             )}
             {!isSaving && lastSaved && (
               <div className="text-xs text-muted-foreground p-2 sm:p-4">
-                Last saved: {lastSaved.toUTCString()}
+                Last saved: {formatRelativeTime(lastSaved)}
               </div>
             )}
           </div>

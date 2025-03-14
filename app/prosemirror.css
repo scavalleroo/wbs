@@ -2,6 +2,26 @@
     @apply p-4 px-4 sm:p-8 sm:px-8;
 }
 
+@media screen and (max-width: 640px) {
+    .ProseMirror {
+        font-size: 0.85rem;
+        line-height: 1;
+        /* Changed to 1 as requested */
+        /* Makes text smaller on mobile */
+    }
+
+    ul[data-type="taskList"] li>label input[type="checkbox"] {
+        top: 0px !important;
+        margin-right: 0.0rem !important;
+        /* Adjust from 5px to 2px for better alignment with reduced line height */
+    }
+
+    /* Adjust todo list line height for mobile */
+    ul[data-type="taskList"] li>div>p {
+        line-height: 1.2;
+    }
+}
+
 .ProseMirror .is-editor-empty:first-child::before {
     content: attr(data-placeholder);
     float: left;

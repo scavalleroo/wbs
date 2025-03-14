@@ -186,8 +186,8 @@ export const FocusTabs: React.FC<FocusTabsProps> = ({
       <div className="space-y-0 max-w-screen-lg mx-auto px-2 w-full">
         {/* Selection Header Area */}
         <div className="flex-shrink-0 relative z-10">
-          <div className="bg-gradient-to-b from-blue-500 to-indigo-600/80 rounded-sm rounded-t-xl p-4 shadow-md relative">
-            <div className="flex flex-row items-center justify-between w-full">
+          <div className="bg-gradient-to-b from-blue-500 to-indigo-600/80 rounded-sm rounded-t-xl px-0 py-2 sm:p-4 shadow-md relative">
+            <div className="flex flex-row items-center justify-between w-full px-2 pt-2">
               {/* Header Title and Description */}
               <div className="flex items-center space-x-3">
                 <div className="bg-white bg-opacity-20 p-2 rounded-full sm:block hidden">

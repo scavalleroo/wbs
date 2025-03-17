@@ -7,6 +7,7 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import useMood from '@/hooks/use-mood';
 import MoodTrackingModal from '@/components/dashboard/main/moodTracking/MoodTrackingModal';
 import { getFormattedDateLabel } from '@/lib/utils';
+import { Toggle } from '@/components/ui/toggle';
 
 interface WellnessReportProps {
     user: User | null | undefined;
@@ -29,8 +30,45 @@ const WellnessReport = ({ user }: WellnessReportProps) => {
     const [currentScore, setCurrentScore] = useState<number | null>(null);
     const [showMoodModal, setShowMoodModal] = useState(false);
     const [selectedDate, setSelectedDate] = useState<string | null>(null);
+    const [selectedMetrics, setSelectedMetrics] = useState<string[]>(['wellbeing']);
+
+    const metricColors = {
+        wellbeing: 'var(--weko-blue)',
+        mood: '#F59E0B',    // Amber
+        sleep: '#8B5CF6',   // Purple
+        nutrition: '#10B981', // Emerald
+        exercise: '#3B82F6', // Blue
+        social: '#EC4899'   // Pink
+    };
+
+    const metricLabels = {
+        wellbeing: 'Overall Score',
+        mood: 'Mood',
+        sleep: 'Sleep',
+        nutrition: 'Nutrition',
+        exercise: 'Exercise',
+        social: 'Social'
+    };
 
     const { getMoodHistory } = useMood({ user });
+
+    // Function to toggle metrics
+    const toggleMetric = (metric: string) => {
+        setSelectedMetrics(prev => {
+            // If it's already selected, remove it
+            if (prev.includes(metric)) {
+                return prev.filter(m => m !== metric);
+            }
+            // If it's not selected, add it
+            return [...prev, metric];
+        });
+    };
+
+    // Map 1-5 ratings to 0-100 scale for consistent display
+    const normalizeRating = (rating: number | null): number | null => {
+        if (rating === null) return null;
+        return Math.round((rating / 5) * 100);
+    };
 
     // Calculate overall wellbeing score (0-100) from individual metrics
     const calculateWellbeingScore = (
@@ -146,7 +184,19 @@ const WellnessReport = ({ user }: WellnessReportProps) => {
                     date: dateStr,
                     formattedDate: format(date, 'MMM dd'),
                     wellbeingScore,
-                    displayScore: wellbeingScore !== null ? wellbeingScore : 0, // Use 0 for display but keep actual value
+                    displayScore: wellbeingScore, // Changed: keep null values instead of converting to 0
+                    // Rest of the properties remain the same
+                    mood: normalizeRating(dayData?.mood_rating),
+                    sleep: normalizeRating(dayData?.sleep_rating),
+                    nutrition: normalizeRating(dayData?.nutrition_rating),
+                    exercise: normalizeRating(dayData?.exercise_rating),
+                    social: normalizeRating(dayData?.social_rating),
+                    moodRaw: dayData?.mood_rating,
+                    sleepRaw: dayData?.sleep_rating,
+                    nutritionRaw: dayData?.nutrition_rating,
+                    exerciseRaw: dayData?.exercise_rating,
+                    socialRaw: dayData?.social_rating,
+                    description: dayData?.description || null,
                     isComplete,
                     isFutureDate,
                     hasData,
@@ -290,7 +340,7 @@ const WellnessReport = ({ user }: WellnessReportProps) => {
     const CustomTooltip = ({ active, payload }: any) => {
         if (active && payload && payload.length) {
             const data = payload[0].payload;
-            const score = data.wellbeingScore; // Use the actual score, not displayScore
+            const score = data.wellbeingScore;
 
             // Only show tooltip for days with actual data
             if (score === null && !data.hasMoodEntry) {
@@ -305,12 +355,47 @@ const WellnessReport = ({ user }: WellnessReportProps) => {
 
             if (score === null) return null;
 
+            const hasNote = data.description && data.description.trim().length > 0;
+
             return (
-                <div className="bg-neutral-100 dark:bg-neutral-800 p-2 border border-neutral-200 dark:border-neutral-700 shadow rounded-md">
-                    <p className="text-sm font-medium">{data.formattedDate}</p>
-                    <p className={`text-sm font-bold ${getScoreColor(score)}`}>
-                        Score: {score}
-                    </p>
+                <div className="bg-neutral-100 dark:bg-neutral-800 p-2 border border-neutral-200 dark:border-neutral-700 shadow rounded-md max-w-[260px]">
+                    <p className="text-sm font-medium mb-1">{data.formattedDate}</p>
+
+                    {/* Overall score */}
+                    {selectedMetrics.includes('wellbeing') && (
+                        <p className={`text-sm font-bold ${getScoreColor(score)}`}>
+                            Overall Score: {score}
+                        </p>
+                    )}
+
+                    {/* Individual metrics */}
+                    {data.moodRaw !== null && selectedMetrics.includes('mood') && (
+                        <p className="text-sm text-amber-500">Mood: {data.moodRaw}/5</p>
+                    )}
+                    {data.sleepRaw !== null && selectedMetrics.includes('sleep') && (
+                        <p className="text-sm text-purple-500">Sleep: {data.sleepRaw}/5</p>
+                    )}
+                    {data.nutritionRaw !== null && selectedMetrics.includes('nutrition') && (
+                        <p className="text-sm text-emerald-500">Nutrition: {data.nutritionRaw}/5</p>
+                    )}
+                    {data.exerciseRaw !== null && selectedMetrics.includes('exercise') && (
+                        <p className="text-sm text-blue-500">Exercise: {data.exerciseRaw}/5</p>
+                    )}
+                    {data.socialRaw !== null && selectedMetrics.includes('social') && (
+                        <p className="text-sm text-pink-500">Social: {data.socialRaw}/5</p>
+                    )}
+
+                    {/* Notes section */}
+                    {hasNote && (
+                        <div className="mt-2 border-t border-neutral-200 dark:border-neutral-700 pt-1">
+                            <p className="text-xs text-neutral-500 font-medium">Notes:</p>
+                            <p className="text-xs text-neutral-600 dark:text-neutral-300 break-words">
+                                {data.description}
+                            </p>
+                        </div>
+                    )}
+
+                    {/* Incomplete data warning */}
                     {!data.isComplete && (
                         <p className="text-xs text-neutral-500 mt-1">
                             {data.isFutureDate
@@ -334,6 +419,31 @@ const WellnessReport = ({ user }: WellnessReportProps) => {
 
         const payload = data.activePayload[0].payload;
         handleDataPointClick(payload);
+    };
+
+    const renderMetricToggle = (metric: string) => {
+        const isSelected = selectedMetrics.includes(metric);
+        const metricKey = metric as keyof typeof metricColors;
+        return (
+            <Toggle
+                key={metric}
+                pressed={isSelected}
+                onPressedChange={() => toggleMetric(metric)}
+                className={`${isSelected ? 'bg-opacity-20' : 'bg-neutral-100 dark:bg-neutral-800'} border rounded-full px-3 py-1`}
+                style={{
+                    borderColor: isSelected ? metricColors[metricKey] : 'transparent',
+                    backgroundColor: isSelected ? `${metricColors[metricKey]}20` : ''
+                }}
+            >
+                <div className="flex items-center gap-1.5">
+                    <span
+                        className="w-2 h-2 rounded-full"
+                        style={{ backgroundColor: metricColors[metricKey] }}
+                    ></span>
+                    <span className="text-xs">{metricLabels[metricKey]}</span>
+                </div>
+            </Toggle>
+        );
     };
 
 
@@ -372,7 +482,18 @@ const WellnessReport = ({ user }: WellnessReportProps) => {
             <Card className="bg-neutral-50 dark:bg-neutral-900">
                 <CardHeader className="pb-2">
                     <CardTitle className="text-md font-medium">Wellbeing Trend</CardTitle>
+
+                    {/* Add metric filter section */}
+                    <div className="flex flex-wrap gap-2 mt-2">
+                        {renderMetricToggle('wellbeing')}
+                        {renderMetricToggle('mood')}
+                        {renderMetricToggle('sleep')}
+                        {renderMetricToggle('nutrition')}
+                        {renderMetricToggle('exercise')}
+                        {renderMetricToggle('social')}
+                    </div>
                 </CardHeader>
+
                 <CardContent>
                     <div className="w-full h-64">
                         <ResponsiveContainer width="100%" height="100%">
@@ -393,33 +514,102 @@ const WellnessReport = ({ user }: WellnessReportProps) => {
                                     tickCount={5}
                                 />
                                 <Tooltip content={<CustomTooltip />} />
-                                <Line
-                                    type="monotone"
-                                    dataKey="displayScore"
-                                    stroke="var(--weko-blue)"
-                                    strokeWidth={2.5}
-                                    dot={renderDot}
-                                    activeDot={{
-                                        r: 8,
-                                        stroke: 'var(--weko-green)',
-                                        strokeWidth: 2,
-                                        onClick: (data: any) => {
-                                            if (data && data.payload) {
-                                                setTimeout(() => {
-                                                    handleDataPointClick(data.payload);
-                                                }, 10);
+
+                                {/* Multiple lines for each metric */}
+                                {selectedMetrics.includes('wellbeing') && (
+                                    <Line
+                                        type="monotone"
+                                        dataKey="displayScore"
+                                        stroke={metricColors.wellbeing}
+                                        strokeWidth={2.5}
+                                        dot={renderDot}
+                                        activeDot={{
+                                            r: 8,
+                                            stroke: 'var(--weko-green)',
+                                            strokeWidth: 2,
+                                            onClick: (data: any) => {
+                                                if (data && data.payload) {
+                                                    setTimeout(() => {
+                                                        handleDataPointClick(data.payload);
+                                                    }, 10);
+                                                }
                                             }
-                                        }
-                                    }}
-                                    connectNulls={false} // This ensures gaps in the line for missing data
-                                    isAnimationActive={false}
-                                />
+                                        }}
+                                        connectNulls={false}
+                                        isAnimationActive={false}
+                                    />
+                                )}
+
+                                {/* Individual metric lines */}
+                                {selectedMetrics.includes('mood') && (
+                                    <Line
+                                        type="monotone"
+                                        dataKey="mood"
+                                        stroke={metricColors.mood}
+                                        strokeWidth={1.5}
+                                        dot={false}
+                                        activeDot={{ r: 6, stroke: 'white', strokeWidth: 1 }}
+                                        connectNulls={false}
+                                        isAnimationActive={false}
+                                    />
+                                )}
+
+                                {selectedMetrics.includes('sleep') && (
+                                    <Line
+                                        type="monotone"
+                                        dataKey="sleep"
+                                        stroke={metricColors.sleep}
+                                        strokeWidth={1.5}
+                                        dot={false}
+                                        activeDot={{ r: 6, stroke: 'white', strokeWidth: 1 }}
+                                        connectNulls={false}
+                                        isAnimationActive={false}
+                                    />
+                                )}
+
+                                {selectedMetrics.includes('nutrition') && (
+                                    <Line
+                                        type="monotone"
+                                        dataKey="nutrition"
+                                        stroke={metricColors.nutrition}
+                                        strokeWidth={1.5}
+                                        dot={false}
+                                        activeDot={{ r: 6, stroke: 'white', strokeWidth: 1 }}
+                                        connectNulls={false}
+                                        isAnimationActive={false}
+                                    />
+                                )}
+
+                                {selectedMetrics.includes('exercise') && (
+                                    <Line
+                                        type="monotone"
+                                        dataKey="exercise"
+                                        stroke={metricColors.exercise}
+                                        strokeWidth={1.5}
+                                        dot={false}
+                                        activeDot={{ r: 6, stroke: 'white', strokeWidth: 1 }}
+                                        connectNulls={false}
+                                        isAnimationActive={false}
+                                    />
+                                )}
+
+                                {selectedMetrics.includes('social') && (
+                                    <Line
+                                        type="monotone"
+                                        dataKey="social"
+                                        stroke={metricColors.social}
+                                        strokeWidth={1.5}
+                                        dot={false}
+                                        activeDot={{ r: 6, stroke: 'white', strokeWidth: 1 }}
+                                        connectNulls={false}
+                                        isAnimationActive={false}
+                                    />
+                                )}
                             </LineChart>
                         </ResponsiveContainer>
                     </div>
 
-                    {/* Legend */}
-                    {/* Legend */}
+                    {/* Keep existing legend */}
                     <div className="flex items-center justify-center mt-4 space-x-6 text-xs">
                         <div className="flex items-center">
                             <span className="inline-block w-3 h-3 mr-1 rounded-full bg-[var(--weko-blue)]"></span>

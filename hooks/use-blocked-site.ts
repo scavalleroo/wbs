@@ -1,8 +1,8 @@
 import { useState, useCallback } from 'react';
 import { toast } from 'sonner';
 import { createClient } from '@/utils/supabase/client';
-import { BlockedSite, BlockedSiteAttempt } from '@/types/report.types';
-import { startOfDay, isToday, subDays } from 'date-fns';
+import { AttemptDetail, BlockedSite, BlockedSiteAttempt, DailyFocusData } from '@/types/report.types';
+import { startOfDay, isToday, subDays, format, isFuture, endOfDay, eachDayOfInterval } from 'date-fns';
 import { UserIdParam } from '@/types/types';
 
 export function useBlockedSite({ user }: UserIdParam) {
@@ -340,6 +340,136 @@ export function useBlockedSite({ user }: UserIdParam) {
     }
   }, [user]);
 
+  // Fix the getFocusData function to be properly memoized and remove console log
+const getFocusData = useCallback(async (timeRange: 'week' | 'month' | 'year' = 'week') => {
+  if (!user) return { focusData: [], currentScore: null };
+  
+  try {
+    // Determine number of days based on time range
+    let days: number;
+    switch (timeRange) {
+      case 'week':
+        days = 7;
+        break;
+      case 'month':
+        days = 30;
+        break;
+      case 'year':
+        days = 365;
+        break;
+      default:
+        days = 7;
+    }
+
+    // Get date range
+    const dateRange = eachDayOfInterval({
+      start: subDays(new Date(), days - 1),
+      end: new Date()
+    });
+
+    // Start and end dates for query
+    const startDate = startOfDay(dateRange[0]).toISOString();
+    const endDate = endOfDay(dateRange[dateRange.length - 1]).toISOString();
+
+    // Fetch attempts data from the database
+    const { data: attemptsData, error } = await supabase
+      .from('blocked_site_attempts')
+      .select(`
+        domain,
+        created_at,
+        bypassed
+      `)
+      .eq('user_id', user.id)
+      .gte('created_at', startDate)
+      .lte('created_at', endDate)
+      .order('created_at', { ascending: true });
+
+    if (error) throw error;
+
+    // Process data by day
+    const focusData = dateRange.map(date => {
+      const dateStr = format(date, 'yyyy-MM-dd');
+      const isFutureDate = isFuture(date);
+      
+      // Filter attempts for this day
+      const dayAttempts = attemptsData?.filter(attempt => 
+        format(new Date(attempt.created_at), 'yyyy-MM-dd') === dateStr
+      ) || [];
+      
+      // Count attempts and bypasses
+      const totalAttempts = dayAttempts.length;
+      const totalBypasses = dayAttempts.filter(a => a.bypassed).length;
+      
+      // Get details by domain
+      const detailsByDomain = dayAttempts.reduce((acc, attempt) => {
+        if (!acc[attempt.domain]) {
+          acc[attempt.domain] = { domain: attempt.domain, attempts: 0, bypasses: 0 };
+        }
+        
+        acc[attempt.domain].attempts += 1;
+        if (attempt.bypassed) {
+          acc[attempt.domain].bypasses += 1;
+        }
+        
+        return acc;
+      }, {} as Record<string, AttemptDetail>);
+      
+      // Calculate focus score
+      let focusScore: number | null = null;
+      
+      if (isFutureDate) {
+        // Future dates get no score
+        focusScore = null;
+      } else if (totalAttempts > 0) {
+        // Calculate score if there were actual attempts
+        focusScore = calculateFocusScore(totalAttempts, totalBypasses);
+      } else {
+        // Days with no data get null (not 100)
+        focusScore = null;
+      }
+      
+      return {
+        date: dateStr,
+        formattedDate: format(date, 'MMM dd'),
+        focusScore,
+        attempts: totalAttempts,
+        bypasses: totalBypasses,
+        attemptDetails: Object.values(detailsByDomain),
+        isFutureDate,
+        hasData: totalAttempts > 0
+      } as DailyFocusData;
+    });
+
+    // REMOVED the console.log that was causing issues
+
+    // Calculate current score based on most recent day WITH DATA
+    const currentScore = focusData
+      .slice()
+      .reverse()
+      .find(data => data.hasData)?.focusScore ?? null;
+
+    return { 
+      focusData,
+      currentScore
+    };
+  } catch (err) {
+    console.error('Error fetching focus data:', err);
+    return { 
+      focusData: [],
+      currentScore: null 
+    };
+  }
+}, [user, supabase]); // Only depend on user and supabase, not timeRange
+
+  // Make sure this calculation is correct and not being overridden elsewhere
+  const calculateFocusScore = (attempts: number, bypasses: number): number => {
+    // Each attempt reduces score by 2 points, each bypass by 5 points
+    const penalty = (attempts * 1) + (bypasses * 2);
+    const score = 100 - penalty;
+    // Ensure score is between 0 and 100
+    return Math.max(0, Math.min(100, score));
+  };
+
   return {
     blockedSites,
     attempts,
@@ -352,6 +482,7 @@ export function useBlockedSite({ user }: UserIdParam) {
     getBlockedSiteStats,
     getRecentAttempts,
     getBypassAttempts, // Added new function
-    updateMaxDailyVisits
+    updateMaxDailyVisits,
+    getFocusData
   };
 }

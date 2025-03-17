@@ -12,6 +12,7 @@ import { BlockedSitesList } from './BlockSitesList';
 import { AddDomainCollapsible } from './AddDomainCollapsible';
 import { ExtensionStatus } from './ExtensionStatus';
 import WellnessReport from './WellnessReport';
+import FocusScoreReport from './FocusScoreReport';
 
 interface FocusTabContentProps {
     user: User | null | undefined;
@@ -253,6 +254,7 @@ export function TabComponentReport({ user }: FocusTabContentProps) {
 
                             <TabsContent value="wellness" className="pt-4">
                                 <WellnessReport user={user} />
+                                <FocusScoreReport user={user} />
                             </TabsContent>
                         </Tabs>
                     </div>

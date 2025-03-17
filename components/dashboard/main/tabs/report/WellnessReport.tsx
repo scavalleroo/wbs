@@ -6,6 +6,7 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import useMood from '@/hooks/use-mood';
 import MoodTrackingModal from '@/components/dashboard/main/moodTracking/MoodTrackingModal';
+import { getFormattedDateLabel } from '@/lib/utils';
 
 interface WellnessReportProps {
     user: User | null | undefined;
@@ -17,7 +18,8 @@ interface DailyScore {
     wellbeingScore: number | null;
     isComplete: boolean;
     isFutureDate: boolean;
-    hasData: boolean;
+    hasData: boolean; // True if any wellness data exists for this day
+    hasMoodEntry: boolean; // True if there's any mood entry (even if empty)
     missingFields: string[];
 }
 
@@ -109,11 +111,12 @@ const WellnessReport = ({ user }: WellnessReportProps) => {
             const formattedData = dateRange.map(date => {
                 const dateStr = format(date, 'yyyy-MM-dd');
                 const dayData = moodHistory.find(
-                    item => format(new Date(item.created_at), 'yyyy-MM-dd') === dateStr
+                    item => item.tracked_date === dateStr
                 );
 
                 // Check if we have any data for this day
                 const hasData = !!dayData;
+                const hasMoodEntry = !!dayData;
 
                 // Check which fields are missing
                 const missingFields = dayData ? getMissingFields(
@@ -133,7 +136,7 @@ const WellnessReport = ({ user }: WellnessReportProps) => {
                     dayData.social_rating
                 ) : null;
 
-                // Check if the data is complete (all metrics have values)
+                // Check if the data is complete
                 const isComplete = hasData && missingFields.length === 0;
 
                 // Check if this is a future date
@@ -143,9 +146,11 @@ const WellnessReport = ({ user }: WellnessReportProps) => {
                     date: dateStr,
                     formattedDate: format(date, 'MMM dd'),
                     wellbeingScore,
+                    displayScore: wellbeingScore !== null ? wellbeingScore : 0, // Use 0 for display but keep actual value
                     isComplete,
                     isFutureDate,
                     hasData,
+                    hasMoodEntry,
                     missingFields
                 };
             });
@@ -173,31 +178,66 @@ const WellnessReport = ({ user }: WellnessReportProps) => {
         return "text-rose-500";
     };
 
-    // Handle clicking on a data point
     const handleDataPointClick = (data: any) => {
-        console.log("Dot clicked:", data);
+        console.log("Data point clicked:", data);
 
-        // Only allow clicking on past dates that have some data but are incomplete
-        if (data && !data.isFutureDate && data.hasData && !data.isComplete) {
+        // Allow clicking on any past date (whether it has data or not)
+        if (data && !data.isFutureDate) {
             setSelectedDate(data.date);
             setShowMoodModal(true);
         }
     };
 
 
+    // Update the renderDot function to properly position missing data dots at the bottom
     const renderDot = (props: any) => {
-        const { cx, cy, payload, index } = props;
+        const { cx, cy, payload, index, yAxis, height } = props;
 
-        // Don't render dots for null scores
-        if (payload.wellbeingScore === null) {
-            return <g key={`dot-null-${index}`} />;
+        // For data points with no mood entry, always position at the bottom of the chart
+        if (!payload.hasMoodEntry) {
+            // Get the bottom y-coordinate - use yAxis domain if available, otherwise fallback
+            // yAxis.scale(0) will give us the y-coordinate for value 0 (bottom of chart)
+            const bottomY = (yAxis && yAxis.scale) ? yAxis.scale(0) : (height - 10);
+
+            return (
+                <g
+                    key={`dot-missing-${index}`}
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        handleDataPointClick(payload);
+                    }}
+                    style={{ cursor: 'pointer' }}
+                >
+                    {/* Invisible hit area */}
+                    <circle
+                        cx={cx}
+                        cy={bottomY}
+                        r={20}
+                        fill="rgba(0,0,0,0.01)"
+                        stroke="none"
+                    />
+                    {/* Empty circle */}
+                    <circle
+                        cx={cx}
+                        cy={bottomY}
+                        r={4}
+                        fill="white"
+                        stroke="#9CA3AF"
+                        strokeWidth={1}
+                        strokeDasharray="2,1"
+                    />
+                </g>
+            );
         }
 
-        // Determine if the dot should be interactive
-        const isInteractive = !payload.isFutureDate && payload.hasData && !payload.isComplete;
+        // The rest of your existing renderDot function stays the same
+        // Don't render future dates
+        if (payload.isFutureDate) {
+            return <g key={`dot-future-${index}`} />;
+        }
 
+        // For incomplete data, render gray dot
         if (!payload.isComplete) {
-            // Gray dot for incomplete data
             return (
                 <g
                     key={`dot-incomplete-${index}`}
@@ -205,19 +245,16 @@ const WellnessReport = ({ user }: WellnessReportProps) => {
                         e.stopPropagation();
                         handleDataPointClick(payload);
                     }}
-                    style={{ cursor: isInteractive ? 'pointer' : 'default' }}
+                    style={{ cursor: 'pointer' }}
                 >
-                    {/* Invisible larger hit area - much bigger for better clickability */}
-                    {isInteractive && (
-                        <circle
-                            cx={cx}
-                            cy={cy}
-                            r={20}  // Increased from 10 to 20
-                            fill="rgba(0,0,0,0.01)" // Nearly invisible but still clickable
-                            stroke="none"
-                        />
-                    )}
-
+                    {/* Invisible larger hit area */}
+                    <circle
+                        cx={cx}
+                        cy={cy}
+                        r={20}
+                        fill="rgba(0,0,0,0.01)"
+                        stroke="none"
+                    />
                     {/* Visible dot */}
                     <circle
                         cx={cx}
@@ -231,7 +268,7 @@ const WellnessReport = ({ user }: WellnessReportProps) => {
             );
         }
 
-        // Default blue dot for complete data
+        // Complete data dot
         return (
             <g
                 key={`dot-complete-${index}`}
@@ -253,7 +290,18 @@ const WellnessReport = ({ user }: WellnessReportProps) => {
     const CustomTooltip = ({ active, payload }: any) => {
         if (active && payload && payload.length) {
             const data = payload[0].payload;
-            const score = data.wellbeingScore;
+            const score = data.wellbeingScore; // Use the actual score, not displayScore
+
+            // Only show tooltip for days with actual data
+            if (score === null && !data.hasMoodEntry) {
+                return (
+                    <div className="bg-neutral-100 dark:bg-neutral-800 p-2 border border-neutral-200 dark:border-neutral-700 shadow rounded-md">
+                        <p className="text-sm font-medium">{data.formattedDate}</p>
+                        <p className="text-sm text-neutral-500">No data available</p>
+                        <p className="text-xs text-neutral-500 mt-1">Click to add</p>
+                    </div>
+                );
+            }
 
             if (score === null) return null;
 
@@ -347,30 +395,30 @@ const WellnessReport = ({ user }: WellnessReportProps) => {
                                 <Tooltip content={<CustomTooltip />} />
                                 <Line
                                     type="monotone"
-                                    dataKey="wellbeingScore"
+                                    dataKey="displayScore"
                                     stroke="var(--weko-blue)"
                                     strokeWidth={2.5}
                                     dot={renderDot}
                                     activeDot={{
-                                        r: 8,  // Increased from 6 to 8
+                                        r: 8,
                                         stroke: 'var(--weko-green)',
                                         strokeWidth: 2,
                                         onClick: (data: any) => {
                                             if (data && data.payload) {
-                                                // Use a small delay to avoid conflicts with other click events
                                                 setTimeout(() => {
                                                     handleDataPointClick(data.payload);
                                                 }, 10);
                                             }
                                         }
                                     }}
-                                    connectNulls
+                                    connectNulls={false} // This ensures gaps in the line for missing data
                                     isAnimationActive={false}
                                 />
                             </LineChart>
                         </ResponsiveContainer>
                     </div>
 
+                    {/* Legend */}
                     {/* Legend */}
                     <div className="flex items-center justify-center mt-4 space-x-6 text-xs">
                         <div className="flex items-center">
@@ -380,6 +428,10 @@ const WellnessReport = ({ user }: WellnessReportProps) => {
                         <div className="flex items-center">
                             <span className="inline-block w-3 h-3 mr-1 rounded-full bg-gray-400"></span>
                             <span className="text-neutral-700 dark:text-neutral-300">Incomplete</span>
+                        </div>
+                        <div className="flex items-center">
+                            <span className="inline-block w-3 h-3 mr-1 rounded-full border border-gray-400 bg-white dark:bg-neutral-800"></span>
+                            <span className="text-neutral-700 dark:text-neutral-300">Missing</span>
                         </div>
                     </div>
                 </CardContent>
@@ -392,6 +444,7 @@ const WellnessReport = ({ user }: WellnessReportProps) => {
                     isOpen={showMoodModal}
                     setIsOpen={setShowMoodModal}
                     selectedDate={selectedDate}
+                    dateLabel={getFormattedDateLabel(selectedDate)}
                     onComplete={() => {
                         setShowMoodModal(false);
                         setSelectedDate(null);

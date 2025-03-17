@@ -1,6 +1,7 @@
 import { Mood, WellnessRatings } from '@/types/mood.types';
 import { UserIdParam } from '@/types/types';
 import { createClient } from '@/utils/supabase/client';
+import { endOfDay, format, parseISO, startOfDay } from 'date-fns';
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { toast } from 'sonner';
 
@@ -23,17 +24,14 @@ const useMood = ({ user }: UserIdParam) => {
                 return null;
             }
             
-            // Get today's date at midnight (start of day)
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
+            // Get today's date in YYYY-MM-DD format
+            const today = format(new Date(), 'yyyy-MM-dd');
             
             const { data, error } = await supabase
                 .from('mood_tracking')
                 .select('*')
                 .eq('user_id', user.id)
-                .gte('created_at', today.toISOString())
-                .order('created_at', { ascending: false })
-                .limit(1)
+                .eq('tracked_date', today) // Use tracked_date instead of created_at
                 .maybeSingle();
     
             if (error && error.code !== 'PGRST116') throw error;
@@ -66,45 +64,85 @@ const useMood = ({ user }: UserIdParam) => {
     const submitWellness = useCallback(async (
         ratings: WellnessRatings, 
         description: string,
-        date: Date = new Date() // Default to current date
+        date: Date = new Date() // Date the data refers to
     ) => {
         if (!user?.id) {
             toast.error('You must be logged in to record wellness data');
             return null;
         }
-    
+
         try {
             setLoading(true);
             
-            const { data, error } = await supabase
-                .from('mood_tracking')
-                .insert([{ 
-                    user_id: user.id,
-                    mood_rating: ratings.mood_rating,
-                    sleep_rating: ratings.sleep_rating,
-                    nutrition_rating: ratings.nutrition_rating,
-                    exercise_rating: ratings.exercise_rating,
-                    social_rating: ratings.social_rating,
-                    description: description || null,
-                    created_at: date.toISOString() // Use the provided date
-                }])
-                .select();
-    
-            if (error) throw error;
+            // Format the date for tracked_date (YYYY-MM-DD)
+            const formattedDate = format(date, 'yyyy-MM-dd');
             
-            // Update the local state directly with the new data
-            if (data && data[0]) {
-                setMood(data[0]);
+            // Check if an entry already exists for this date
+            const { data: existingEntry, error: fetchError } = await supabase
+                .from('mood_tracking')
+                .select('id')
+                .eq('user_id', user.id)
+                .eq('tracked_date', formattedDate)
+                .maybeSingle();
+                
+            if (fetchError && fetchError.code !== 'PGRST116') throw fetchError;
+            
+            let result;
+            
+            if (existingEntry) {
+                // Update existing entry
+                const { data, error } = await supabase
+                    .from('mood_tracking')
+                    .update({ 
+                        mood_rating: ratings.mood_rating,
+                        sleep_rating: ratings.sleep_rating,
+                        nutrition_rating: ratings.nutrition_rating,
+                        exercise_rating: ratings.exercise_rating,
+                        social_rating: ratings.social_rating,
+                        description: description || null,
+                        updated_at: new Date().toISOString(),
+                        skipped: false // Ensure it's not marked as skipped
+                    })
+                    .eq('id', existingEntry.id)
+                    .select();
+                    
+                if (error) throw error;
+                result = data;
+                toast.success('Wellness data updated successfully');
+            } else {
+                // Insert new entry
+                const { data, error } = await supabase
+                    .from('mood_tracking')
+                    .insert([{ 
+                        user_id: user.id,
+                        mood_rating: ratings.mood_rating,
+                        sleep_rating: ratings.sleep_rating,
+                        nutrition_rating: ratings.nutrition_rating,
+                        exercise_rating: ratings.exercise_rating,
+                        social_rating: ratings.social_rating,
+                        description: description || null,
+                        tracked_date: formattedDate, // Use the new tracked_date field
+                        skipped: false
+                    }])
+                    .select();
+                    
+                if (error) throw error;
+                result = data;
                 toast.success('Wellness data recorded successfully');
             }
             
+            // Update the local state directly with the new data if it's for today
+            if (result && result[0] && format(date, 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd')) {
+                setMood(result[0]);
+            }
+            
             setError(null);
-            return data?.[0] || null;
+            return result?.[0] || null;
         } catch (err) {
-            console.error("Insert error:", err);
+            console.error("Wellness data operation error:", err);
             const errorMessage = err instanceof Error ? err.message : String(err);
             setError(errorMessage);
-            toast.error('Failed to record wellness data');
+            toast.error('Failed to save wellness data');
             return null;
         } finally {
             setLoading(false);
@@ -120,31 +158,63 @@ const useMood = ({ user }: UserIdParam) => {
         try {
             setLoading(true);
             
-            const { data, error } = await supabase
+            // Today's date in YYYY-MM-DD
+            const today = format(new Date(), 'yyyy-MM-dd');
+            
+            // Check if an entry already exists for today
+            const { data: existingEntry, error: fetchError } = await supabase
                 .from('mood_tracking')
-                .insert([{ 
-                    user_id: user.id, 
-                    mood_rating: null,
-                    sleep_rating: null,
-                    nutrition_rating: null,
-                    exercise_rating: null,
-                    social_rating: null,
-                    description: null,
-                    created_at: new Date().toISOString(),
-                    skipped: true
-                }])
-                .select();
-    
-            if (error) throw error;
+                .select('id')
+                .eq('user_id', user.id)
+                .eq('tracked_date', today)
+                .maybeSingle();
+                
+            if (fetchError && fetchError.code !== 'PGRST116') throw fetchError;
+            
+            let result;
+            
+            if (existingEntry) {
+                // Update existing entry to skipped
+                const { data, error } = await supabase
+                    .from('mood_tracking')
+                    .update({ 
+                        skipped: true,
+                        updated_at: new Date().toISOString()
+                    })
+                    .eq('id', existingEntry.id)
+                    .select();
+                    
+                if (error) throw error;
+                result = data;
+            } else {
+                // Insert new skipped entry
+                const { data, error } = await supabase
+                    .from('mood_tracking')
+                    .insert([{ 
+                        user_id: user.id,
+                        mood_rating: null,
+                        sleep_rating: null,
+                        nutrition_rating: null,
+                        exercise_rating: null,
+                        social_rating: null,
+                        description: null,
+                        tracked_date: today,
+                        skipped: true
+                    }])
+                    .select();
+        
+                if (error) throw error;
+                result = data;
+            }
     
             // Update local state directly
-            if (data && data[0]) {
-                setMood(data[0]);
+            if (result && result[0]) {
+                setMood(result[0]);
                 toast.success('Wellness tracking skipped for today');
             }
             
             setError(null);
-            return data?.[0] || null;
+            return result?.[0] || null;
         } catch (err) {
             console.error("Skip error:", err);
             const errorMessage = err instanceof Error ? err.message : String(err);
@@ -153,6 +223,34 @@ const useMood = ({ user }: UserIdParam) => {
             return null;
         } finally {
             setLoading(false);
+        }
+    }, [user?.id]);
+
+    const getMoodHistory = useCallback(async (startDate: string, endDate: string) => {
+        if (!user?.id) return [];
+        
+        try {
+            // Convert ISO dates to YYYY-MM-DD for tracked_date
+            const start = format(parseISO(startDate), 'yyyy-MM-dd');
+            const end = format(parseISO(endDate), 'yyyy-MM-dd');
+            
+            const { data, error } = await supabase
+                .from('mood_tracking')
+                .select('*')
+                .eq('user_id', user.id)
+                .gte('tracked_date', start)
+                .lte('tracked_date', end)
+                .order('tracked_date', { ascending: true });
+            
+            if (error) throw error;
+            
+            return data || [];
+        } catch (err) {
+            console.error('Error fetching mood history:', err);
+            const errorMessage = err instanceof Error ? err.message : String(err);
+            setError(errorMessage);
+            toast.error('Failed to load wellness history');
+            return [];
         }
     }, [user?.id]);
 
@@ -177,33 +275,6 @@ const useMood = ({ user }: UserIdParam) => {
         }
     }, [user?.id, fetchMood]);
 
-    // Add this function to the useMood hook
-
-    const getMoodHistory = useCallback(async (startDate: string, endDate: string) => {
-        if (!user?.id) return [];
-        
-        try {
-            const { data, error } = await supabase
-                .from('mood_tracking')
-                .select('*')
-                .eq('user_id', user.id)
-                .gte('created_at', startDate)
-                .lte('created_at', endDate)
-                .order('created_at', { ascending: false });
-            
-            if (error) throw error;
-            
-            return data || [];
-        } catch (err) {
-            console.error('Error fetching mood history:', err);
-            const errorMessage = err instanceof Error ? err.message : String(err);
-            setError(errorMessage);
-            toast.error('Failed to load wellness history');
-            return [];
-        }
-    }, [user?.id]);
-
-    // Add getMoodHistory to the return object
     return { 
         mood, 
         loading, 

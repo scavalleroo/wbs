@@ -1,4 +1,5 @@
 import { clsx, type ClassValue } from "clsx"
+import { format, isToday, isYesterday } from "date-fns";
 import { twMerge } from "tailwind-merge"
 
 export function cn(...inputs: ClassValue[]) {
@@ -49,4 +50,18 @@ export const formatRelativeTime = (date: Date): string => {
   // Years
   const diffInYears = Math.floor(diffInMonths / 12);
   return diffInYears === 1 ? '1 year ago' : `${diffInYears} years ago`;
+};
+
+// Add this function to format dates in a user-friendly way
+export const getFormattedDateLabel = (dateString: string) => {
+  const date = new Date(dateString);
+  
+  if (isToday(date)) {
+      return "Today";
+  } else if (isYesterday(date)) {
+      return "Yesterday";
+  } else {
+      // Format as "Monday, March 15"
+      return format(date, "EEEE, MMMM d");
+  }
 };

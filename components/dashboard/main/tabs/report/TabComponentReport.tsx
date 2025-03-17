@@ -11,6 +11,7 @@ import { mostPopularDomains } from '@/utils/constants';
 import { BlockedSitesList } from './BlockSitesList';
 import { AddDomainCollapsible } from './AddDomainCollapsible';
 import { ExtensionStatus } from './ExtensionStatus';
+import WellnessReport from './WellnessReport';
 
 interface FocusTabContentProps {
     user: User | null | undefined;
@@ -199,53 +200,60 @@ export function TabComponentReport({ user }: FocusTabContentProps) {
                             <TabsList className="flex items-center justify-between">
                                 <div>
                                     <TabsTrigger value="overview">Overview</TabsTrigger>
+                                    <TabsTrigger value="wellness">Wellness</TabsTrigger>
                                 </div>
                                 {/* Add the extension status component here */}
                                 <ExtensionStatus className="ml-4" />
                             </TabsList>
 
-                            {/* Overview Tab Content */}
-                            <div className="pt-4 space-y-4">
-                                {/* Summary Stats */}
-                                <div className="grid grid-cols-3 gap-4">
-                                    <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg">
-                                        <h4 className="text-sm text-blue-600 dark:text-blue-400">Blocked Sites</h4>
-                                        <p className="text-2xl font-bold">{blockedSites.length}</p>
-                                    </div>
-                                    <div className="bg-amber-50 dark:bg-amber-900/20 p-4 rounded-lg">
-                                        <h4 className="text-sm text-amber-600 dark:text-amber-400">Bypass Events</h4>
-                                        <p className="text-2xl font-bold">{totalBypassCount}</p>
+                            <TabsContent value="overview" className="pt-4 space-y-4">
+                                {/* Overview Tab Content */}
+                                <div className="pt-4 space-y-4">
+                                    {/* Summary Stats */}
+                                    <div className="grid grid-cols-3 gap-4">
+                                        <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg">
+                                            <h4 className="text-sm text-blue-600 dark:text-blue-400">Blocked Sites</h4>
+                                            <p className="text-2xl font-bold">{blockedSites.length}</p>
+                                        </div>
+                                        <div className="bg-amber-50 dark:bg-amber-900/20 p-4 rounded-lg">
+                                            <h4 className="text-sm text-amber-600 dark:text-amber-400">Bypass Events</h4>
+                                            <p className="text-2xl font-bold">{totalBypassCount}</p>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
 
-                            {/* Manage Sites Tab Content */}
-                            <div className="pt-4 space-y-4">
-                                {/* Add new domain button/form */}
-                                <AddDomainCollapsible
-                                    isAddingDomain={isAddingDomain}
-                                    setIsAddingDomain={setIsAddingDomain}
-                                    newDomain={newDomain}
-                                    setNewDomain={setNewDomain}
-                                    domainError={domainError}
-                                    loading={loading}
-                                    blockedSites={blockedSites}
-                                    mostPopularDomains={mostPopularDomains}
-                                    handleAddDomain={handleAddDomain}
-                                    addBlockedSite={addBlockedSite}
-                                    refreshStats={refreshStats}
-                                />
+                                {/* Manage Sites Tab Content */}
+                                <div className="pt-4 space-y-4">
+                                    {/* Add new domain button/form */}
+                                    <AddDomainCollapsible
+                                        isAddingDomain={isAddingDomain}
+                                        setIsAddingDomain={setIsAddingDomain}
+                                        newDomain={newDomain}
+                                        setNewDomain={setNewDomain}
+                                        domainError={domainError}
+                                        loading={loading}
+                                        blockedSites={blockedSites}
+                                        mostPopularDomains={mostPopularDomains}
+                                        handleAddDomain={handleAddDomain}
+                                        addBlockedSite={addBlockedSite}
+                                        refreshStats={refreshStats}
+                                    />
 
-                                {/* Blocked Sites List */}
-                                <BlockedSitesList
-                                    loading={loading}
-                                    blockedSites={blockedSites}
-                                    stats={stats}
-                                    onUpdateLimit={handleUpdateLimit}
-                                    onRemoveDomain={handleRemoveDomain}
-                                    onAddSite={() => setIsAddingDomain(true)}
-                                />
-                            </div>
+                                    {/* Blocked Sites List */}
+                                    <BlockedSitesList
+                                        loading={loading}
+                                        blockedSites={blockedSites}
+                                        stats={stats}
+                                        onUpdateLimit={handleUpdateLimit}
+                                        onRemoveDomain={handleRemoveDomain}
+                                        onAddSite={() => setIsAddingDomain(true)}
+                                    />
+                                </div>
+                            </TabsContent>
+
+                            <TabsContent value="wellness" className="pt-4">
+                                <WellnessReport user={user} />
+                            </TabsContent>
                         </Tabs>
                     </div>
                 </Card>

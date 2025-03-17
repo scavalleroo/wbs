@@ -1,85 +1,58 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 
 interface MoodScaleProps {
-    setMoodRating: (rating: number) => void;
+  question: string;
+  onSelect: (rating: number) => void;
+  onSkip: () => void;
 }
 
-const MoodScale: React.FC<MoodScaleProps> = ({ setMoodRating }) => {
-    const [selectedMood, setSelectedMood] = useState<number | null>(null);
+const MoodScale = ({ question, onSelect, onSkip }: MoodScaleProps) => {
+  const [selectedRating, setSelectedRating] = useState<number | null>(null);
 
-    const moods = [
-        { value: 1, emoji: '😢', label: 'Very Bad' },
-        { value: 2, emoji: '😟', label: 'Bad' },
-        { value: 3, emoji: '😐', label: 'Neutral' },
-        { value: 4, emoji: '🙂', label: 'Good' },
-        { value: 5, emoji: '😁', label: 'Very Good' },
-    ];
+  const moods = [
+    { rating: 1, emoji: '😢', label: 'Poor' },
+    { rating: 2, emoji: '😕', label: 'Fair' },
+    { rating: 3, emoji: '😐', label: 'Ok' },
+    { rating: 4, emoji: '🙂', label: 'Good' },
+    { rating: 5, emoji: '😁', label: 'Great' },
+  ];
 
-    const handleMoodSelect = (value: number) => {
-        setSelectedMood(value);
-        setMoodRating(value);
-    };
+  const handleSelect = (rating: number) => {
+    setSelectedRating(rating);
+    // Short delay to show selection before moving to next step
+    setTimeout(() => onSelect(rating), 300);
+  };
 
-    return (
-        <div className="mood-scale">
-            <h3>How are you feeling today?</h3>
-            <div className="mood-emojis">
-                {moods.map((mood) => (
-                    <button
-                        key={mood.value}
-                        onClick={() => handleMoodSelect(mood.value)}
-                        className={`mood-button ${selectedMood === mood.value ? 'selected' : ''}`}
-                        aria-label={mood.label}
-                    >
-                        <span className="emoji">{mood.emoji}</span>
-                        <span className="label">{mood.label}</span>
-                    </button>
-                ))}
-            </div>
-            <style jsx>{`
-        .mood-scale {
-          text-align: center;
-          margin-bottom: 20px;
-        }
-        
-        .mood-emojis {
-          display: flex;
-          justify-content: space-between;
-          margin: 20px 0;
-        }
-        
-        .mood-button {
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          background: none;
-          border: 2px solid transparent;
-          border-radius: 10px;
-          padding: 10px;
-          cursor: pointer;
-          transition: all 0.2s;
-        }
-        
-        .mood-button:hover {
-          transform: scale(1.1);
-        }
-        
-        .mood-button.selected {
-          border-color: #4a90e2;
-          background-color: rgba(74, 144, 226, 0.1);
-        }
-        
-        .emoji {
-          font-size: 2.5rem;
-          margin-bottom: 5px;
-        }
-        
-        .label {
-          font-size: 0.8rem;
-        }
-      `}</style>
-        </div>
-    );
+  return (
+    <div className="space-y-4 py-4">
+      <p className="text-sm font-medium text-center sm:text-base">{question}</p>
+      <div className="flex justify-between items-center px-1 py-2">
+        {moods.map((mood) => (
+          <button
+            key={mood.rating}
+            type="button"
+            onClick={() => handleSelect(mood.rating)}
+            className={`flex flex-col items-center transition-all px-1 py-2 rounded-md ${selectedRating === mood.rating
+                ? 'scale-110 bg-neutral-200 dark:bg-neutral-700'
+                : 'opacity-70 hover:bg-neutral-50 dark:hover:bg-neutral-700'
+              }`}
+            aria-label={`Select rating: ${mood.label}`}
+          >
+            <span className="text-xl sm:text-3xl md:text-4xl">{mood.emoji}</span>
+            <span className="text-[9px] sm:text-xs mt-2 whitespace-nowrap">{mood.label}</span>
+          </button>
+        ))}
+      </div>
+      <div className="flex justify-center pt-2">
+        <button
+          onClick={onSkip}
+          className="text-xs text-neutral-500 hover:text-neutral-800 dark:hover:text-neutral-300"
+        >
+          Skip this question
+        </button>
+      </div>
+    </div>
+  );
 };
 
 export default MoodScale;

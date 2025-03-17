@@ -136,6 +136,13 @@ ul[data-type="taskList"] li[data-checked="true"]>div>p {
     text-decoration-thickness: 2px;
 }
 
+ul[data-type="taskList"]::before,
+ul[data-type="taskList"]>li::before,
+.list-disc::before,
+.list-decimal::before {
+    display: none;
+}
+
 /* Overwrite tippy-box original max-width */
 
 .tippy-box {

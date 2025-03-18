@@ -175,8 +175,6 @@ export const FocusTabs: React.FC<FocusTabsProps> = ({
     setSelectedProject(null);
   };
 
-  // ...existing code...
-
   return (
     <Tabs
       value={activeTab}

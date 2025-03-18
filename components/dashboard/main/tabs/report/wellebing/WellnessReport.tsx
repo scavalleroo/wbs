@@ -8,9 +8,15 @@ import useMood from '@/hooks/use-mood';
 import MoodTrackingModal from '@/components/dashboard/main/moodTracking/MoodTrackingModal';
 import { getFormattedDateLabel } from '@/lib/utils';
 import { Toggle } from '@/components/ui/toggle';
+import { Brain, Heart, InfoIcon } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Button } from "@/components/ui/button";
 
 interface WellnessReportProps {
     user: User | null | undefined;
+    compactMode?: boolean;
+    timeRange?: 'week' | 'month' | 'year';
+    hideTitle?: boolean;
 }
 
 interface DailyScore {
@@ -19,13 +25,30 @@ interface DailyScore {
     wellbeingScore: number | null;
     isComplete: boolean;
     isFutureDate: boolean;
-    hasData: boolean; // True if any wellness data exists for this day
-    hasMoodEntry: boolean; // True if there's any mood entry (even if empty)
+    hasData: boolean;
+    hasMoodEntry: boolean;
     missingFields: string[];
+    displayScore: number | null;
+    mood: number | null;
+    sleep: number | null;
+    nutrition: number | null;
+    exercise: number | null;
+    social: number | null;
+    moodRaw: number | null;
+    sleepRaw: number | null;
+    nutritionRaw: number | null;
+    exerciseRaw: number | null;
+    socialRaw: number | null;
+    description: string | null;
 }
 
-const WellnessReport = ({ user }: WellnessReportProps) => {
-    const [timeRange, setTimeRange] = useState('week');
+const WellnessReport = ({
+    user,
+    compactMode = false,
+    timeRange: externalTimeRange,
+    hideTitle = false
+}: WellnessReportProps) => {
+    const [timeRange, setTimeRange] = useState(externalTimeRange || 'week');
     const [wellbeingData, setWellbeingData] = useState<DailyScore[]>([]);
     const [currentScore, setCurrentScore] = useState<number | null>(null);
     const [showMoodModal, setShowMoodModal] = useState(false);
@@ -33,12 +56,12 @@ const WellnessReport = ({ user }: WellnessReportProps) => {
     const [selectedMetrics, setSelectedMetrics] = useState<string[]>(['wellbeing']);
 
     const metricColors = {
-        wellbeing: 'var(--weko-blue)',
-        mood: '#F59E0B',    // Amber
-        sleep: '#8B5CF6',   // Purple
-        nutrition: '#10B981', // Emerald
-        exercise: '#3B82F6', // Blue
-        social: '#EC4899'   // Pink
+        wellbeing: '#3B82F6', // Blue-500 - primary wellness color
+        mood: '#F59E0B',      // Amber-500
+        sleep: '#8B5CF6',     // Purple-500
+        nutrition: '#10B981', // Emerald-500
+        exercise: '#3B82F6',  // Blue-500
+        social: '#EC4899'     // Pink-500
     };
 
     const metricLabels = {
@@ -51,6 +74,12 @@ const WellnessReport = ({ user }: WellnessReportProps) => {
     };
 
     const { getMoodHistory } = useMood({ user });
+
+    useEffect(() => {
+        if (externalTimeRange) {
+            setTimeRange(externalTimeRange);
+        }
+    }, [externalTimeRange]);
 
     // Function to toggle metrics
     const toggleMetric = (metric: string) => {
@@ -184,8 +213,7 @@ const WellnessReport = ({ user }: WellnessReportProps) => {
                     date: dateStr,
                     formattedDate: format(date, 'MMM dd'),
                     wellbeingScore,
-                    displayScore: wellbeingScore, // Changed: keep null values instead of converting to 0
-                    // Rest of the properties remain the same
+                    displayScore: wellbeingScore, // Keep null values instead of converting to 0
                     mood: normalizeRating(dayData?.mood_rating),
                     sleep: normalizeRating(dayData?.sleep_rating),
                     nutrition: normalizeRating(dayData?.nutrition_rating),
@@ -229,15 +257,12 @@ const WellnessReport = ({ user }: WellnessReportProps) => {
     };
 
     const handleDataPointClick = (data: any) => {
-        console.log("Data point clicked:", data);
-
         // Allow clicking on any past date (whether it has data or not)
         if (data && !data.isFutureDate) {
             setSelectedDate(data.date);
             setShowMoodModal(true);
         }
     };
-
 
     // Update the renderDot function to properly position missing data dots at the bottom
     const renderDot = (props: any) => {
@@ -246,7 +271,6 @@ const WellnessReport = ({ user }: WellnessReportProps) => {
         // For data points with no mood entry, always position at the bottom of the chart
         if (!payload.hasMoodEntry) {
             // Get the bottom y-coordinate - use yAxis domain if available, otherwise fallback
-            // yAxis.scale(0) will give us the y-coordinate for value 0 (bottom of chart)
             const bottomY = (yAxis && yAxis.scale) ? yAxis.scale(0) : (height - 10);
 
             return (
@@ -280,7 +304,6 @@ const WellnessReport = ({ user }: WellnessReportProps) => {
             );
         }
 
-        // The rest of your existing renderDot function stays the same
         // Don't render future dates
         if (payload.isFutureDate) {
             return <g key={`dot-future-${index}`} />;
@@ -328,7 +351,7 @@ const WellnessReport = ({ user }: WellnessReportProps) => {
                     cx={cx}
                     cy={cy}
                     r={4}
-                    fill="var(--weko-blue)"
+                    fill="#3B82F6"  // Blue-500 - matching primary blue theme
                     stroke="#fff"
                     strokeWidth={1}
                 />
@@ -446,42 +469,97 @@ const WellnessReport = ({ user }: WellnessReportProps) => {
         );
     };
 
-
     return (
-        <div className="space-y-6">
-            {/* Time Range Selection */}
-            <div className="flex justify-between items-center">
-                <h3 className="text-lg font-medium">Wellbeing Score</h3>
-                <Tabs value={timeRange} onValueChange={setTimeRange} className="w-auto">
-                    <TabsList>
-                        <TabsTrigger value="week">Week</TabsTrigger>
-                        <TabsTrigger value="month">Month</TabsTrigger>
-                        <TabsTrigger value="year">Year</TabsTrigger>
-                    </TabsList>
-                </Tabs>
-            </div>
+        <div className={`space-y-${compactMode ? '4' : '6'}`}>
+            {/* Title and Time Range Selection */}
+            {!hideTitle && (
+                <div className="flex justify-between items-center">
+                    <div className="flex items-center gap-2">
+                        <div className="p-2 rounded-full bg-blue-100 dark:bg-blue-900">
+                            <Heart className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                        </div>
+                        <div>
+                            <h3 className="text-lg font-bold text-blue-600 dark:text-blue-400">Wellness Score</h3>
+                            <p className="text-xs text-neutral-600 dark:text-neutral-400">Track your daily wellness metrics</p>
+                        </div>
+                        <Popover>
+                            <PopoverTrigger asChild>
+                                <Button variant="ghost" size="icon" className="h-8 w-8 text-neutral-500">
+                                    <InfoIcon className="h-4 w-4" />
+                                </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-80">
+                                <div className="space-y-2">
+                                    <h4 className="font-medium">About Wellness Score</h4>
+                                    <p className="text-sm text-neutral-600 dark:text-neutral-300">
+                                        Wellness Score measures your overall wellbeing based on five key metrics.
+                                    </p>
+                                    <ul className="text-sm text-neutral-600 dark:text-neutral-300 list-disc pl-4 space-y-1">
+                                        <li>Each metric is rated on a scale from 1-5</li>
+                                        <li>Your overall score is calculated as an average of available metrics</li>
+                                        <li>Track individual metrics to see specific trends</li>
+                                        <li>Click on any date to add or edit your wellness data</li>
+                                    </ul>
+                                </div>
+                            </PopoverContent>
+                        </Popover>
+                    </div>
+                    {!externalTimeRange && (
+                        <Tabs value={timeRange} onValueChange={(value: string) => {
+                            if (value === 'week' || value === 'month' || value === 'year') {
+                                setTimeRange(value as 'week' | 'month' | 'year');
+                            }
+                        }} className="w-auto">
+                            <TabsList className="bg-neutral-200 dark:bg-neutral-700">
+                                <TabsTrigger
+                                    value="week"
+                                    className="data-[state=active]:bg-white dark:data-[state=active]:bg-neutral-800 data-[state=active]:text-blue-600 dark:data-[state=active]:text-blue-400"
+                                >
+                                    Week
+                                </TabsTrigger>
+                                <TabsTrigger
+                                    value="month"
+                                    className="data-[state=active]:bg-white dark:data-[state=active]:bg-neutral-800 data-[state=active]:text-blue-600 dark:data-[state=active]:text-blue-400"
+                                >
+                                    Month
+                                </TabsTrigger>
+                                <TabsTrigger
+                                    value="year"
+                                    className="data-[state=active]:bg-white dark:data-[state=active]:bg-neutral-800 data-[state=active]:text-blue-600 dark:data-[state=active]:text-blue-400"
+                                >
+                                    Year
+                                </TabsTrigger>
+                            </TabsList>
+                        </Tabs>
+                    )}
+                </div>
+            )}
 
             {/* Current Score Card */}
-            <Card className="bg-neutral-50 dark:bg-neutral-900">
-                <CardHeader className="pb-2">
-                    <CardTitle className="text-md font-medium">Current Wellbeing Score</CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <div className="flex items-center justify-center">
-                        <div className="text-center">
-                            <p className={`text-5xl font-bold ${getScoreColor(currentScore)}`}>
-                                {currentScore !== null ? currentScore : '–'}
-                            </p>
-                            <p className="text-sm text-neutral-500 mt-1">out of 100</p>
+            {!compactMode && (
+                <Card className="shadow-md bg-neutral-100 dark:bg-neutral-800 border-t-4 border-blue-500 rounded-xl overflow-hidden">
+                    <CardHeader className="pb-2">
+                        <CardTitle className="text-md font-medium text-blue-600 dark:text-blue-400">Current Wellness Score</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="flex items-center justify-center">
+                            <div className="text-center">
+                                <p className={`text-5xl font-bold ${getScoreColor(currentScore)}`}>
+                                    {currentScore !== null ? currentScore : '–'}
+                                </p>
+                                <p className="text-sm text-neutral-500 mt-1">
+                                    {currentScore !== null ? 'out of 100' : 'No recent data'}
+                                </p>
+                            </div>
                         </div>
-                    </div>
-                </CardContent>
-            </Card>
+                    </CardContent>
+                </Card>
+            )}
 
             {/* Trend Chart */}
-            <Card className="bg-neutral-50 dark:bg-neutral-900">
+            <Card className="shadow-md bg-neutral-100 dark:bg-neutral-800 border-t-4 border-blue-500 rounded-xl overflow-hidden">
                 <CardHeader className="pb-2">
-                    <CardTitle className="text-md font-medium">Wellbeing Trend</CardTitle>
+                    <CardTitle className="text-md font-medium text-blue-600 dark:text-blue-400">Wellness Trend</CardTitle>
 
                     {/* Add metric filter section */}
                     <div className="flex flex-wrap gap-2 mt-2">
@@ -507,11 +585,13 @@ const WellnessReport = ({ user }: WellnessReportProps) => {
                                     dataKey="formattedDate"
                                     tick={{ fontSize: 12 }}
                                     tickMargin={10}
+                                    stroke="#6B7280"
                                 />
                                 <YAxis
                                     domain={[0, 100]}
                                     tick={{ fontSize: 12 }}
                                     tickCount={5}
+                                    stroke="#6B7280"
                                 />
                                 <Tooltip content={<CustomTooltip />} />
 
@@ -525,7 +605,7 @@ const WellnessReport = ({ user }: WellnessReportProps) => {
                                         dot={renderDot}
                                         activeDot={{
                                             r: 8,
-                                            stroke: 'var(--weko-green)',
+                                            stroke: '#10B981',
                                             strokeWidth: 2,
                                             onClick: (data: any) => {
                                                 if (data && data.payload) {
@@ -609,17 +689,17 @@ const WellnessReport = ({ user }: WellnessReportProps) => {
                         </ResponsiveContainer>
                     </div>
 
-                    {/* Keep existing legend */}
-                    <div className="flex items-center justify-center mt-4 space-x-6 text-xs">
-                        <div className="flex items-center">
-                            <span className="inline-block w-3 h-3 mr-1 rounded-full bg-[var(--weko-blue)]"></span>
+                    {/* Keep existing legend with improved styling */}
+                    <div className="flex items-center justify-center mt-4 gap-4 text-xs">
+                        <div className="flex items-center gap-1.5">
+                            <span className="inline-block w-3 h-3 rounded-full bg-blue-500"></span>
                             <span className="text-neutral-700 dark:text-neutral-300">Complete</span>
                         </div>
-                        <div className="flex items-center">
-                            <span className="inline-block w-3 h-3 mr-1 rounded-full bg-gray-400"></span>
+                        <div className="flex items-center gap-1.5">
+                            <span className="inline-block w-3 h-3 rounded-full bg-gray-400"></span>
                             <span className="text-neutral-700 dark:text-neutral-300">Incomplete</span>
                         </div>
-                        <div className="flex items-center">
+                        <div className="flex items-center gap-1.5">
                             <span className="inline-block w-3 h-3 mr-1 rounded-full border border-gray-400 bg-white dark:bg-neutral-800"></span>
                             <span className="text-neutral-700 dark:text-neutral-300">Missing</span>
                         </div>

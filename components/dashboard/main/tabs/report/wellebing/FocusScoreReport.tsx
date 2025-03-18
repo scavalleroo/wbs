@@ -6,22 +6,37 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
-import { InfoIcon } from "lucide-react";
+import { InfoIcon, Target } from "lucide-react";
 import { useBlockedSite } from '@/hooks/use-blocked-site';
 import { DailyFocusData } from '@/types/report.types';
 
 interface FocusScoreReportProps {
     user: User | null | undefined;
+    compactMode?: boolean;
+    timeRange?: 'week' | 'month' | 'year';
+    hideTitle?: boolean;
 }
 
-const FocusScoreReport = ({ user }: FocusScoreReportProps) => {
-    const [timeRange, setTimeRange] = useState<'week' | 'month' | 'year'>('week');
+const FocusScoreReport = ({
+    user,
+    compactMode = false,
+    timeRange: externalTimeRange,
+    hideTitle = false
+}: FocusScoreReportProps) => {
+    const [timeRange, setTimeRange] = useState(externalTimeRange || 'week');
     const [focusData, setFocusData] = useState<DailyFocusData[]>([]);
     const [currentScore, setCurrentScore] = useState<number | null>(null);
     const [isLoading, setIsLoading] = useState(false);
 
     // Use the hook
     const { getFocusData } = useBlockedSite({ user });
+
+    // Update time range when external prop changes
+    useEffect(() => {
+        if (externalTimeRange) {
+            setTimeRange(externalTimeRange);
+        }
+    }, [externalTimeRange]);
 
     // Get score color based on value
     const getScoreColor = (score: number) => {
@@ -31,6 +46,7 @@ const FocusScoreReport = ({ user }: FocusScoreReportProps) => {
         return "text-rose-500";
     };
 
+    // Fetch focus data based on time range
     useEffect(() => {
         const loadFocusData = async () => {
             if (!user) return;
@@ -39,7 +55,7 @@ const FocusScoreReport = ({ user }: FocusScoreReportProps) => {
             if (isLoading) return;
 
             try {
-                setIsLoading(true); // Add isLoading state
+                setIsLoading(true);
                 const { focusData: data, currentScore: score } = await getFocusData(timeRange);
                 setFocusData(data);
                 setCurrentScore(score);
@@ -50,17 +66,17 @@ const FocusScoreReport = ({ user }: FocusScoreReportProps) => {
 
         loadFocusData();
 
-        // Set up polling with a reasonable interval instead of constant rerendering
+        // Set up polling with a reasonable interval (5 minutes)
         const intervalId = setInterval(() => {
             loadFocusData();
-        }, 300000); // Refresh every 5 minutes
+        }, 300000);
 
         return () => {
             clearInterval(intervalId); // Clean up on unmount
         };
     }, [timeRange, user, getFocusData]);
 
-    // Custom tooltip for the chart (keep this as is)
+    // Custom tooltip for the chart
     const CustomTooltip = ({ active, payload }: any) => {
         if (active && payload && payload.length) {
             const data = payload[0].payload as DailyFocusData;
@@ -119,7 +135,7 @@ const FocusScoreReport = ({ user }: FocusScoreReportProps) => {
         return null;
     };
 
-    // Keep the rest of the component as is
+    // Custom dot renderer for the chart
     const renderDot = (props: any) => {
         const { cx, cy, payload, index } = props;
 
@@ -169,66 +185,98 @@ const FocusScoreReport = ({ user }: FocusScoreReportProps) => {
     };
 
     return (
-        <div className="space-y-6">
+        <div className={`space-y-${compactMode ? '4' : '6'}`}>
             {/* Title and Time Range Selection */}
-            <div className="flex justify-between items-center">
-                <div className="flex items-center gap-2">
-                    <h3 className="text-lg font-medium">Focus Score</h3>
-                    <Popover>
-                        <PopoverTrigger asChild>
-                            <Button variant="ghost" size="icon" className="h-6 w-6">
-                                <InfoIcon className="h-4 w-4" />
-                            </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-80">
-                            <div className="space-y-2">
-                                <h4 className="font-medium">About Focus Score</h4>
-                                <p className="text-sm text-neutral-600 dark:text-neutral-300">
-                                    Focus Score measures your ability to avoid distractions from blocked websites.
-                                </p>
-                                <ul className="text-sm text-neutral-600 dark:text-neutral-300 list-disc pl-4 space-y-1">
-                                    <li>Each attempt to access a blocked site reduces your score by 2 points</li>
-                                    <li>Each bypass (when you override a block) reduces your score by 5 points</li>
-                                    <li>A perfect score of 100 means no distractions</li>
-                                    <li>Larger dots indicate more distractions</li>
-                                    <li>Red outlines indicate bypassed blocks</li>
-                                </ul>
-                            </div>
-                        </PopoverContent>
-                    </Popover>
+            {!hideTitle && (
+                <div className="flex justify-between items-center">
+                    <div className="flex items-center gap-2">
+                        <div className="p-2 rounded-full bg-indigo-100 dark:bg-indigo-900">
+                            <Target className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
+                        </div>
+                        <div>
+                            <h3 className="text-lg font-bold text-indigo-600 dark:text-indigo-400">Focus Score</h3>
+                            <p className="text-xs text-neutral-600 dark:text-neutral-400">Track your daily focus progress</p>
+                        </div>
+                        <Popover>
+                            <PopoverTrigger asChild>
+                                <Button variant="ghost" size="icon" className="h-8 w-8 text-neutral-500">
+                                    <InfoIcon className="h-4 w-4" />
+                                </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-80">
+                                <div className="space-y-2">
+                                    <h4 className="font-medium">About Focus Score</h4>
+                                    <p className="text-sm text-neutral-600 dark:text-neutral-300">
+                                        Focus Score measures your ability to avoid distractions from blocked websites.
+                                    </p>
+                                    <ul className="text-sm text-neutral-600 dark:text-neutral-300 list-disc pl-4 space-y-1">
+                                        <li>Each attempt to access a blocked site reduces your score by 1 point</li>
+                                        <li>Each bypass (when you override a block) reduces your score by 3 points</li>
+                                        <li>A perfect score of 100 means no distractions</li>
+                                        <li>Your score will never go below 40</li>
+                                        <li>Larger dots indicate more distractions</li>
+                                        <li>Red outlines indicate bypassed blocks</li>
+                                    </ul>
+                                </div>
+                            </PopoverContent>
+                        </Popover>
+                    </div>
+                    {!externalTimeRange && (
+                        <Tabs value={timeRange} onValueChange={(value: string) => {
+                            if (value === 'week' || value === 'month' || value === 'year') {
+                                setTimeRange(value as 'week' | 'month' | 'year');
+                            }
+                        }} className="w-auto">
+                            <TabsList className="bg-neutral-200 dark:bg-neutral-700">
+                                <TabsTrigger
+                                    value="week"
+                                    className="data-[state=active]:bg-white dark:data-[state=active]:bg-neutral-800 data-[state=active]:text-indigo-600 dark:data-[state=active]:text-indigo-400"
+                                >
+                                    Week
+                                </TabsTrigger>
+                                <TabsTrigger
+                                    value="month"
+                                    className="data-[state=active]:bg-white dark:data-[state=active]:bg-neutral-800 data-[state=active]:text-indigo-600 dark:data-[state=active]:text-indigo-400"
+                                >
+                                    Month
+                                </TabsTrigger>
+                                <TabsTrigger
+                                    value="year"
+                                    className="data-[state=active]:bg-white dark:data-[state=active]:bg-neutral-800 data-[state=active]:text-indigo-600 dark:data-[state=active]:text-indigo-400"
+                                >
+                                    Year
+                                </TabsTrigger>
+                            </TabsList>
+                        </Tabs>
+                    )}
                 </div>
-                <Tabs value={timeRange} onValueChange={(value) => setTimeRange(value as 'week' | 'month' | 'year')} className="w-auto">
-                    <TabsList>
-                        <TabsTrigger value="week">Week</TabsTrigger>
-                        <TabsTrigger value="month">Month</TabsTrigger>
-                        <TabsTrigger value="year">Year</TabsTrigger>
-                    </TabsList>
-                </Tabs>
-            </div>
+            )}
 
             {/* Current Score Card */}
-            <Card className="bg-neutral-50 dark:bg-neutral-900">
-                <CardHeader className="pb-2">
-                    <CardTitle className="text-md font-medium">Current Focus Score</CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <div className="flex items-center justify-center">
-                        <div className="text-center">
-                            <p className={`text-5xl font-bold ${currentScore !== null ? getScoreColor(currentScore) : 'text-neutral-400'}`}>
-                                {currentScore !== null ? currentScore : '–'}
-                            </p>
-                            <p className="text-sm text-neutral-500 mt-1">
-                                {currentScore !== null ? 'out of 100' : 'No recent data'}
-                            </p>
+            {!compactMode && (
+                <Card className="shadow-md bg-neutral-100 dark:bg-neutral-800 border-t-4 border-indigo-500 rounded-xl overflow-hidden">
+                    <CardHeader className="pb-2">
+                        <CardTitle className="text-md font-medium text-indigo-600 dark:text-indigo-400">Current Focus Score</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="flex items-center justify-center">
+                            <div className="text-center">
+                                <p className={`text-5xl font-bold ${currentScore !== null ? getScoreColor(currentScore) : 'text-neutral-400'}`}>
+                                    {currentScore !== null ? currentScore : '–'}
+                                </p>
+                                <p className="text-sm text-neutral-500 mt-1">
+                                    {currentScore !== null ? 'out of 100' : 'No recent data'}
+                                </p>
+                            </div>
                         </div>
-                    </div>
-                </CardContent>
-            </Card>
+                    </CardContent>
+                </Card>
+            )}
 
             {/* Focus Chart */}
-            <Card className="bg-neutral-50 dark:bg-neutral-900">
+            <Card className="shadow-md bg-neutral-100 dark:bg-neutral-800 border-t-4 border-indigo-500 rounded-xl overflow-hidden">
                 <CardHeader className="pb-2">
-                    <CardTitle className="text-md font-medium">Focus Trend</CardTitle>
+                    <CardTitle className="text-md font-medium text-indigo-600 dark:text-indigo-400">Focus Trend</CardTitle>
                 </CardHeader>
                 <CardContent>
                     <div className="w-full h-64">
@@ -242,17 +290,19 @@ const FocusScoreReport = ({ user }: FocusScoreReportProps) => {
                                     dataKey="formattedDate"
                                     tick={{ fontSize: 12 }}
                                     tickMargin={10}
+                                    stroke="#6B7280"
                                 />
                                 <YAxis
                                     domain={[0, 100]}
                                     tick={{ fontSize: 12 }}
                                     tickCount={5}
+                                    stroke="#6B7280"
                                 />
                                 <Tooltip content={<CustomTooltip />} />
                                 <Line
                                     type="monotone"
                                     dataKey="focusScore"
-                                    stroke="#10B981"
+                                    stroke="#818CF8" // Indigo-400 for consistency
                                     strokeWidth={2}
                                     dot={renderDot}
                                     activeDot={{
@@ -267,7 +317,7 @@ const FocusScoreReport = ({ user }: FocusScoreReportProps) => {
                     </div>
 
                     {/* Legend */}
-                    <div className="flex items-center justify-center mt-4 space-x-6 text-xs">
+                    <div className="flex flex-wrap items-center justify-center mt-4 gap-4 text-xs">
                         <div className="flex items-center">
                             <span className="inline-block w-3 h-3 mr-1 rounded-full bg-emerald-500"></span>
                             <span className="text-neutral-700 dark:text-neutral-300">Perfect (100)</span>

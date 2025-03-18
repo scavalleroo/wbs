@@ -154,111 +154,112 @@ export const ScoreDisplay = ({ user, setTimeRange, timeRange }: { user: User | n
                     <span className="text-white text-lg font-medium">dashboard</span>
                 </div>
 
-                <div className="flex flex-row md:flex-col items-center gap-2 -mt-8">
-                    <p>Today's score</p>
-                    {/* Circle Progress Display */}
-                    <div className="relative w-24 h-24 sm:w-28 sm:h-28 md:w-32 md:h-32 flex-shrink-0 mx-auto">
-                        <svg viewBox="0 0 100 100" width="100%" height="100%">
-                            <circle
-                                cx="50" cy="50" r="45"
-                                fill="none"
-                                stroke={colors.combined.background}
-                                strokeWidth="7"
-                            />
+                <div className="flex flex-col items-center gap-2 -mt-8">
+                    <p className="text-xs text-white text-opacity-90">Today's score</p>
 
-                            <circle
-                                cx="50" cy="50" r="36"
-                                fill="none"
-                                stroke={colors.wellness.background}
-                                strokeWidth="7"
-                            />
-                            <circle
-                                cx="50" cy="50" r="27"
-                                fill="none"
-                                stroke={colors.focus.background}
-                                strokeWidth="7"
-                            />
+                    <div className="flex flex-row md:flex-col items-center gap-2">
 
-                            {/* Progress circles - bright, high-contrast colors */}
-                            {combinedScore !== null && (
+                        {/* Circle Progress Display */}
+                        <div className="relative w-24 h-24 sm:w-28 sm:h-28 md:w-32 md:h-32 flex-shrink-0 mx-auto">
+                            <svg viewBox="0 0 100 100" width="100%" height="100%">
                                 <circle
                                     cx="50" cy="50" r="45"
                                     fill="none"
-                                    stroke={colors.combined.ring}
+                                    stroke={colors.combined.background}
                                     strokeWidth="7"
-                                    strokeDasharray={`${2 * Math.PI * 45 * (combinedScore / 100)} ${2 * Math.PI * 45}`}
-                                    transform="rotate(-90 50 50)"
-                                    strokeLinecap="round"
                                 />
-                            )}
 
-                            {wellnessScore !== null && (
                                 <circle
                                     cx="50" cy="50" r="36"
                                     fill="none"
-                                    stroke={colors.wellness.ring}
+                                    stroke={colors.wellness.background}
                                     strokeWidth="7"
-                                    strokeDasharray={`${2 * Math.PI * 36 * (wellnessScore / 100)} ${2 * Math.PI * 36}`}
-                                    transform="rotate(-90 50 50)"
-                                    strokeLinecap="round"
                                 />
-                            )}
-
-                            {focusScore !== null && (
                                 <circle
                                     cx="50" cy="50" r="27"
                                     fill="none"
-                                    stroke={colors.focus.ring}
+                                    stroke={colors.focus.background}
                                     strokeWidth="7"
-                                    strokeDasharray={`${2 * Math.PI * 27 * (focusScore / 100)} ${2 * Math.PI * 27}`}
-                                    transform="rotate(-90 50 50)"
-                                    strokeLinecap="round"
                                 />
-                            )}
 
-                            <circle
-                                cx="50" cy="50" r="19"
-                                fill="rgba(255,255,255,0.25)"
-                                className="dark:fill-purple-900/40"
-                            />
+                                {/* Progress circles - bright, high-contrast colors */}
+                                {combinedScore !== null && (
+                                    <circle
+                                        cx="50" cy="50" r="45"
+                                        fill="none"
+                                        stroke={colors.combined.ring}
+                                        strokeWidth="7"
+                                        strokeDasharray={`${2 * Math.PI * 45 * (combinedScore / 100)} ${2 * Math.PI * 45}`}
+                                        transform="rotate(-90 50 50)"
+                                        strokeLinecap="round"
+                                    />
+                                )}
 
-                            <text
-                                x="50"
-                                y="50"
-                                textAnchor="middle"
-                                dominantBaseline="central"
-                                fontSize="16"
-                                className="text-[16px] sm:text-[20px] md:text-[22px] font-semibold fill-white select-none"
-                            >
-                                {combinedScore !== null ? combinedScore : '–'}
-                            </text>
-                        </svg>
-                    </div>
+                                {wellnessScore !== null && (
+                                    <circle
+                                        cx="50" cy="50" r="36"
+                                        fill="none"
+                                        stroke={colors.wellness.ring}
+                                        strokeWidth="7"
+                                        strokeDasharray={`${2 * Math.PI * 36 * (wellnessScore / 100)} ${2 * Math.PI * 36}`}
+                                        transform="rotate(-90 50 50)"
+                                        strokeLinecap="round"
+                                    />
+                                )}
 
-                    {/* Score Stats - Enhanced contrast for accessibility */}
-                    <div className="
-            flex 
-            flex-row gap-4 
-            md:flex-row md:justify-center w-full">
-                        {/* Focus Stats */}
-                        <div className="bg-white/20 rounded-lg px-3 py-2 md:px-4 md:py-3 flex flex-col items-center backdrop-blur-sm w-full md:flex-1 md:max-w-[140px]">
-                            <p className="text-xs text-white text-opacity-90">Focus score</p>
-                            <div className="flex flex-row items-center gap-1.5">
-                                <div className="bg-white/30 p-1 rounded-full" style={{ backgroundColor: colors.focus.background }}>
-                                    <Brain className="size-3 text-white" style={{ color: colors.focus.ring }} />
-                                </div>
-                                <span className="text-lg font-medium text-white">{focusScore !== null ? focusScore : '–'}</span>
-                            </div>
+                                {focusScore !== null && (
+                                    <circle
+                                        cx="50" cy="50" r="27"
+                                        fill="none"
+                                        stroke={colors.focus.ring}
+                                        strokeWidth="7"
+                                        strokeDasharray={`${2 * Math.PI * 27 * (focusScore / 100)} ${2 * Math.PI * 27}`}
+                                        transform="rotate(-90 50 50)"
+                                        strokeLinecap="round"
+                                    />
+                                )}
+
+                                <circle
+                                    cx="50" cy="50" r="19"
+                                    fill="rgba(255,255,255,0.25)"
+                                    className="dark:fill-purple-900/40"
+                                />
+
+                                <text
+                                    x="50"
+                                    y="50"
+                                    textAnchor="middle"
+                                    dominantBaseline="central"
+                                    fontSize="16"
+                                    className="text-[16px] sm:text-[20px] md:text-[22px] font-semibold fill-white select-none"
+                                >
+                                    {combinedScore !== null ? combinedScore : '–'}
+                                </text>
+                            </svg>
                         </div>
 
-                        {/* Wellness Stats */}
-                        <div className="bg-white/20 rounded-lg px-3 py-2 md:px-4 md:py-3 flex flex-col items-center backdrop-blur-sm w-full md:flex-1 md:max-w-[140px]">
-                            <p className="text-xs text-white text-opacity-90">Wellness score</p>
-                            <div className="flex flex-row items-center gap-1.5">
-                                <div className="bg-white/30 p-1 rounded-full" style={{ backgroundColor: colors.wellness.background }}>
-                                    <Heart className="size-3 text-white" style={{ color: colors.wellness.ring }} />
+                        {/* Score Stats - Enhanced contrast for accessibility */}
+                        <div className="flex flex-row gap-4 md:flex-row md:justify-center w-full">
+                            {/* Focus Stats */}
+                            <div className="bg-white/20 rounded-lg px-3 py-2 md:px-4 md:py-3 flex flex-col items-center backdrop-blur-sm w-full md:flex-1 md:max-w-[140px]">
+                                <p className="text-xs text-white text-opacity-90">Focus score</p>
+                                <div className="flex flex-row items-center gap-1.5">
+                                    <div className="bg-white/30 p-1 rounded-full" style={{ backgroundColor: colors.focus.background }}>
+                                        <Brain className="size-3 text-white" style={{ color: colors.focus.ring }} />
+                                    </div>
+                                    <span className="text-lg font-medium text-white">{focusScore !== null ? focusScore : '–'}</span>
                                 </div>
-                                <span className="text-lg font-medium text-white">{wellnessScore !== null ? wellnessScore : '–'}</span>
+                            </div>
+
+                            {/* Wellness Stats */}
+                            <div className="bg-white/20 rounded-lg px-3 py-2 md:px-4 md:py-3 flex flex-col items-center backdrop-blur-sm w-full md:flex-1 md:max-w-[140px]">
+                                <p className="text-xs text-white text-opacity-90">Wellness score</p>
+                                <div className="flex flex-row items-center gap-1.5">
+                                    <div className="bg-white/30 p-1 rounded-full" style={{ backgroundColor: colors.wellness.background }}>
+                                        <Heart className="size-3 text-white" style={{ color: colors.wellness.ring }} />
+                                    </div>
+                                    <span className="text-lg font-medium text-white">{wellnessScore !== null ? wellnessScore : '–'}</span>
+                                </div>
                             </div>
                         </div>
                     </div>

@@ -101,7 +101,7 @@ const FocusScoreReport = ({
                         Focus Score: {data.focusScore}
                     </p>
 
-                    {/* Summary */}
+                    {/* Summary
                     <p className="text-sm text-neutral-600 dark:text-neutral-300">
                         Total distractions: {data.attempts} {data.attempts === 1 ? 'time' : 'times'}
                     </p>
@@ -109,7 +109,7 @@ const FocusScoreReport = ({
                         <p className="text-sm text-rose-500">
                             Bypassed blocks: {data.bypasses} {data.bypasses === 1 ? 'time' : 'times'}
                         </p>
-                    )}
+                    )} */}
 
                     {/* Details by domain */}
                     {data.attemptDetails.length > 0 && (
@@ -117,11 +117,10 @@ const FocusScoreReport = ({
                             <p className="text-xs text-neutral-500 font-medium">Attempted sites:</p>
                             <ul className="text-xs text-neutral-600 dark:text-neutral-300">
                                 {data.attemptDetails.map(detail => (
-                                    <li key={detail.domain} className="flex justify-between">
+                                    <li key={detail.domain} className="flex justify-between gap-4">
                                         <span>{detail.domain}</span>
                                         <span>
-                                            {detail.attempts} {detail.bypasses > 0 ?
-                                                <span className="text-rose-400">({detail.bypasses} bypassed)</span> : ''}
+                                            <span className={detail.bypasses > 0 ? `text-orange-400` : `text-green-400`}>{detail.bypasses ?? 0}</span> / {detail.attempts}
                                         </span>
                                     </li>
                                 ))}
@@ -166,8 +165,8 @@ const FocusScoreReport = ({
                     cy={cy}
                     r={radius}
                     fill={color}
-                    stroke={strokeColor}
-                    strokeWidth={payload.bypasses > 0 ? 2 : 1}
+                    stroke="#fff"
+                // strokeWidth={payload.bypasses > 0 ? 2 : 1}
                 />
                 {payload.bypasses > 0 && (
                     <circle
@@ -175,9 +174,8 @@ const FocusScoreReport = ({
                         cy={cy}
                         r={radius + 3}
                         fill="none"
-                        stroke="#991B1B"
+                        // stroke="#991B1B"
                         strokeWidth={1}
-                        strokeDasharray="2,1"
                     />
                 )}
             </g>

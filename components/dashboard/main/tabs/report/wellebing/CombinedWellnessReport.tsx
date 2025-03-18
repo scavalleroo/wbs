@@ -23,7 +23,6 @@ const CombinedWellnessReport = ({ user }: CombinedWellnessReportProps) => {
                         user={user}
                         compactMode={true}
                         timeRange={timeRange}
-                        hideTitle={true}
                     />
                     <WellnessReport
                         user={user}

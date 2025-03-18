@@ -196,7 +196,14 @@ export const FocusTabs: React.FC<FocusTabsProps> = ({
                   )}
                 </div>
                 <div>
-                  <h2 className="text-lg font-bold text-white">Your Notes</h2>
+                  <div className="flex items-center -mt-4 -mb-2 w-full">
+                    <img
+                      src="/logoTransparent.svg"
+                      alt="Weko"
+                      className="h-16 -mt-1 mr-1 w-auto"
+                    />
+                    <span className="text-white text-lg font-medium">notes</span>
+                  </div>
                   <p className="text-xs text-white opacity-90">
                     {activeTab === 'daily' ? 'Organize your thoughts by date' : 'Create and manage project pages'}
                   </p>

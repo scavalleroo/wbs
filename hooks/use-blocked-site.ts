@@ -484,6 +484,26 @@ export function useBlockedSite({ user }: UserIdParam) {
     return Math.max(0, Math.min(100, score));
   };
 
+  const getBlockedSitesCount = useCallback(async () => {
+    if (!user) return 0;
+
+    try {
+      // Use count() query for efficiency
+      const { count, error } = await supabase
+        .from('blocked_sites')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', user.id);
+      
+      if (error) throw error;
+      
+      return count || 0;
+    } catch (err) {
+      console.error('Error getting blocked sites count:', err);
+      return 0;
+    }
+  }, [user, supabase]);
+
+
   return {
     blockedSites,
     attempts,
@@ -497,6 +517,7 @@ export function useBlockedSite({ user }: UserIdParam) {
     getRecentAttempts,
     getBypassAttempts, // Added new function
     updateMaxDailyVisits,
-    getFocusData
+    getFocusData,
+    getBlockedSitesCount
   };
 }

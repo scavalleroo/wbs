@@ -1,35 +1,32 @@
 import React, { useEffect, useState } from 'react';
 import { User } from '@supabase/supabase-js';
-import { format } from 'date-fns';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
-import { InfoIcon, Target } from "lucide-react";
+import { Target, Chrome, Settings, Download, Brain } from "lucide-react";
 import { useBlockedSite } from '@/hooks/use-blocked-site';
 import { DailyFocusData } from '@/types/report.types';
+import Link from 'next/link';
 
 interface FocusScoreReportProps {
     user: User | null | undefined;
     compactMode?: boolean;
     timeRange?: 'week' | 'month' | 'year';
-    hideTitle?: boolean;
 }
 
 const FocusScoreReport = ({
     user,
     compactMode = false,
     timeRange: externalTimeRange,
-    hideTitle = false
 }: FocusScoreReportProps) => {
     const [timeRange, setTimeRange] = useState(externalTimeRange || 'week');
     const [focusData, setFocusData] = useState<DailyFocusData[]>([]);
     const [currentScore, setCurrentScore] = useState<number | null>(null);
     const [isLoading, setIsLoading] = useState(false);
+    const [blockedSitesCount, setBlockedSitesCount] = useState(0);
 
     // Use the hook
-    const { getFocusData } = useBlockedSite({ user });
+    const { getFocusData, getBlockedSitesCount } = useBlockedSite({ user });
 
     // Update time range when external prop changes
     useEffect(() => {
@@ -59,6 +56,10 @@ const FocusScoreReport = ({
                 const { focusData: data, currentScore: score } = await getFocusData(timeRange);
                 setFocusData(data);
                 setCurrentScore(score);
+
+                // Get the count of blocked sites
+                const count = await getBlockedSitesCount();
+                setBlockedSitesCount(count);
             } finally {
                 setIsLoading(false);
             }
@@ -74,7 +75,7 @@ const FocusScoreReport = ({
         return () => {
             clearInterval(intervalId); // Clean up on unmount
         };
-    }, [timeRange, user, getFocusData]);
+    }, [timeRange, user, getFocusData, getBlockedSitesCount]);
 
     // Custom tooltip for the chart
     const CustomTooltip = ({ active, payload }: any) => {
@@ -100,16 +101,6 @@ const FocusScoreReport = ({
                     <p className={`text-sm font-bold ${getScoreColor(data.focusScore || 0)}`}>
                         Focus Score: {data.focusScore}
                     </p>
-
-                    {/* Summary
-                    <p className="text-sm text-neutral-600 dark:text-neutral-300">
-                        Total distractions: {data.attempts} {data.attempts === 1 ? 'time' : 'times'}
-                    </p>
-                    {data.bypasses > 0 && (
-                        <p className="text-sm text-rose-500">
-                            Bypassed blocks: {data.bypasses} {data.bypasses === 1 ? 'time' : 'times'}
-                        </p>
-                    )} */}
 
                     {/* Details by domain */}
                     {data.attemptDetails.length > 0 && (
@@ -182,157 +173,114 @@ const FocusScoreReport = ({
         );
     };
 
+    const hasNoFocusData = !isLoading &&
+        (!focusData ||
+            focusData.length === 0 ||
+            !focusData.some(entry => entry.hasData && entry.focusScore !== null));
+
     return (
         <div className={`space-y-${compactMode ? '4' : '6'}`}>
-            {/* Title and Time Range Selection */}
-            {!hideTitle && (
-                <div className="flex justify-between items-center">
-                    <div className="flex items-center gap-2">
-                        <div className="p-2 rounded-full bg-indigo-100 dark:bg-indigo-900">
-                            <Target className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
-                        </div>
-                        <div>
-                            <h3 className="text-lg font-bold text-indigo-600 dark:text-indigo-400">Focus Score</h3>
-                            <p className="text-xs text-neutral-600 dark:text-neutral-400">Track your daily focus progress</p>
-                        </div>
-                        <Popover>
-                            <PopoverTrigger asChild>
-                                <Button variant="ghost" size="icon" className="h-8 w-8 text-neutral-500">
-                                    <InfoIcon className="h-4 w-4" />
-                                </Button>
-                            </PopoverTrigger>
-                            <PopoverContent className="w-80">
-                                <div className="space-y-2">
-                                    <h4 className="font-medium">About Focus Score</h4>
-                                    <p className="text-sm text-neutral-600 dark:text-neutral-300">
-                                        Focus Score measures your ability to avoid distractions from blocked websites.
-                                    </p>
-                                    <ul className="text-sm text-neutral-600 dark:text-neutral-300 list-disc pl-4 space-y-1">
-                                        <li>Each attempt to access a blocked site reduces your score by 1 point</li>
-                                        <li>Each bypass (when you override a block) reduces your score by 3 points</li>
-                                        <li>A perfect score of 100 means no distractions</li>
-                                        <li>Your score will never go below 40</li>
-                                        <li>Larger dots indicate more distractions</li>
-                                        <li>Red outlines indicate bypassed blocks</li>
-                                    </ul>
-                                </div>
-                            </PopoverContent>
-                        </Popover>
-                    </div>
-                    {!externalTimeRange && (
-                        <Tabs value={timeRange} onValueChange={(value: string) => {
-                            if (value === 'week' || value === 'month' || value === 'year') {
-                                setTimeRange(value as 'week' | 'month' | 'year');
-                            }
-                        }} className="w-auto">
-                            <TabsList className="bg-neutral-200 dark:bg-neutral-700">
-                                <TabsTrigger
-                                    value="week"
-                                    className="data-[state=active]:bg-white dark:data-[state=active]:bg-neutral-800 data-[state=active]:text-indigo-600 dark:data-[state=active]:text-indigo-400"
-                                >
-                                    Week
-                                </TabsTrigger>
-                                <TabsTrigger
-                                    value="month"
-                                    className="data-[state=active]:bg-white dark:data-[state=active]:bg-neutral-800 data-[state=active]:text-indigo-600 dark:data-[state=active]:text-indigo-400"
-                                >
-                                    Month
-                                </TabsTrigger>
-                                <TabsTrigger
-                                    value="year"
-                                    className="data-[state=active]:bg-white dark:data-[state=active]:bg-neutral-800 data-[state=active]:text-indigo-600 dark:data-[state=active]:text-indigo-400"
-                                >
-                                    Year
-                                </TabsTrigger>
-                            </TabsList>
-                        </Tabs>
-                    )}
-                </div>
-            )}
-
-            {/* Current Score Card */}
-            {!compactMode && (
-                <Card className="shadow-md bg-neutral-100 dark:bg-neutral-800 border-t-4 border-indigo-500 rounded-xl overflow-hidden">
-                    <CardHeader className="pb-2">
-                        <CardTitle className="text-md font-medium text-indigo-600 dark:text-indigo-400">Current Focus Score</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="flex items-center justify-center">
-                            <div className="text-center">
-                                <p className={`text-5xl font-bold ${currentScore !== null ? getScoreColor(currentScore) : 'text-neutral-400'}`}>
-                                    {currentScore !== null ? currentScore : '–'}
-                                </p>
-                                <p className="text-sm text-neutral-500 mt-1">
-                                    {currentScore !== null ? 'out of 100' : 'No recent data'}
-                                </p>
-                            </div>
-                        </div>
-                    </CardContent>
-                </Card>
-            )}
-
-            {/* Focus Chart */}
             <Card className="shadow-md bg-neutral-100 dark:bg-neutral-800 border-t-4 border-indigo-500 rounded-xl overflow-hidden">
                 <CardHeader className="pb-2">
                     <CardTitle className="text-md font-medium text-indigo-600 dark:text-indigo-400">Focus Trend</CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <div className="w-full h-64">
-                        <ResponsiveContainer width="100%" height="100%">
-                            <LineChart
-                                data={focusData}
-                                margin={{ top: 5, right: 5, left: 5, bottom: 15 }}
-                            >
-                                <CartesianGrid strokeDasharray="3 3" opacity={0.2} />
-                                <XAxis
-                                    dataKey="formattedDate"
-                                    tick={{ fontSize: 12 }}
-                                    tickMargin={10}
-                                    stroke="#6B7280"
-                                />
-                                <YAxis
-                                    domain={[0, 100]}
-                                    tick={{ fontSize: 12 }}
-                                    tickCount={5}
-                                    stroke="#6B7280"
-                                />
-                                <Tooltip content={<CustomTooltip />} />
-                                <Line
-                                    type="monotone"
-                                    dataKey="focusScore"
-                                    stroke="#818CF8" // Indigo-400 for consistency
-                                    strokeWidth={2}
-                                    dot={renderDot}
-                                    activeDot={{
-                                        r: 8,
-                                        strokeWidth: 2,
-                                    }}
-                                    isAnimationActive={false}
-                                    connectNulls={false}
-                                />
-                            </LineChart>
-                        </ResponsiveContainer>
-                    </div>
+                    {hasNoFocusData ? (
+                        <div className="flex flex-col items-center justify-center py-8 px-4 space-y-6 text-center">
+                            <Brain className="h-16 w-16 text-indigo-500 mb-2" />
+                            <div className="space-y-4 max-w-md">
+                                <h3 className="text-xl font-medium text-neutral-800 dark:text-neutral-200">Track Your Focus</h3>
+                                <p className="text-neutral-600 dark:text-neutral-400">
+                                    Focus is tracked using our Chrome extension that helps limit distractions from social networks and other distracting websites. Install the extension to start building better digital habits and improve your focus score.
+                                </p>
+                                <div className="flex flex-col sm:flex-row gap-3 justify-center pt-4">
+                                    <a href="https://chrome.google.com/webstore/detail/your-extension-id" target="_blank" rel="noopener noreferrer">
+                                        <Button
+                                            className="w-full sm:w-auto bg-gradient-to-br from-indigo-800 to-purple-900 hover:from-purple-700 hover:to-indigo-800 text-white shadow-md hover:shadow-lg transition-all duration-200 border-0"
+                                        >
+                                            <Download className="mr-2 h-4 w-4" />
+                                            Get Chrome Extension
+                                        </Button>
+                                    </a>
+                                    <Link href="/settings/blocked-sites">
+                                        <Button variant="outline" className="border-indigo-600 text-indigo-700 hover:bg-indigo-100 dark:border-indigo-500 dark:text-indigo-400 dark:hover:bg-indigo-950">
+                                            <Settings className="mr-2 h-4 w-4" />
+                                            Manage distractions {blockedSitesCount > 0 && `(${blockedSitesCount} site blocked)`}
+                                        </Button>
+                                    </Link>
+                                </div>
+                            </div>
+                        </div>
+                    ) : (
+                        <>
+                            <div className="w-full h-64">
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <LineChart
+                                        data={focusData}
+                                        margin={{ top: 5, right: 5, left: 5, bottom: 15 }}
+                                    >
+                                        <CartesianGrid strokeDasharray="3 3" opacity={0.2} />
+                                        <XAxis
+                                            dataKey="formattedDate"
+                                            tick={{ fontSize: 12 }}
+                                            tickMargin={10}
+                                            stroke="#6B7280"
+                                        />
+                                        <YAxis
+                                            domain={[0, 100]}
+                                            tick={{ fontSize: 12 }}
+                                            tickCount={5}
+                                            stroke="#6B7280"
+                                        />
+                                        <Tooltip content={<CustomTooltip />} />
+                                        <Line
+                                            type="monotone"
+                                            dataKey="focusScore"
+                                            stroke="#818CF8" // Indigo-400 for consistency
+                                            strokeWidth={2}
+                                            dot={renderDot}
+                                            activeDot={{
+                                                r: 8,
+                                                strokeWidth: 2,
+                                            }}
+                                            isAnimationActive={false}
+                                            connectNulls={false}
+                                        />
+                                    </LineChart>
+                                </ResponsiveContainer>
+                            </div>
 
-                    {/* Legend */}
-                    <div className="flex flex-wrap items-center justify-center mt-4 gap-4 text-xs">
-                        <div className="flex items-center">
-                            <span className="inline-block w-3 h-3 mr-1 rounded-full bg-emerald-500"></span>
-                            <span className="text-neutral-700 dark:text-neutral-300">Perfect (100)</span>
-                        </div>
-                        <div className="flex items-center">
-                            <span className="inline-block w-3 h-3 mr-1 rounded-full bg-blue-500"></span>
-                            <span className="text-neutral-700 dark:text-neutral-300">Good (60-80)</span>
-                        </div>
-                        <div className="flex items-center">
-                            <span className="inline-block w-3 h-3 mr-1 rounded-full bg-amber-500"></span>
-                            <span className="text-neutral-700 dark:text-neutral-300">Fair (40-60)</span>
-                        </div>
-                        <div className="flex items-center">
-                            <span className="inline-block w-3 h-3 mr-1 rounded-full bg-rose-500"></span>
-                            <span className="text-neutral-700 dark:text-neutral-300">Poor (0-40)</span>
-                        </div>
-                    </div>
+                            {/* Legend */}
+                            <div className="flex flex-wrap items-center justify-center mt-4 gap-4 text-xs">
+                                <div className="flex items-center">
+                                    <span className="inline-block w-3 h-3 mr-1 rounded-full bg-emerald-500"></span>
+                                    <span className="text-neutral-700 dark:text-neutral-300">Perfect (100)</span>
+                                </div>
+                                <div className="flex items-center">
+                                    <span className="inline-block w-3 h-3 mr-1 rounded-full bg-blue-500"></span>
+                                    <span className="text-neutral-700 dark:text-neutral-300">Good (60-80)</span>
+                                </div>
+                                <div className="flex items-center">
+                                    <span className="inline-block w-3 h-3 mr-1 rounded-full bg-amber-500"></span>
+                                    <span className="text-neutral-700 dark:text-neutral-300">Fair (40-60)</span>
+                                </div>
+                                <div className="flex items-center">
+                                    <span className="inline-block w-3 h-3 mr-1 rounded-full bg-rose-500"></span>
+                                    <span className="text-neutral-700 dark:text-neutral-300">Poor (0-40)</span>
+                                </div>
+                            </div>
+
+                            {/* Manage distractions button for when data exists */}
+                            <div className="flex justify-center mt-6">
+                                <Link href="/settings/blocked-sites">
+                                    <Button variant="outline" className="border-indigo-600 text-indigo-700 hover:bg-indigo-100 dark:border-indigo-500 dark:text-indigo-400 dark:hover:bg-indigo-950">
+                                        <Settings className="mr-2 h-4 w-4" />
+                                        Manage distractions {blockedSitesCount > 0 && `(${blockedSitesCount} site blocked)`}
+                                    </Button>
+                                </Link>
+                            </div>
+                        </>
+                    )}
                 </CardContent>
             </Card>
         </div>

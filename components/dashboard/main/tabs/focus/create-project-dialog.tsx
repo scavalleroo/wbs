@@ -11,7 +11,7 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Plus, PlusCircle } from 'lucide-react';
+import { PlusCircle } from 'lucide-react';
 
 interface CreateProjectDialogProps {
     onCreateProject: (title: string) => Promise<void>;
@@ -62,7 +62,10 @@ const CreateProjectDialog: React.FC<CreateProjectDialogProps> = ({
             </DialogTrigger>
             <DialogContent className="border-indigo-100">
                 <DialogHeader className="space-y-2">
-                    <DialogTitle className="text-xl font-bold">Create New Page</DialogTitle>
+                    <DialogTitle className="text-xl font-bold">
+
+                        Create New Page
+                    </DialogTitle>
                     <DialogDescription className="text-sm text-muted-foreground">
                         Add a new page to organize your project notes, ideas, or research.
                     </DialogDescription>

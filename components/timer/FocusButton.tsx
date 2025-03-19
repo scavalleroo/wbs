@@ -19,13 +19,16 @@ export function FocusButton({ onMinimize }: FocusButtonProps) {
         sound: string;
         duration: number;
         volume: number;
+        flowMode?: boolean;
     }) => {
         const session = {
             ...settings,
-            timeRemaining: settings.duration * 60, // convert to seconds
+            timeRemaining: settings.flowMode ? 0 : settings.duration * 60, // time remaining for timed mode
+            timeElapsed: 0, // time elapsed for flow mode
             isRunning: true,
             isMuted: false,
-            activityIcon: getActivityIcon(settings.activity)
+            activityIcon: getActivityIcon(settings.activity),
+            flowMode: settings.flowMode || false
         };
 
         setCurrentSession(session);
@@ -54,9 +57,9 @@ export function FocusButton({ onMinimize }: FocusButtonProps) {
         <>
             <button
                 onClick={() => setShowFocusSelector(true)}
-                className="px-4 py-2 sm:px-6 sm:py-3 bg-white text-indigo-600 rounded-full flex items-center gap-1 sm:gap-2 text-sm sm:text-base font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 active:scale-95 transition-all duration-300"
+                className="px-4 py-2 md:px-5 md:py-2.5 bg-white text-indigo-600 rounded-full flex items-center gap-1 md:gap-1.5 text-sm md:text-sm font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 active:scale-95 transition-all duration-300"
             >
-                <PlayCircle className="size-4 sm:size-5" />
+                <PlayCircle className="size-4 md:size-4" />
                 Start Focus Session
             </button>
 

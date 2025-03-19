@@ -8,12 +8,13 @@ import { cn } from '@/lib/utils';
 
 interface FullScreenTimerProps {
     onClose: () => void;
-    onMinimize: () => void;
+    onMinimize: (session: any) => void;
     initialSettings?: {
         activity: string;
         sound: string;
         duration: number;
         volume: number;
+        flowMode?: boolean;
     };
 }
 
@@ -24,11 +25,15 @@ export function FullScreenTimer({
         activity: 'focus',
         sound: 'lofi',
         duration: 25,
-        volume: 50
+        volume: 50,
+        flowMode: false
     }
 }: FullScreenTimerProps) {
     const [isRunning, setIsRunning] = useState(true);
-    const [timeRemaining, setTimeRemaining] = useState(initialSettings.duration * 60);
+    const [timeRemaining, setTimeRemaining] = useState(
+        initialSettings.flowMode ? 0 : initialSettings.duration * 60
+    );
+    const [timeElapsed, setTimeElapsed] = useState(0);
     const [isMuted, setIsMuted] = useState(false);
     const [volume, setVolume] = useState(initialSettings.volume);
     const [showAnalogClock, setShowAnalogClock] = useState(false);
@@ -56,19 +61,25 @@ export function FullScreenTimer({
         };
     }, []);
 
-    // Handle timer
+    // Handle timer based on mode
     useEffect(() => {
         if (isRunning) {
             timerRef.current = setInterval(() => {
-                setTimeRemaining(prev => {
-                    if (prev <= 1) {
-                        // Timer finished
-                        clearInterval(timerRef.current!);
-                        playEndSound();
-                        return 0;
-                    }
-                    return prev - 1;
-                });
+                if (initialSettings.flowMode) {
+                    // Count up for flow mode
+                    setTimeElapsed(prev => prev + 1);
+                } else {
+                    // Count down for timed mode
+                    setTimeRemaining(prev => {
+                        if (prev <= 1) {
+                            // Timer finished
+                            clearInterval(timerRef.current!);
+                            playEndSound();
+                            return 0;
+                        }
+                        return prev - 1;
+                    });
+                }
             }, 1000);
         } else if (timerRef.current) {
             clearInterval(timerRef.current);
@@ -77,7 +88,7 @@ export function FullScreenTimer({
         return () => {
             if (timerRef.current) clearInterval(timerRef.current);
         };
-    }, [isRunning]);
+    }, [isRunning, initialSettings.flowMode]);
 
     // Handle audio playback based on state
     useEffect(() => {
@@ -107,11 +118,28 @@ export function FullScreenTimer({
 
     const handleMinimize = () => {
         // Pass current session state to the minimized view
-        onMinimize();
+        const currentSession = {
+            activity: initialSettings.activity,
+            activityIcon: getActivityIcon(initialSettings.activity),
+            sound: initialSettings.sound,
+            duration: initialSettings.flowMode ? timeElapsed : initialSettings.duration * 60,
+            timeRemaining: initialSettings.flowMode ? 0 : timeRemaining,
+            timeElapsed: initialSettings.flowMode ? timeElapsed : 0,
+            isRunning,
+            isMuted,
+            volume,
+            flowMode: initialSettings.flowMode
+        };
+
+        onMinimize(currentSession);
     };
 
     const resetTimer = () => {
-        setTimeRemaining(initialSettings.duration * 60);
+        if (initialSettings.flowMode) {
+            setTimeElapsed(0);
+        } else {
+            setTimeRemaining(initialSettings.duration * 60);
+        }
         setIsRunning(true);
     };
 
@@ -126,8 +154,8 @@ export function FullScreenTimer({
         return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
     };
 
-    const getActivityIcon = () => {
-        switch (initialSettings.activity) {
+    const getActivityIcon = (activity: string) => {
+        switch (activity) {
             case 'study': return '📚';
             case 'work': return '💼';
             case 'code': return '💻';
@@ -152,7 +180,9 @@ export function FullScreenTimer({
     };
 
     // Calculate progress percentage for the timer
-    const progressPercentage = (timeRemaining / (initialSettings.duration * 60)) * 100;
+    const progressPercentage = initialSettings.flowMode
+        ? Math.min(100, (timeElapsed / (60 * 60)) * 100) // Scale to hourly progress for flow mode
+        : 100 - (timeRemaining / (initialSettings.duration * 60)) * 100; // Invert for completion percentage
 
     return (
         <div className="fixed inset-0 bg-white dark:bg-neutral-900 z-50 overflow-hidden flex flex-col">
@@ -168,7 +198,7 @@ export function FullScreenTimer({
                 <div className="flex justify-between items-center p-6">
                     <div className="flex items-center gap-3">
                         <div className="flex items-center justify-center h-12 w-12 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 text-white text-xl shadow-lg">
-                            {getActivityIcon()}
+                            {getActivityIcon(initialSettings.activity)}
                         </div>
                         <div>
                             <h1 className="text-xl font-bold">{getActivityName()} Focus</h1>
@@ -198,8 +228,9 @@ export function FullScreenTimer({
                         {showAnalogClock ? (
                             <div onClick={() => setShowAnalogClock(false)} className="cursor-pointer">
                                 <AnalogClock
-                                    timeRemaining={timeRemaining}
-                                    totalTime={initialSettings.duration * 60}
+                                    timeRemaining={initialSettings.flowMode ? timeElapsed : timeRemaining}
+                                    totalTime={initialSettings.flowMode ? 3600 : initialSettings.duration * 60}
+                                    flowMode={initialSettings.flowMode}
                                 />
                             </div>
                         ) : (
@@ -208,20 +239,33 @@ export function FullScreenTimer({
                                 className="flex flex-col items-center cursor-pointer"
                             >
                                 <div className="text-[120px] font-bold text-center bg-gradient-to-br from-blue-500 to-indigo-600 bg-clip-text text-transparent">
-                                    {formatTime(timeRemaining)}
+                                    {initialSettings.flowMode ? formatTime(timeElapsed) : formatTime(timeRemaining)}
                                 </div>
                                 <div className="text-neutral-500 text-sm -mt-4">
-                                    {Math.floor(progressPercentage)}% completed
+                                    {initialSettings.flowMode ? "Time elapsed" : "Time remaining"}
                                 </div>
                             </div>
                         )}
                     </div>
 
-                    <div className="w-80 mb-8">
-                        <Progress
-                            value={progressPercentage}
-                            className="h-2 bg-neutral-200 dark:bg-neutral-700"
-                        />
+                    <div className="w-80 mb-8 flex items-center justify-center">
+                        {!initialSettings.flowMode && (
+                            <div className="w-full space-y-2">
+                                <div className="relative h-2 w-full bg-neutral-200 dark:bg-neutral-700 rounded-full overflow-hidden">
+                                    <div
+                                        className="absolute top-0 left-0 h-full bg-gradient-to-r from-blue-500 via-indigo-500 to-blue-500 rounded-full transition-all"
+                                        style={{ width: `${Math.max(0, Math.min(100, progressPercentage))}%` }}
+                                    ></div>
+                                </div>
+                            </div>
+                        )}
+                        {initialSettings.flowMode && timeElapsed > 0 && (
+                            <div className="text-center">
+                                <span className="bg-gradient-to-r from-blue-500 via-indigo-500 to-blue-500 bg-clip-text text-transparent font-medium text-sm">
+                                    {Math.floor(timeElapsed / 60)} minutes focused
+                                </span>
+                            </div>
+                        )}
                     </div>
 
                     {/* Main controls */}
@@ -231,9 +275,9 @@ export function FullScreenTimer({
                             size="lg"
                             onClick={togglePlayPause}
                             className={cn(
-                                "px-8 py-6 text-lg rounded-full shadow-lg",
+                                "px-8 py-6 text-lg rounded-full shadow-lg transition-all min-w-[160px]",
                                 isRunning
-                                    ? "bg-white border-2 border-red-500 text-red-500 hover:bg-red-50"
+                                    ? "bg-gradient-to-r from-rose-500 to-red-600 text-white hover:from-rose-600 hover:to-red-700"
                                     : "bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white"
                             )}
                         >
@@ -245,9 +289,10 @@ export function FullScreenTimer({
                             variant="outline"
                             size="lg"
                             onClick={resetTimer}
-                            className="rounded-full px-6 py-6"
+                            className="rounded-full px-8 py-6 text-lg border-2 border-neutral-200 dark:border-neutral-700 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-all min-w-[160px]"
                         >
-                            <RefreshCw className="h-5 w-5" />
+                            <RefreshCw className="h-6 w-6 mr-2" />
+                            Reset
                         </Button>
                     </div>
                 </div>

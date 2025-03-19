@@ -179,7 +179,7 @@ export const FocusTabs: React.FC<FocusTabsProps> = ({
     <Tabs
       value={activeTab}
       onValueChange={handleTabChange}
-      className='flex flex-col w-full h-[calc(100vh-136px)] max-h-[calc(100vh-136px)] md:h-[calc(100vh-147px)] md:max-h-[calc(100vh-147px)] overflow-y-auto'
+      className='flex flex-col w-full h-[calc(100vh-142px)] max-h-[calc(100vh-142px)] overflow-y-auto'
     >
       <div className="space-y-0 max-w-screen-lg mx-auto px-2 w-full">
         {/* Selection Header Area */}

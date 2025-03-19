@@ -11,7 +11,7 @@ export function TabComponentReport({ user }: FocusTabContentProps) {
     const [activeTab, setActiveTab] = useState("dashboard");
 
     return (
-        <TabsContent value="report" className='flex flex-col w-full h-[calc(100vh-136px)] max-h-[calc(100vh-136px)] md:h-[calc(100vh-147px)] md:max-h-[calc(100vh-147px)]  overflow-y-auto'>
+        <TabsContent value="report" className='flex flex-col w-full h-[calc(100vh-142px)] max-h-[calc(100vh-142px)]  overflow-y-auto'>
             <div className="space-y-6 max-w-screen-lg mx-auto px-2 w-full">
                 <CombinedWellnessReport user={user} />
             </div>

@@ -16,19 +16,36 @@ export function Navbar({ user, userDetails, activeTab, setActiveTab }: NavbarPro
     return (
         <div className="flex py-2 items-center px-4 bg-neutral-100 dark:bg-neutral-800">
             <div className="flex-1">
+                {/* Dark mode logos */}
                 <Image
                     src="/logoTransparent.svg"
                     alt="Weko Logo"
                     width={64}
                     height={64}
-                    className="hidden dark:block -my-4"
+                    className="hidden sm:dark:block -my-4"
                 />
+                <Image
+                    src="/iconW.svg"
+                    alt="Weko Icon"
+                    width={32}
+                    height={32}
+                    className="hidden dark:block sm:dark:hidden -my-2"
+                />
+
+                {/* Light mode logos */}
                 <Image
                     src="/logoTransparentB.svg"
                     alt="Weko Logo"
                     width={64}
                     height={64}
-                    className="dark:hidden -my-4"
+                    className="hidden sm:block dark:hidden -my-4"
+                />
+                <Image
+                    src="/iconB.svg"
+                    alt="Weko Icon"
+                    width={32}
+                    height={32}
+                    className="block sm:hidden dark:hidden -my-2"
                 />
             </div>
 

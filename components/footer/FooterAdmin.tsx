@@ -3,10 +3,11 @@
 import { useEffect, useState } from 'react';
 import { Button } from '../ui/button';
 import { cn } from '@/lib/utils';
-import { Brain, Maximize2, Pause, Play, Volume2, VolumeX, X, PlayCircle } from 'lucide-react';
+import { Brain, Maximize2, Pause, Play, Volume2, VolumeX, X } from 'lucide-react';
 import { Slider } from '../ui/slider';
 import { Progress } from '../ui/progress';
 import { FocusButton } from '../timer/FocusButton';
+import { FullScreenTimer } from '../timer/FullScreenTimer';
 
 interface FocusSession {
   activity: string;
@@ -17,12 +18,15 @@ interface FocusSession {
   isRunning: boolean;
   isMuted: boolean;
   volume: number; // 0-100
+  flowMode?: boolean; // Add this property to support flow mode
+  timeElapsed?: number; // Add this property for flow mode tracking
 }
 
 export default function Footer() {
   const [minimizedSession, setMinimizedSession] = useState<FocusSession | null>(null);
   const [audioRef, setAudioRef] = useState<HTMLAudioElement | null>(null);
   const [footerVisible, setFooterVisible] = useState(false);
+  const [showFullScreenTimer, setShowFullScreenTimer] = useState(false);
 
   // Setup audio when minimized session changes
   useEffect(() => {
@@ -122,9 +126,18 @@ export default function Footer() {
   };
 
   const maximizeSession = () => {
-    // This would normally open the full screen timer
-    console.log('Maximize session', minimizedSession);
+    if (minimizedSession) {
+      setShowFullScreenTimer(true);
+      setFooterVisible(false);
+    }
   };
+
+  useEffect(() => {
+    if (!footerVisible && !showFullScreenTimer && minimizedSession) {
+      // If we closed the fullscreen timer without clicking minimize
+      setFooterVisible(true);
+    }
+  }, [showFullScreenTimer]);
 
   const playEndSound = () => {
     const endSound = new Audio('/sounds/timer-complete.mp3');
@@ -146,6 +159,29 @@ export default function Footer() {
       default: return '🧠';
     }
   };
+
+  if (showFullScreenTimer && minimizedSession) {
+    return (
+      <FullScreenTimer
+        onClose={() => {
+          setShowFullScreenTimer(false);
+          setFooterVisible(true);
+        }}
+        onMinimize={(session) => {
+          setMinimizedSession(session);
+          setShowFullScreenTimer(false);
+          setFooterVisible(true);
+        }}
+        initialSettings={{
+          activity: minimizedSession.activity,
+          sound: minimizedSession.sound,
+          duration: minimizedSession.duration / 60, // Convert seconds back to minutes
+          volume: minimizedSession.volume,
+          flowMode: minimizedSession.flowMode
+        }}
+      />
+    );
+  }
 
   // When minimized session is active, show timer controls
   if (footerVisible && minimizedSession) {

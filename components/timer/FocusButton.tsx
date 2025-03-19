@@ -4,15 +4,14 @@ import { Dialog, DialogContent } from '../ui/dialog';
 import { FocusSelector } from './FocusSelector';
 import { FullScreenTimer } from './FullScreenTimer';
 import { DialogTitle } from '@radix-ui/react-dialog';
+import { useTimer } from '@/contexts/TimerProvider';
 
-interface FocusButtonProps {
-    onMinimize?: (session: any) => void;
-}
-
-export function FocusButton({ onMinimize }: FocusButtonProps) {
+export function FocusButton() {
     const [showFocusSelector, setShowFocusSelector] = useState(false);
     const [showFocusMode, setShowFocusMode] = useState(false);
-    const [currentSession, setCurrentSession] = useState<any>(null);
+
+    // Use the shared timer context
+    const { initializeSession } = useTimer();
 
     const startFocusSession = (settings: {
         activity: string;
@@ -21,36 +20,26 @@ export function FocusButton({ onMinimize }: FocusButtonProps) {
         volume: number;
         flowMode?: boolean;
     }) => {
-        const session = {
-            ...settings,
-            timeRemaining: settings.flowMode ? 0 : settings.duration * 60, // time remaining for timed mode
-            timeElapsed: 0, // time elapsed for flow mode
-            isRunning: true,
-            isMuted: false,
-            activityIcon: getActivityIcon(settings.activity),
-            flowMode: settings.flowMode || false
-        };
+        // Initialize the shared timer state
+        initializeSession({
+            activity: settings.activity,
+            sound: settings.sound,
+            duration: settings.duration,
+            volume: settings.volume || 50,
+            flowMode: settings.flowMode || false,
+            initialTimeRemaining: settings.flowMode ? 0 : settings.duration * 60,
+            initialTimeElapsed: 0
+        });
 
-        setCurrentSession(session);
+        // Close selector and show fullscreen timer
         setShowFocusSelector(false);
         setShowFocusMode(true);
     };
 
-    const minimizeFocusSession = (session: any) => {
-        if (onMinimize) {
-            onMinimize(session);
-        }
+    const handleMinimize = () => {
+        // No need to pass session data - it's stored in the context
         setShowFocusMode(false);
-    };
-
-    const getActivityIcon = (activity: string) => {
-        switch (activity) {
-            case 'study': return '📚';
-            case 'work': return '💼';
-            case 'code': return '💻';
-            case 'draw': return '🎨';
-            default: return '🧠';
-        }
+        // The Footer will automatically show because it uses the same context
     };
 
     return (
@@ -83,10 +72,21 @@ export function FocusButton({ onMinimize }: FocusButtonProps) {
             {showFocusMode && (
                 <FullScreenTimer
                     onClose={() => setShowFocusMode(false)}
-                    onMinimize={() => minimizeFocusSession(currentSession)}
-                    initialSettings={currentSession}
+                    onMinimize={handleMinimize}
                 />
             )}
         </>
+    );
+}
+
+// Enhanced focus button with modern gradient design (unchanged)
+export function EnhancedFocusButton() {
+    return (
+        <div className="relative group">
+            <div className="absolute -inset-1 bg-gradient-to-r from-pink-600 to-purple-600 rounded-full blur opacity-70 group-hover:opacity-100 transition-all duration-500"></div>
+            <div className="relative">
+                <FocusButton />
+            </div>
+        </div>
     );
 }

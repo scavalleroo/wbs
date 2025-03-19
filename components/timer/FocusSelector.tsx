@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Book, Briefcase, Code, PenTool, Brain, Music, Volume2, VolumeX, Clock, Timer } from 'lucide-react';
+import { Brain, Music, Volume2, VolumeX, Clock, Timer } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Slider } from '../ui/slider';
 import { Input } from '../ui/input';
@@ -14,9 +14,12 @@ const ACTIVITIES = [
 ];
 
 const SOUNDS = [
-    { id: 'lofi', name: 'Lo-Fi Radio', src: '/sounds/radios/lofi.mp3', emoji: '🎧' },
+    { id: 'waves', name: 'Ocean Waves', src: '/sounds/radios/waves.mp3', emoji: '🌊' },
     { id: 'nature', name: 'Nature Sounds', src: '/sounds/radios/nature.mp3', emoji: '🌿' },
     { id: 'rain', name: 'Rain', src: '/sounds/radios/rain.mp3', emoji: '🌧️' },
+    { id: 'fireplace', name: 'Fireplace', src: '/sounds/radios/fireplace.mp3', emoji: '🔥' },
+    { id: 'white', name: 'White Noise', src: '/sounds/radios/white.mp3', emoji: '⚪' },
+    { id: 'grey', name: 'Brown Noise', src: '/sounds/radios/brown.mp3', emoji: '🟤' },
     { id: 'cafe', name: 'Café Ambience', src: '/sounds/radios/cafe.mp3', emoji: '☕' },
     { id: 'none', name: 'No Sound', src: '', emoji: '🔇' },
 ];
@@ -37,7 +40,8 @@ export function FocusSelector({ onStart }: FocusSelectorProps) {
     const [duration, setDuration] = useState(25); // minutes
     const [volume, setVolume] = useState(50); // 0-100
     const [soundEnabled, setSoundEnabled] = useState(true);
-    const [timerMode, setTimerMode] = useState<'timed' | 'flow'>('flow');
+    const [timerMode, setTimerMode] = useState<'timed' | 'flow'>('timed');
+    const [showAllSounds, setShowAllSounds] = useState(false);
 
     const handleStart = () => {
         onStart({
@@ -212,22 +216,39 @@ export function FocusSelector({ onStart }: FocusSelectorProps) {
 
                     <div className={`space-y-4 ${soundEnabled ? "" : "opacity-50 pointer-events-none"}`}>
                         {/* Sound options */}
-                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2">
-                            {SOUNDS.map((sound) => (
-                                <button
-                                    key={sound.id}
-                                    onClick={() => setSelectedSound(sound.id)}
-                                    disabled={!soundEnabled}
-                                    className={`flex flex-col items-center justify-center p-2 sm:p-3 rounded-xl transition-all 
+                        {/* Sound options */}
+                        <div className="space-y-3">
+                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2">
+                                {SOUNDS.slice(0, showAllSounds ? SOUNDS.length : 5).map((sound) => (
+                                    <button
+                                        key={sound.id}
+                                        onClick={() => setSelectedSound(sound.id)}
+                                        disabled={!soundEnabled}
+                                        className={`flex flex-col items-center justify-center p-2 sm:p-3 rounded-xl transition-all 
                 ${selectedSound === sound.id && soundEnabled
-                                            ? 'bg-gradient-to-br from-indigo-500 to-blue-600 text-white shadow-md'
-                                            : 'bg-neutral-100 dark:bg-neutral-800 hover:bg-neutral-200 dark:hover:bg-neutral-700'
-                                        }`}
+                                                ? 'bg-gradient-to-br from-indigo-500 to-blue-600 text-white shadow-md'
+                                                : 'bg-neutral-100 dark:bg-neutral-800 hover:bg-neutral-200 dark:hover:bg-neutral-700'
+                                            }`}
+                                    >
+                                        <span className="text-xl sm:text-2xl mb-1">{sound.emoji}</span>
+                                        <span className="text-xs sm:text-sm font-medium text-center">{sound.name}</span>
+                                    </button>
+                                ))}
+                            </div>
+
+                            {/* Show More/Less button */}
+                            {SOUNDS.length > 5 && (
+                                <button
+                                    onClick={() => setShowAllSounds(!showAllSounds)}
+                                    className="flex items-center justify-center mx-auto mt-2 px-4 py-1.5 text-sm font-medium text-indigo-500 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-neutral-800 rounded-lg transition-colors"
                                 >
-                                    <span className="text-xl sm:text-2xl mb-1">{sound.emoji}</span>
-                                    <span className="text-xs sm:text-sm font-medium text-center">{sound.name}</span>
+                                    {showAllSounds ? (
+                                        <>Show Less <span className="ml-1">↑</span></>
+                                    ) : (
+                                        <>Show More <span className="ml-1">↓</span></>
+                                    )}
                                 </button>
-                            ))}
+                            )}
                         </div>
 
                         {/* Divider */}

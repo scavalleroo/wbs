@@ -195,15 +195,16 @@ export default function Footer() {
       </div>
     </div>
   );
+}
 
-  // Enhanced focus button with modern gradient design
-  function EnhancedFocusButton() {
-    return (
-      <div className="relative group">
-        <div className="absolute -inset-1 bg-gradient-to-r from-pink-600 to-purple-600 rounded-full blur opacity-70 group-hover:opacity-100 transition-all duration-500"></div>
-        <div className="relative">
-          <FocusButton />
-        </div>
+// Enhanced focus button with modern gradient design
+function EnhancedFocusButton() {
+  return (
+    <div className="relative group">
+      <div className="absolute -inset-1 bg-gradient-to-r from-pink-600 to-purple-600 rounded-full blur opacity-70 group-hover:opacity-100 transition-all duration-500"></div>
+      <div className="relative">
+        <FocusButton />
       </div>
-    );
-  }
+    </div>
+  );
+}

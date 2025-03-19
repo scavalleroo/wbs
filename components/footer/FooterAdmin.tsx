@@ -88,9 +88,9 @@ export default function Footer() {
           "fixed inset-x-0 bottom-0 z-40 bg-gradient-to-r from-blue-500/90 via-indigo-500/90 to-blue-500/90 animate-in slide-in-from-bottom-full [animation-duration:500ms] shadow-lg border-t border-white/10 flex flex-col"
         )}
       >
-        {/* Progress bar - Top line style on mobile */}
+        {/* Progress bar - Top line style on mobile with increased height */}
         {!flowMode && (
-          <div className="relative w-full h-[1px] sm:hidden bg-white/20">
+          <div className="relative w-full h-[3px] sm:hidden bg-white/20">
             <div
               className="absolute top-0 left-0 h-full bg-white"
               style={{ width: `${Math.max(0, Math.min(100, ((duration - timeRemaining) * 100) / duration))}%` }}
@@ -98,54 +98,53 @@ export default function Footer() {
           </div>
         )}
 
-        <div className="flex flex-row items-center justify-between px-3 py-2 sm:py-2.5 h-[50px] sm:h-16">
-          {/* Rest of the content remains the same, just with adjusted heights and padding */}
-          {/* Activity info with adjusted size */}
-          <div className="flex flex-row items-center gap-2 min-w-0 max-w-[40%] sm:w-1/3">
-            <div className="flex items-center justify-center h-7 w-7 sm:h-12 sm:w-12 rounded-md sm:rounded-lg bg-white/20 backdrop-blur-sm text-base sm:text-2xl shadow-inner">
+        <div className="flex flex-row items-center justify-between px-3 py-3 sm:py-3 h-[64px] sm:h-18">
+          {/* Activity info with larger size on mobile */}
+          <div className="flex flex-row items-center gap-2.5 min-w-0 max-w-[40%] sm:w-1/3">
+            <div className="flex items-center justify-center h-9 w-9 sm:h-12 sm:w-12 rounded-md sm:rounded-lg bg-white/20 backdrop-blur-sm text-lg sm:text-2xl shadow-inner">
               {getActivityIcon(activity)}
             </div>
             <div className="flex flex-col min-w-0">
-              <span className="font-medium text-xs sm:text-sm sm:font-bold truncate text-white">Focus Session</span>
-              <span className="text-[9px] sm:text-xs font-medium text-white/70 truncate">
+              <span className="font-medium text-sm sm:text-base sm:font-bold truncate text-white">Focus Session</span>
+              <span className="text-[11px] sm:text-xs font-medium text-white/70 truncate">
                 {activity.charAt(0).toUpperCase() + activity.slice(1)}
               </span>
             </div>
           </div>
 
-          {/* Controls with adjusted sizes */}
-          <div className="flex flex-row items-center justify-end gap-2 sm:gap-3">
-            <span className="text-xs sm:text-sm font-bold text-white drop-shadow-md xs:hidden mr-1">
+          {/* Controls with larger sizes on mobile */}
+          <div className="flex flex-row items-center justify-end gap-3 sm:gap-4">
+            <span className="text-base sm:text-base font-bold text-white drop-shadow-md xs:hidden mr-2">
               {flowMode ? formatTime(timeElapsed) : formatTime(timeRemaining)}
             </span>
 
-            <div className="flex items-center gap-1 sm:gap-2">
+            <div className="flex items-center gap-2 sm:gap-3">
               <button
-                className="p-1.5 sm:p-2 rounded-full bg-white/20 text-white hover:bg-white/30 transition-all"
+                className="p-2 sm:p-2.5 rounded-full bg-white/20 text-white hover:bg-white/30 transition-all"
                 onClick={maximizeSession}
               >
-                <Maximize2 className="size-3 sm:size-4" />
+                <Maximize2 className="size-4 sm:size-4.5" />
               </button>
 
               <button
-                className={`p-1.5 sm:p-2.5 rounded-full ${isRunning ? 'bg-white' : 'bg-blue-400'} text-blue-600 shadow-md hover:shadow-lg transition-all`}
+                className={`p-2.5 sm:p-3 rounded-full ${isRunning ? 'bg-white' : 'bg-blue-400'} text-blue-600 shadow-md hover:shadow-lg transition-all`}
                 onClick={togglePlayPause}
               >
                 {isRunning ?
-                  <Pause className="size-3 sm:size-5" strokeWidth={1.6} /> :
-                  <Play className="size-3 sm:size-5" />}
+                  <Pause className="size-4.5 sm:size-5" strokeWidth={1.6} /> :
+                  <Play className="size-4.5 sm:size-5" />}
               </button>
 
               <button
                 onClick={closeSession}
-                className="p-1.5 sm:p-2 rounded-full bg-white/20 text-white hover:bg-red-500 transition-all"
+                className="p-2 sm:p-2.5 rounded-full bg-white/20 text-white hover:bg-red-500 transition-all"
               >
-                <X className="size-3 sm:size-4" />
+                <X className="size-4 sm:size-4.5" />
               </button>
             </div>
 
             <div className="hidden xs:flex flex-col items-center">
-              <span className="text-xs sm:text-lg font-bold text-white drop-shadow-md">
+              <span className="text-base sm:text-lg font-bold text-white drop-shadow-md">
                 {flowMode ? formatTime(timeElapsed) : formatTime(timeRemaining)}
               </span>
             </div>
@@ -155,17 +154,17 @@ export default function Footer() {
           <div className="hidden sm:flex flex-row gap-2 items-center justify-end w-1/3">
             {sound !== 'none' && (
               <>
-                <button onClick={toggleMute} className="p-1">
+                <button onClick={toggleMute} className="p-1.5">
                   {isMuted ?
-                    <VolumeX className="size-4 text-white/80 hover:text-white transition-colors" /> :
-                    <Volume2 className="size-4 text-white/80 hover:text-white transition-colors" />}
+                    <VolumeX className="size-5 text-white/80 hover:text-white transition-colors" /> :
+                    <Volume2 className="size-5 text-white/80 hover:text-white transition-colors" />}
                 </button>
                 <Slider
                   defaultValue={[volume]}
                   value={[volume]}
                   max={100}
                   step={1}
-                  className="w-20 cursor-pointer"
+                  className="w-24 cursor-pointer"
                   onValueChange={value => setVolume(value[0])}
                 />
               </>
@@ -173,13 +172,13 @@ export default function Footer() {
           </div>
         </div>
 
-        {/* Progress bar - Adjusted size */}
+        {/* Progress bar - Adjusted size for desktop */}
         {!flowMode && (
           <div className="hidden sm:flex flex-row items-center justify-center w-full">
-            <div className="relative w-full h-1.5">
+            <div className="relative w-full h-2">
               <Progress
                 value={((duration - timeRemaining) * 100) / duration}
-                className="h-1.5 bg-white/20"
+                className="h-2 bg-white/20"
               />
             </div>
           </div>
@@ -188,24 +187,23 @@ export default function Footer() {
     );
   }
 
-  // Default footer with focus button - Keep this height as the reference
+  // Default footer with focus button - Increased height to match
   return (
-    <div className="fixed inset-x-0 bottom-0 z-40 py-3 sm:py-4 flex items-center bg-gradient-to-r from-blue-500 via-indigo-500 to-blue-500 shadow-lg">
+    <div className="fixed inset-x-0 bottom-0 z-40 py-4 sm:py-5 flex items-center bg-gradient-to-r from-blue-500 via-indigo-500 to-blue-500 shadow-lg">
       <div className="container mx-auto px-4 flex justify-center">
         <EnhancedFocusButton />
       </div>
     </div>
   );
-}
 
-// Enhanced focus button with modern gradient design
-function EnhancedFocusButton() {
-  return (
-    <div className="relative group">
-      <div className="absolute -inset-1 bg-gradient-to-r from-pink-600 to-purple-600 rounded-full blur opacity-70 group-hover:opacity-100 transition-all duration-500"></div>
-      <div className="relative">
-        <FocusButton />
+  // Enhanced focus button with modern gradient design
+  function EnhancedFocusButton() {
+    return (
+      <div className="relative group">
+        <div className="absolute -inset-1 bg-gradient-to-r from-pink-600 to-purple-600 rounded-full blur opacity-70 group-hover:opacity-100 transition-all duration-500"></div>
+        <div className="relative">
+          <FocusButton />
+        </div>
       </div>
-    </div>
-  );
-}
+    );
+  }

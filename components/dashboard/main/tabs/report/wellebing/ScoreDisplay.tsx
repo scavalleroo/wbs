@@ -141,16 +141,11 @@ export const ScoreDisplay = ({ user, setTimeRange, timeRange }: { user: User | n
                     </TabsList>
                 </Tabs> */}
                 {/* Title with Weko logo */}
-                <div className="flex items-center md:justify-center -mt-4 w-full">
-                    <img
-                        src="/logoTransparent.svg"
-                        alt="Weko"
-                        className="h-16 -mt-1 mr-1 w-auto"
-                    />
-                    <span className="text-white text-lg font-medium">dashboard</span>
+                <div className="flex items-center md:justify-center w-full text-white text-lg font-bold">
+                    Dashboard
                 </div>
 
-                <div className="flex flex-col items-center gap-2 -mt-8 w-full">
+                <div className="flex flex-col items-center gap-2 -mt-6 w-full">
                     <p className="w-full text-xs text-white md:text-center text-left text-opacity-90">Today's score</p>
 
                     <div className="flex flex-row md:flex-col items-center gap-2 w-full justify-between">

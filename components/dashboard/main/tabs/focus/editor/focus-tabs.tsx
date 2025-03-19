@@ -179,7 +179,7 @@ export const FocusTabs: React.FC<FocusTabsProps> = ({
     <Tabs
       value={activeTab}
       onValueChange={handleTabChange}
-      className='flex flex-col w-full h-[calc(100vh-156px)] max-h-[calc(100vh-156px)] overflow-y-auto'
+      className='flex flex-col w-full h-[calc(100vh-136px)] max-h-[calc(100vh-136px)] md:h-[calc(100vh-147px)] md:max-h-[calc(100vh-147px)] overflow-y-auto'
     >
       <div className="space-y-0 max-w-screen-lg mx-auto px-2 w-full">
         {/* Selection Header Area */}
@@ -196,13 +196,13 @@ export const FocusTabs: React.FC<FocusTabsProps> = ({
                   )}
                 </div>
                 <div>
-                  <div className="flex items-center -mt-4 -mb-2 w-full">
-                    <img
+                  <div className="flex items-center w-full text-white text-lg font-bold">
+                    {/* <img
                       src="/logoTransparent.svg"
                       alt="Weko"
                       className="h-16 -mt-1 mr-1 w-auto"
-                    />
-                    <span className="text-white text-lg font-medium">notes</span>
+                    /> */}
+                    Your Notes
                   </div>
                   <p className="text-xs text-white opacity-90">
                     {activeTab === 'daily' ? 'Organize your thoughts by date' : 'Create and manage project pages'}

@@ -9,6 +9,7 @@ import { TabComponentReport } from './tabs/report/TabComponentReport';
 import { TabComponentBreak } from './tabs/break/TabComponentBreak';
 import MoodTrackingModal from './moodTracking/MoodTrackingModal';
 import { User } from '@supabase/supabase-js';
+import Footer from '@/components/footer/FooterAdmin';
 
 interface UserDetails {
     id: string;
@@ -38,6 +39,7 @@ export default function MainPage(props: Props) {
                 {activeTab == 'focus' && (<TabComponentFocus user={props.user} />)}
                 {activeTab == 'break' && (<TabComponentBreak user={props.user} />)}
             </Tabs>
+            <Footer />
         </DashboardLayout>
     );
 }

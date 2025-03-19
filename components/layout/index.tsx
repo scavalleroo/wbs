@@ -7,7 +7,6 @@ import {
   UserDetailsContext
 } from '@/contexts/layout';
 import React, { useState } from 'react';
-import { TimerProvider } from '../timer/Timer';
 
 interface Props {
   children: React.ReactNode;
@@ -26,11 +25,9 @@ const DashboardLayout: React.FC<Props> = (props: Props) => {
       <UserDetailsContext.Provider value={props.userDetails}>
         <OpenContext.Provider value={{ open, setOpen }}>
           <Toaster />
-          <TimerProvider>
-            <main className='mx-auto h-screen bg-neutral-50 dark:bg-neutral-900'>
-              {props.children}
-            </main>
-          </TimerProvider>
+          <main className='mx-auto h-screen bg-neutral-50 dark:bg-neutral-900'>
+            {props.children}
+          </main>
         </OpenContext.Provider>
       </UserDetailsContext.Provider>
     </UserContext.Provider>

@@ -31,14 +31,14 @@ export function TabsTriggers({ activeTab, setActiveTab }: MainNavProps) {
     }
 
     return (
-        <TabsList className="bg-neutral-300/40 dark:bg-neutral-50/10 backdrop-blur-sm p-1 rounded-lg">
+        <TabsList className="bg-neutral-300/40 dark:bg-neutral-50/10 backdrop-blur-sm p-0.5 sm:p-1 rounded-lg">
             <TabsTrigger
                 onClick={() => handleTabChange('report')}
                 className={getTabStyles('report')}
                 value="report"
             >
                 <HomeIcon className="size-4" />
-                <p className="md:block hidden font-medium">Dashboard</p>
+                <p className="hidden sm:inline font-medium sm:text-xs">Dashboard</p>
             </TabsTrigger>
             <TabsTrigger
                 onClick={() => handleTabChange('focus')}
@@ -46,7 +46,7 @@ export function TabsTriggers({ activeTab, setActiveTab }: MainNavProps) {
                 value="focus"
             >
                 <Notebook className="size-4" />
-                <p className="md:block hidden font-medium">Notes</p>
+                <p className="hidden sm:inline font-medium sm:text-xs">Notes</p>
             </TabsTrigger>
             <TabsTrigger
                 onClick={() => handleTabChange('break')}
@@ -54,7 +54,7 @@ export function TabsTriggers({ activeTab, setActiveTab }: MainNavProps) {
                 value="break"
             >
                 <Coffee className="size-4" />
-                <p className="md:block hidden font-medium">Break</p>
+                <p className="hidden sm:inline font-medium sm:text-xs">Break</p>
             </TabsTrigger>
         </TabsList>
     )

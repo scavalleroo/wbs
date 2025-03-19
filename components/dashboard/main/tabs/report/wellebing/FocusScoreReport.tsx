@@ -7,6 +7,7 @@ import { Target, Chrome, Settings, Download, Brain } from "lucide-react";
 import { useBlockedSite } from '@/hooks/use-blocked-site';
 import { DailyFocusData } from '@/types/report.types';
 import Link from 'next/link';
+import { ManageDistractionsDialog } from './ManageDistractionsDialog';
 
 interface FocusScoreReportProps {
     user: User | null | undefined;
@@ -24,8 +25,7 @@ const FocusScoreReport = ({
     const [currentScore, setCurrentScore] = useState<number | null>(null);
     const [isLoading, setIsLoading] = useState(false);
     const [blockedSitesCount, setBlockedSitesCount] = useState(0);
-
-    // Use the hook
+    const [isDialogOpen, setIsDialogOpen] = useState(false);
     const { getFocusData, getBlockedSitesCount } = useBlockedSite({ user });
 
     // Update time range when external prop changes
@@ -173,6 +173,24 @@ const FocusScoreReport = ({
         );
     };
 
+    // Add this function to refresh data after dialog actions
+    const refreshData = async () => {
+        if (!user) return;
+
+        try {
+            setIsLoading(true);
+            const { focusData: data, currentScore: score } = await getFocusData(timeRange);
+            setFocusData(data);
+            setCurrentScore(score);
+
+            // Get the count of blocked sites
+            const count = await getBlockedSitesCount();
+            setBlockedSitesCount(count);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
     const hasNoFocusData = !isLoading &&
         (!focusData ||
             focusData.length === 0 ||
@@ -202,12 +220,13 @@ const FocusScoreReport = ({
                                             Get Chrome Extension
                                         </Button>
                                     </a>
-                                    <Link href="/settings/blocked-sites">
-                                        <Button variant="outline" className="border-indigo-600 text-indigo-700 hover:bg-indigo-100 dark:border-indigo-500 dark:text-indigo-400 dark:hover:bg-indigo-950">
-                                            <Settings className="mr-2 h-4 w-4" />
-                                            Manage distractions {blockedSitesCount > 0 && `(${blockedSitesCount} site blocked)`}
-                                        </Button>
-                                    </Link>
+                                    <Button
+                                        variant="outline"
+                                        onClick={() => setIsDialogOpen(true)}
+                                        className="border-indigo-600 text-indigo-700 hover:bg-indigo-100 dark:border-indigo-500 dark:text-indigo-400 dark:hover:bg-indigo-950">
+                                        <Settings className="mr-2 h-4 w-4" />
+                                        Manage distractions {blockedSitesCount > 0 && `(${blockedSitesCount} site blocked)`}
+                                    </Button>
                                 </div>
                             </div>
                         </div>
@@ -272,17 +291,27 @@ const FocusScoreReport = ({
 
                             {/* Manage distractions button for when data exists */}
                             <div className="flex justify-center mt-6">
-                                <Link href="/settings/blocked-sites">
-                                    <Button variant="outline" className="border-indigo-600 text-indigo-700 hover:bg-indigo-100 dark:border-indigo-500 dark:text-indigo-400 dark:hover:bg-indigo-950">
-                                        <Settings className="mr-2 h-4 w-4" />
-                                        Manage distractions {blockedSitesCount > 0 && `(${blockedSitesCount} site blocked)`}
-                                    </Button>
-                                </Link>
+                                <Button
+                                    variant="outline"
+                                    onClick={() => setIsDialogOpen(true)}
+                                    className="border-indigo-600 text-indigo-700 hover:bg-indigo-100 dark:border-indigo-500 dark:text-indigo-400 dark:hover:bg-indigo-950">
+                                    <Settings className="mr-2 h-4 w-4" />
+                                    Manage distractions {blockedSitesCount > 0 && `(${blockedSitesCount} site blocked)`}
+                                </Button>
                             </div>
                         </>
                     )}
                 </CardContent>
             </Card>
+
+            {/* Add the dialog component */}
+            <ManageDistractionsDialog
+                user={user}
+                isOpen={isDialogOpen}
+                onOpenChange={setIsDialogOpen}
+                blockedSitesCount={blockedSitesCount}
+                onBlockedSitesUpdated={refreshData}
+            />
         </div>
     );
 };

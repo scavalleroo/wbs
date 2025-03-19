@@ -16,7 +16,7 @@ export function TabsTriggers({ activeTab, setActiveTab }: MainNavProps) {
 
     // Define colors for each tab type
     const getTabStyles = (tabValue: TabValue) => {
-        const baseStyles = "transition-all duration-200 px-4 py-2 rounded-md flex items-center gap-2 dark:hover:bg-neutral-800 hover:bg-neutral-200";
+        const baseStyles = "transition-all duration-200 px-4 py-2 rounded-md flex items-center gap-2 dark:hover:bg-neutral-800 hover:bg-neutral-300/80";
 
         switch (tabValue) {
             case 'report':

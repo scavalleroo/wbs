@@ -150,10 +150,10 @@ export const ScoreDisplay = ({ user, setTimeRange, timeRange }: { user: User | n
                     <span className="text-white text-lg font-medium">dashboard</span>
                 </div>
 
-                <div className="flex flex-col items-center gap-2 -mt-8">
-                    <p className="text-xs text-white text-opacity-90">Today's score</p>
+                <div className="flex flex-col items-center gap-2 -mt-8 w-full">
+                    <p className="w-full text-xs text-white md:text-center text-left text-opacity-90">Today's score</p>
 
-                    <div className="flex flex-row md:flex-col items-center gap-2">
+                    <div className="flex flex-row md:flex-col items-center gap-2 w-full justify-between">
 
                         {/* Circle Progress Display */}
                         <div className="relative w-24 h-24 sm:w-28 sm:h-28 md:w-32 md:h-32 flex-shrink-0 mx-auto">
@@ -236,29 +236,6 @@ export const ScoreDisplay = ({ user, setTimeRange, timeRange }: { user: User | n
 
                         {/* Score Stats - Enhanced contrast for accessibility */}
                         <div className="flex flex-row gap-4 md:flex-row md:justify-center w-full">
-                            {/* Focus Stats */}
-                            <div className="bg-white/20 rounded-lg px-3 py-2 md:px-4 md:py-3 flex flex-col items-center backdrop-blur-sm w-full md:flex-1 md:max-w-[140px]">
-                                <p className="text-xs text-white text-opacity-90">Focus score</p>
-                                {focusScore !== null ? (
-                                    <div className="flex flex-row items-center gap-1.5">
-                                        <div className="bg-white/30 p-1 rounded-full" style={{ backgroundColor: colors.focus.background }}>
-                                            <Brain className="size-3 text-white" style={{ color: colors.focus.ring }} />
-                                        </div>
-                                        <span className="text-lg font-medium text-white">{focusScore}</span>
-                                    </div>
-                                ) : (
-                                    <Button
-                                        className="mt-1 bg-white/30 hover:bg-white/40 text-white text-xs font-medium py-1 px-2 rounded-md flex items-center gap-1 transition-colors"
-                                        onClick={() => window.open('/extension', '_blank')}
-                                    >
-                                        <div className="bg-white/30 p-1 rounded-full" style={{ backgroundColor: colors.focus.background }}>
-                                            <Download className="size-3 text-white" style={{ color: colors.focus.ring }} />
-                                        </div>
-                                        Get extension
-                                    </Button>
-                                )}
-                            </div>
-
                             {/* Wellness Stats */}
                             <div className="bg-white/20 rounded-lg px-3 py-2 md:px-4 md:py-3 flex flex-col items-center backdrop-blur-sm w-full md:flex-1 md:max-w-[140px]">
                                 <p className="text-xs text-white text-opacity-90">Wellness score</p>
@@ -285,6 +262,29 @@ export const ScoreDisplay = ({ user, setTimeRange, timeRange }: { user: User | n
                                     </Button>
                                 )}
                             </div>
+
+                            {/* Focus Stats */}
+                            <div className="bg-white/20 rounded-lg px-3 py-2 md:px-4 md:py-3 flex flex-col items-center backdrop-blur-sm w-full md:flex-1 md:max-w-[140px]">
+                                <p className="text-xs text-white text-opacity-90">Focus score</p>
+                                {focusScore !== null ? (
+                                    <div className="flex flex-row items-center gap-1.5">
+                                        <div className="bg-white/30 p-1 rounded-full" style={{ backgroundColor: colors.focus.background }}>
+                                            <Brain className="size-3 text-white" style={{ color: colors.focus.ring }} />
+                                        </div>
+                                        <span className="text-lg font-medium text-white">{focusScore}</span>
+                                    </div>
+                                ) : (
+                                    <Button
+                                        className="mt-1 bg-white/30 hover:bg-white/40 text-white text-xs font-medium py-1 px-2 rounded-md flex items-center gap-1 transition-colors"
+                                        onClick={() => window.open('/extension', '_blank')}
+                                    >
+                                        <div className="bg-white/30 p-1 rounded-full" style={{ backgroundColor: colors.focus.background }}>
+                                            <Download className="size-3 text-white" style={{ color: colors.focus.ring }} />
+                                        </div>
+                                        Get extension
+                                    </Button>
+                                )}
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -292,16 +292,17 @@ export const ScoreDisplay = ({ user, setTimeRange, timeRange }: { user: User | n
                 {/* Legend - Matching colors and enhanced contrast */}
                 <div className="flex flex-row md:flex-col justify-center text-xs text-white text-opacity-90 bg-white/10 py-2 px-4 rounded-lg backdrop-blur-sm md:w-full w-auto gap-3 md:max-w-[280px]">
                     <div className="flex items-center gap-1.5">
-                        <div className="w-2 h-2 rounded-full" style={{ backgroundColor: colors.focus.ring }}></div>
-                        <span>Focus</span>
+                        <div className="w-2 h-2 rounded-full" style={{ backgroundColor: colors.combined.ring }}></div>
+                        <span>Combined</span>
                     </div>
+
                     <div className="flex items-center gap-1.5">
                         <div className="w-2 h-2 rounded-full" style={{ backgroundColor: colors.wellness.ring }}></div>
                         <span>Wellness</span>
                     </div>
                     <div className="flex items-center gap-1.5">
-                        <div className="w-2 h-2 rounded-full" style={{ backgroundColor: colors.combined.ring }}></div>
-                        <span>Combined</span>
+                        <div className="w-2 h-2 rounded-full" style={{ backgroundColor: colors.focus.ring }}></div>
+                        <span>Focus</span>
                     </div>
                 </div>
             </div>

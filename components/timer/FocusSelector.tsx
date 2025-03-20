@@ -14,13 +14,15 @@ const ACTIVITIES = [
 ];
 
 const SOUNDS = [
-    { id: 'waves', name: 'Ocean Waves', src: '/sounds/radios/waves.mp3', emoji: '🌊' },
+    { id: 'waves', name: 'Beach Waves', src: '/sounds/radios/waves.mp3', emoji: '🏝️' },
     { id: 'nature', name: 'Nature Sounds', src: '/sounds/radios/nature.mp3', emoji: '🌿' },
     { id: 'rain', name: 'Rain', src: '/sounds/radios/rain.mp3', emoji: '🌧️' },
     { id: 'fireplace', name: 'Fireplace', src: '/sounds/radios/fireplace.mp3', emoji: '🔥' },
-    { id: 'white', name: 'White Noise', src: '/sounds/radios/white.mp3', emoji: '⚪' },
     { id: 'grey', name: 'Brown Noise', src: '/sounds/radios/brown.mp3', emoji: '🟤' },
     { id: 'cafe', name: 'Café Ambience', src: '/sounds/radios/cafe.mp3', emoji: '☕' },
+    { id: 'campfire', name: 'Campfire', src: '/sounds/radios/campfire.mp3', emoji: '🏕️' },
+    { id: 'waterfall', name: 'Waterfall', src: '/sounds/radios/waterfall.mp3', emoji: '🌊' },
+    { id: 'heater', name: 'Heater', src: '/sounds/radios/heater.mp3', emoji: '🔌' },
     { id: 'none', name: 'No Sound', src: '', emoji: '🔇' },
 ];
 

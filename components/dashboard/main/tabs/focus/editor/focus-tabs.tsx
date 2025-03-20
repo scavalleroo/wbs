@@ -297,7 +297,7 @@ export const FocusTabs: React.FC<FocusTabsProps> = ({
                 <div className="flex items-center gap-2">
                   <p className="text-white text-sm whitespace-nowrap flex-shrink-0 sm:block hidden">Your pages</p>
 
-                  <div className="carousel-container relative flex items-center justify-center gap-2 overflow-hidden w-full pr-12">
+                  <div className="carousel-container relative flex items-center justify-center gap-2 overflow-hidden w-full pr-12 px-2 sm:px-0">
                     <div className="carousel-items flex items-center gap-2 overflow-x-auto w-full py-4 px-2 scrollbar-hide">
                       {projectNotes.length === 0 ? (
                         <span className="text-white text-sm opacity-80">No pages yet. Create your first one!</span>
@@ -321,7 +321,7 @@ export const FocusTabs: React.FC<FocusTabsProps> = ({
                       )}
                     </div>
 
-                    <div className="flex-shrink-0 ml-auto absolute right-0">
+                    <div className="flex-shrink-0 ml-auto absolute sm:right-0 right-2">
                       <CreateProjectDialog onCreateProject={async (title) => {
                         await createProjectNote(title);
                         await fetchAllProjectNotes();

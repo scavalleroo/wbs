@@ -13,14 +13,16 @@ import { useTimer } from '@/contexts/TimerProvider';
 
 // Sound options remain the same
 const SOUNDS = [
-    { id: 'waves', name: 'Ocean Waves', emoji: '🌊' },
-    { id: 'nature', name: 'Nature Sounds', emoji: '🌿' },
-    { id: 'rain', name: 'Rain', emoji: '🌧️' },
-    { id: 'fireplace', name: 'Fireplace', emoji: '🔥' },
-    { id: 'white', name: 'White Noise', emoji: '⚪' },
-    { id: 'brown', name: 'Brown Noise', emoji: '🟤' },
-    { id: 'cafe', name: 'Café Ambience', emoji: '☕' },
-    { id: 'none', name: 'No Sound', emoji: '🔇' },
+    { id: 'waves', name: 'Beach Waves', src: '/sounds/radios/waves.mp3', emoji: '🏝️' },
+    { id: 'nature', name: 'Nature Sounds', src: '/sounds/radios/nature.mp3', emoji: '🌿' },
+    { id: 'rain', name: 'Rain', src: '/sounds/radios/rain.mp3', emoji: '🌧️' },
+    { id: 'fireplace', name: 'Fireplace', src: '/sounds/radios/fireplace.mp3', emoji: '🔥' },
+    { id: 'brown', name: 'Brown Noise', src: '/sounds/radios/brown.mp3', emoji: '🟤' },
+    { id: 'cafe', name: 'Café Ambience', src: '/sounds/radios/cafe.mp3', emoji: '☕' },
+    { id: 'campfire', name: 'Campfire', src: '/sounds/radios/campfire.mp3', emoji: '🏕️' },
+    { id: 'waterfall', name: 'Waterfall', src: '/sounds/radios/waterfall.mp3', emoji: '🌊' },
+    { id: 'heater', name: 'Heater', src: '/sounds/radios/heater.mp3', emoji: '🔌' },
+    { id: 'none', name: 'No Sound', src: '', emoji: '🔇' },
 ];
 
 interface FullScreenTimerProps {
@@ -112,12 +114,10 @@ export function FullScreenTimer({ onClose, onMinimize }: FullScreenTimerProps) {
                         </div>
                     </div>
 
-                    {/* Controls - Added close button */}
-                    {/* Controls - Added close button with larger mobile size */}
                     <div className="flex items-center gap-2 sm:gap-3">
                         {/* Minimize button - Increased mobile size */}
                         <button
-                            className="p-2.5 sm:p-3 rounded-full bg-white/20 text-white hover:bg-white/30 transition-all flex-shrink-0"
+                            className="p-2.5 sm:p-3 rounded-full bg-neutral-200 dark:bg-white/20 text-neutral-700 dark:text-white hover:bg-neutral-300 dark:hover:bg-white/30 transition-all flex-shrink-0"
                             onClick={onMinimize}
                         >
                             <Minimize2 className="size-4.5 sm:size-5" />
@@ -125,7 +125,7 @@ export function FullScreenTimer({ onClose, onMinimize }: FullScreenTimerProps) {
 
                         {/* Close button - Increased mobile size */}
                         <button
-                            className="p-2.5 sm:p-3 rounded-full bg-white/20 text-white hover:bg-red-500 transition-all flex-shrink-0"
+                            className="p-2.5 sm:p-3 rounded-full bg-neutral-200 dark:bg-white/20 text-neutral-700 dark:text-white hover:bg-red-500 hover:text-white transition-all flex-shrink-0"
                             onClick={onClose}
                         >
                             <X className="size-4.5 sm:size-5" />

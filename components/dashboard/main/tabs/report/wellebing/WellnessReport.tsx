@@ -8,7 +8,7 @@ import useMood from '@/hooks/use-mood';
 import MoodTrackingModal from '@/components/dashboard/main/moodTracking/MoodTrackingModal';
 import { getFormattedDateLabel } from '@/lib/utils';
 import { Toggle } from '@/components/ui/toggle';
-import { Brain, Heart, InfoIcon } from "lucide-react";
+import { Heart, InfoIcon } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
 
@@ -463,7 +463,9 @@ const WellnessReport = ({
                         className="w-2 h-2 rounded-full"
                         style={{ backgroundColor: metricColors[metricKey] }}
                     ></span>
-                    <span className="text-xs">{metricLabels[metricKey]}</span>
+                    <span className="text-xs font-medium text-neutral-800 dark:text-neutral-200">
+                        {metricLabels[metricKey]}
+                    </span>
                 </div>
             </Toggle>
         );
@@ -471,91 +473,6 @@ const WellnessReport = ({
 
     return (
         <div className={`space-y-${compactMode ? '4' : '6'}`}>
-            {/* Title and Time Range Selection */}
-            {!hideTitle && (
-                <div className="flex justify-between items-center">
-                    <div className="flex items-center gap-2">
-                        <div className="p-2 rounded-full bg-blue-100 dark:bg-blue-900">
-                            <Heart className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-                        </div>
-                        <div>
-                            <h3 className="text-lg font-bold text-blue-600 dark:text-blue-400">Wellness Score</h3>
-                            <p className="text-xs text-neutral-600 dark:text-neutral-400">Track your daily wellness metrics</p>
-                        </div>
-                        <Popover>
-                            <PopoverTrigger asChild>
-                                <Button variant="ghost" size="icon" className="h-8 w-8 text-neutral-500">
-                                    <InfoIcon className="h-4 w-4" />
-                                </Button>
-                            </PopoverTrigger>
-                            <PopoverContent className="w-80">
-                                <div className="space-y-2">
-                                    <h4 className="font-medium">About Wellness Score</h4>
-                                    <p className="text-sm text-neutral-600 dark:text-neutral-300">
-                                        Wellness Score measures your overall wellbeing based on five key metrics.
-                                    </p>
-                                    <ul className="text-sm text-neutral-600 dark:text-neutral-300 list-disc pl-4 space-y-1">
-                                        <li>Each metric is rated on a scale from 1-5</li>
-                                        <li>Your overall score is calculated as an average of available metrics</li>
-                                        <li>Track individual metrics to see specific trends</li>
-                                        <li>Click on any date to add or edit your wellness data</li>
-                                    </ul>
-                                </div>
-                            </PopoverContent>
-                        </Popover>
-                    </div>
-                    {!externalTimeRange && (
-                        <Tabs value={timeRange} onValueChange={(value: string) => {
-                            if (value === 'week' || value === 'month' || value === 'year') {
-                                setTimeRange(value as 'week' | 'month' | 'year');
-                            }
-                        }} className="w-auto">
-                            <TabsList className="bg-neutral-200 dark:bg-neutral-700">
-                                <TabsTrigger
-                                    value="week"
-                                    className="data-[state=active]:bg-white dark:data-[state=active]:bg-neutral-800 data-[state=active]:text-blue-600 dark:data-[state=active]:text-blue-400"
-                                >
-                                    Week
-                                </TabsTrigger>
-                                <TabsTrigger
-                                    value="month"
-                                    className="data-[state=active]:bg-white dark:data-[state=active]:bg-neutral-800 data-[state=active]:text-blue-600 dark:data-[state=active]:text-blue-400"
-                                >
-                                    Month
-                                </TabsTrigger>
-                                <TabsTrigger
-                                    value="year"
-                                    className="data-[state=active]:bg-white dark:data-[state=active]:bg-neutral-800 data-[state=active]:text-blue-600 dark:data-[state=active]:text-blue-400"
-                                >
-                                    Year
-                                </TabsTrigger>
-                            </TabsList>
-                        </Tabs>
-                    )}
-                </div>
-            )}
-
-            {/* Current Score Card */}
-            {!compactMode && (
-                <Card className="shadow-md bg-neutral-100 dark:bg-neutral-800 border-t-4 border-blue-500 rounded-xl overflow-hidden">
-                    <CardHeader className="pb-2">
-                        <CardTitle className="text-md font-medium text-blue-600 dark:text-blue-400">Current Wellness Score</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="flex items-center justify-center">
-                            <div className="text-center">
-                                <p className={`text-5xl font-bold ${getScoreColor(currentScore)}`}>
-                                    {currentScore !== null ? currentScore : '–'}
-                                </p>
-                                <p className="text-sm text-neutral-500 mt-1">
-                                    {currentScore !== null ? 'out of 100' : 'No recent data'}
-                                </p>
-                            </div>
-                        </div>
-                    </CardContent>
-                </Card>
-            )}
-
             {/* Trend Chart */}
             <Card className="shadow-md bg-neutral-100 dark:bg-neutral-800 border-t-4 border-blue-500 rounded-xl overflow-hidden">
                 <CardHeader className="pb-2">

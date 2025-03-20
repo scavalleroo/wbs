@@ -96,6 +96,7 @@ export function FullScreenTimer({ onClose, onMinimize }: FullScreenTimerProps) {
             {/* Content */}
             <div className="relative z-10 flex flex-col h-full">
                 {/* Top bar with controls - Made responsive */}
+                {/* Top bar with controls - Made responsive */}
                 <div className="flex flex-row justify-between items-center p-4 sm:p-6">
                     <div className="flex items-center gap-3 flex-1 min-w-0">
                         <div className="flex items-center justify-center h-10 w-10 sm:h-12 sm:w-12 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 text-white text-lg sm:text-xl shadow-lg flex-shrink-0">
@@ -111,13 +112,25 @@ export function FullScreenTimer({ onClose, onMinimize }: FullScreenTimerProps) {
                         </div>
                     </div>
 
-                    {/* Minimize button - Always on right */}
-                    <button
-                        className="p-1.5 sm:p-3 rounded-full bg-white/20 text-white hover:bg-white/30 transition-all ml-2 flex-shrink-0"
-                        onClick={onMinimize}
-                    >
-                        <Minimize2 className="size-3.5 sm:size-5" />
-                    </button>
+                    {/* Controls - Added close button */}
+                    {/* Controls - Added close button with larger mobile size */}
+                    <div className="flex items-center gap-2 sm:gap-3">
+                        {/* Minimize button - Increased mobile size */}
+                        <button
+                            className="p-2.5 sm:p-3 rounded-full bg-white/20 text-white hover:bg-white/30 transition-all flex-shrink-0"
+                            onClick={onMinimize}
+                        >
+                            <Minimize2 className="size-4.5 sm:size-5" />
+                        </button>
+
+                        {/* Close button - Increased mobile size */}
+                        <button
+                            className="p-2.5 sm:p-3 rounded-full bg-white/20 text-white hover:bg-red-500 transition-all flex-shrink-0"
+                            onClick={onClose}
+                        >
+                            <X className="size-4.5 sm:size-5" />
+                        </button>
+                    </div>
                 </div>
 
                 {/* Main timer display - Responsive adjustments */}

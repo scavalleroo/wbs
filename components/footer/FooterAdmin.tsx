@@ -1,12 +1,11 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { Button } from '../ui/button';
+import { useEffect, useRef, useState } from 'react';
 import { cn } from '@/lib/utils';
-import { Brain, Maximize2, Pause, Play, Volume2, VolumeX, X } from 'lucide-react';
+import { Maximize2, Pause, Play, Volume2, VolumeX, X } from 'lucide-react';
 import { Slider } from '../ui/slider';
 import { Progress } from '../ui/progress';
-import { FocusButton } from '../timer/FocusButton';
+import { EnhancedFocusButton } from '../timer/FocusButton';
 import { FullScreenTimer } from '../timer/FullScreenTimer';
 import { useTimer } from '@/contexts/TimerProvider';
 
@@ -23,21 +22,39 @@ export default function Footer() {
     flowMode,
     togglePlayPause,
     toggleMute,
-    setVolume
+    setVolume,
+    resetTimer,
+    setSound,
   } = useTimer();
 
   const [footerVisible, setFooterVisible] = useState(false);
   const [showFullScreenTimer, setShowFullScreenTimer] = useState(false);
+  const prevSound = useRef('none');
 
+  // Enhanced effect - handles both footer visibility AND fullscreen detection
   useEffect(() => {
-    // Only show footer if there's an active session (detected by sound being set)
-    if (sound !== 'none' && !showFullScreenTimer) {
-      setFooterVisible(true);
+    // If sound just changed from 'none' to something else, show fullscreen
+    if (prevSound.current === 'none' && sound !== 'none') {
+      // This means a new session just started - show fullscreen
+      setShowFullScreenTimer(true);
+      setFooterVisible(false);
     }
+    // Normal footer visibility logic
+    else if (sound !== 'none' && !showFullScreenTimer) {
+      setFooterVisible(true);
+    } else if (sound === 'none') {
+      setFooterVisible(false);
+    }
+
+    // Update prevSound for next comparison
+    prevSound.current = sound;
   }, [sound, showFullScreenTimer]);
 
   const closeSession = () => {
-    // Reset timer state
+    // Reset timer state - we should call resetTimer() and then set sound to 'none'
+    setSound('none');
+    resetTimer();
+    setShowFullScreenTimer(false); // Add this line to ensure fullscreen is closed
     setFooterVisible(false);
   };
 
@@ -71,10 +88,7 @@ export default function Footer() {
   if (showFullScreenTimer) {
     return (
       <FullScreenTimer
-        onClose={() => {
-          setShowFullScreenTimer(false);
-          setFooterVisible(true);
-        }}
+        onClose={closeSession}
         onMinimize={handleMinimize}
       />
     );
@@ -127,12 +141,18 @@ export default function Footer() {
               </button>
 
               <button
-                className={`p-2.5 sm:p-3 rounded-full ${isRunning ? 'bg-white' : 'bg-blue-400'} text-blue-600 shadow-md hover:shadow-lg transition-all`}
+                className={cn(
+                  "p-2.5 sm:p-3 rounded-full shadow-md transition-all transform hover:scale-105 active:scale-95",
+                  isRunning
+                    ? "bg-white hover:bg-gray-50 text-blue-600"
+                    : "bg-blue-600 hover:bg-blue-700 text-white"
+                )}
                 onClick={togglePlayPause}
               >
                 {isRunning ?
                   <Pause className="size-4.5 sm:size-5" strokeWidth={1.6} /> :
-                  <Play className="size-4.5 sm:size-5" />}
+                  <Play className="size-4.5 sm:size-5" />
+                }
               </button>
 
               <button
@@ -187,23 +207,10 @@ export default function Footer() {
     );
   }
 
-  // Default footer with focus button - Increased height to match
   return (
-    <div className="fixed inset-x-0 bottom-0 z-40 py-4 sm:py-5 flex items-center bg-gradient-to-r from-blue-500 via-indigo-500 to-blue-500 shadow-lg">
+    <div className="fixed inset-x-0 bottom-0 z-40 flex items-center bg-gradient-to-r from-blue-500 via-indigo-500 to-blue-500 shadow-lg h-[64px] sm:h-18">
       <div className="container mx-auto px-4 flex justify-center">
         <EnhancedFocusButton />
-      </div>
-    </div>
-  );
-}
-
-// Enhanced focus button with modern gradient design
-function EnhancedFocusButton() {
-  return (
-    <div className="relative group">
-      <div className="absolute -inset-1 bg-gradient-to-r from-pink-600 to-purple-600 rounded-full blur opacity-70 group-hover:opacity-100 transition-all duration-500"></div>
-      <div className="relative">
-        <FocusButton />
       </div>
     </div>
   );

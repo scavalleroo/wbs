@@ -16,7 +16,7 @@ export function FocusButton() {
     const pendingFullscreen = useRef(false);
 
     // Use the shared timer context
-    const { initializeSession, sound } = useTimer();
+    const { initializeSession, sound, endSession } = useTimer();
 
     // When FocusSelector's start button is clicked
     const startFocusSession = (settings: {
@@ -64,6 +64,7 @@ export function FocusButton() {
     }, [sound, showFullScreenTimer, showFocusSelector]);
 
     const handleCloseFullScreen = () => {
+        endSession();
         setShowFullScreenTimer(false);
     };
 
@@ -73,14 +74,18 @@ export function FocusButton() {
 
     return (
         <>
-            {/* Focus button */}
-            <button
-                onClick={() => setShowFocusSelector(true)}
-                className="px-4 py-2 md:px-5 md:py-2.5 bg-white text-indigo-600 rounded-full flex items-center gap-1 md:gap-1.5 text-sm md:text-sm font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 active:scale-95 transition-all duration-300"
-            >
-                <PlayCircle className="size-4 md:size-4" />
-                Start Focus Session
-            </button>
+            <div className="relative group transform-gpu">
+                <div className="absolute -inset-1 bg-gradient-to-r from-pink-600 to-purple-600 rounded-full blur-md opacity-70 group-hover:opacity-100 transition-all duration-500 animate-pulse"></div>
+                <div className="relative">
+                    <button
+                        onClick={() => setShowFocusSelector(true)}
+                        className="px-4 sm:px-5 py-2 sm:py-2.5 bg-white text-indigo-600 rounded-full flex items-center gap-1.5 text-sm font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 active:scale-95 transition-all duration-300"
+                    >
+                        <PlayCircle className="w-4 h-4 sm:w-4.5 sm:h-4.5" />
+                        <span className="whitespace-nowrap">Start Focus Session</span>
+                    </button>
+                </div>
+            </div>
 
             {/* Focus selector dialog */}
             <Dialog
@@ -118,17 +123,5 @@ export function FocusButton() {
                 />
             )}
         </>
-    );
-}
-
-// Enhanced focus button unchanged
-export function EnhancedFocusButton() {
-    return (
-        <div className="relative group">
-            <div className="absolute -inset-1 bg-gradient-to-r from-pink-600 to-purple-600 rounded-full blur opacity-70 group-hover:opacity-100 transition-all duration-500"></div>
-            <div className="relative">
-                <FocusButton />
-            </div>
-        </div>
     );
 }

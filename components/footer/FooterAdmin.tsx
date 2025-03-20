@@ -2,12 +2,14 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { cn } from '@/lib/utils';
-import { Maximize2, Pause, Play, Volume2, VolumeX, X } from 'lucide-react';
+import { Maximize2, Pause, Play, User, Users, Volume2, VolumeX, X } from 'lucide-react';
 import { Slider } from '../ui/slider';
 import { Progress } from '../ui/progress';
-import { EnhancedFocusButton } from '../timer/FocusButton';
 import { FullScreenTimer } from '../timer/FullScreenTimer';
 import { useTimer } from '@/contexts/TimerProvider';
+import { useActiveSessions } from '@/hooks/use-active-session';
+import { ActiveUsersParticles } from '../timer/ActiveUsersParticles';
+import { FocusButton } from '../timer/FocusButton';
 
 export default function Footer() {
   const {
@@ -25,11 +27,18 @@ export default function Footer() {
     setVolume,
     resetTimer,
     setSound,
+    endSession,
+    autoplayBlocked,
   } = useTimer();
 
   const [footerVisible, setFooterVisible] = useState(false);
   const [showFullScreenTimer, setShowFullScreenTimer] = useState(false);
   const prevSound = useRef('none');
+  const { activeSessions } = useActiveSessions();
+  const totalActiveUsers = activeSessions.reduce(
+    (sum, session) => sum + session.active_users,
+    0
+  );
 
   // Enhanced effect - handles both footer visibility AND fullscreen detection
   useEffect(() => {
@@ -52,6 +61,7 @@ export default function Footer() {
 
   const closeSession = () => {
     // Reset timer state - we should call resetTimer() and then set sound to 'none'
+    endSession();
     setSound('none');
     resetTimer();
     setShowFullScreenTimer(false); // Add this line to ensure fullscreen is closed
@@ -207,10 +217,57 @@ export default function Footer() {
     );
   }
 
+
+  // Replace the non-active session footer return statement with this improved version
+
+  // Updated non-active session footer with counter on right side
+
   return (
-    <div className="fixed inset-x-0 bottom-0 z-40 flex items-center bg-gradient-to-r from-blue-500 via-indigo-500 to-blue-500 shadow-lg h-[64px] sm:h-18">
-      <div className="container mx-auto px-4 flex justify-center">
-        <EnhancedFocusButton />
+    <div className="fixed inset-x-0 bottom-0 z-40 flex items-center justify-center bg-gradient-to-r from-blue-500 via-indigo-500 to-blue-500 shadow-lg h-[64px] sm:h-18 overflow-hidden">
+      {/* Animated user particles in the background - using diverse emojis now */}
+      <ActiveUsersParticles count={totalActiveUsers} />
+
+      {/* Dark overlay to make content more visible */}
+      <div className="absolute inset-0 bg-black/20" />
+
+      <div className="container relative z-10 mx-auto px-4 flex items-center justify-between h-full">
+        {/* Left side: Empty div for proper spacing */}
+        <div className="w-[80px] sm:w-[180px]"></div>
+
+        {/* Center: Focus button only - SIMPLIFIED */}
+        <div className="flex items-center justify-center">
+          {/* Focus button - original styling */}
+          <FocusButton />
+        </div>
+
+        {/* Right side: User counter - MOVED HERE */}
+        <div className="flex items-center justify-end w-[80px] sm:w-[180px]">
+          {/* User counter - same styling but positioned on the right */}
+          <div className="flex items-center gap-1.5 bg-white/25 backdrop-blur-md rounded-full px-3 py-1.5 shadow-lg border border-white/30 transform-gpu">
+            <span className="inline-block w-2 h-2 bg-red-500 rounded-full animate-pulse shadow-sm"></span>
+            <span className="text-base sm:text-lg font-bold text-white drop-shadow-md">{totalActiveUsers}</span>
+            <span className="hidden sm:inline text-xs text-white/80 font-medium">people</span>
+          </div>
+        </div>
+
+        {/* Activity breakdown - moved to bottom and made more compact */}
+        {activeSessions.length > 1 && (
+          <div className="absolute bottom-1 left-1/2 transform -translate-x-1/2 hidden sm:flex flex-wrap gap-1 justify-center">
+            {activeSessions.map((session, index) => (
+              <div
+                key={index}
+                className="bg-white/10 backdrop-blur-sm rounded-full px-2 py-0.5 text-xs text-white/90 flex items-center"
+              >
+                {session.activity === 'study' && '📚'}
+                {session.activity === 'work' && '💼'}
+                {session.activity === 'code' && '💻'}
+                {session.activity === 'draw' && '🎨'}
+                {session.activity === 'focus' && '🧠'}
+                <span className="font-medium ml-1">{session.active_users}</span>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

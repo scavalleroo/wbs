@@ -247,3 +247,50 @@ body {
   -webkit-background-clip: text;
   color: transparent;
 }
+
+/* Add this file to your global CSS or import it where needed */
+
+@keyframes float {
+
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-5px);
+  }
+}
+
+@keyframes glow {
+  0% {
+    filter: drop-shadow(0 0 3px rgba(255, 255, 255, 0.3));
+  }
+
+  50% {
+    filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.6));
+  }
+
+  100% {
+    filter: drop-shadow(0 0 3px rgba(255, 255, 255, 0.3));
+  }
+}
+
+.avatar-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+.avatar-glow {
+  animation: glow 4s ease-in-out infinite;
+}
+
+/* Improved mobile media queries */
+@media (max-width: 640px) {
+  .footer-container {
+    padding: 0 8px;
+  }
+
+  .focus-button {
+    transform: scale(0.95);
+  }
+}

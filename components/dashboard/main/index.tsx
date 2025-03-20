@@ -40,7 +40,7 @@ export default function MainPage(props: Props) {
                 {activeTab == 'focus' && (<TabComponentFocus user={props.user} />)}
                 {activeTab == 'break' && (<TabComponentBreak user={props.user} />)}
             </Tabs>
-            <TimerProvider>
+            <TimerProvider user={props.user}>
                 <Footer />
             </TimerProvider>
         </DashboardLayout>

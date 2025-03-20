@@ -10,6 +10,7 @@ import {
     PopoverTrigger,
 } from "../ui/popover";
 import { useTimer } from '@/contexts/TimerProvider';
+import { useActiveSessions } from '@/hooks/use-active-session';
 
 // Sound options remain the same
 const SOUNDS = [
@@ -46,11 +47,17 @@ export function FullScreenTimer({ onClose, onMinimize }: FullScreenTimerProps) {
         toggleMute,
         setVolume,
         setSound,
-        resetTimer
+        resetTimer,
+        autoplayBlocked,
     } = useTimer();
 
     // Local UI state only (not timer state)
     const [showAnalogClock, setShowAnalogClock] = useState(false);
+    const { activeSessions } = useActiveSessions();
+
+    const currentActivityUsers = activeSessions.find(
+        session => session.activity === activity
+    )?.active_users || 0;
 
     const formatTime = (seconds: number) => {
         const mins = Math.floor(seconds / 60);
@@ -89,6 +96,15 @@ export function FullScreenTimer({ onClose, onMinimize }: FullScreenTimerProps) {
 
     return (
         <div className="fixed inset-0 bg-white dark:bg-neutral-900 z-50 overflow-hidden flex flex-col">
+            {/* {autoplayBlocked && sound !== 'none' && (
+                <div className="absolute top-4 left-1/2 transform -translate-x-1/2 bg-amber-50 dark:bg-amber-900 text-amber-800 dark:text-amber-100 px-4 py-2 rounded-full text-sm flex items-center gap-2 shadow-md z-50 max-w-[90%] sm:max-w-md">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                        <path d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" fillRule="evenodd" />
+                    </svg>
+                    <span>Click the play button to enable sound</span>
+                </div>
+            )} */}
+
             {/* Background gradients */}
             <div className="absolute inset-0 overflow-hidden">
                 <div className="absolute top-0 left-0 w-[500px] h-[500px] bg-blue-500/10 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2" />
@@ -125,7 +141,7 @@ export function FullScreenTimer({ onClose, onMinimize }: FullScreenTimerProps) {
 
                         {/* Close button - Increased mobile size */}
                         <button
-                            className="p-2.5 sm:p-3 rounded-full bg-neutral-200 dark:bg-white/20 text-neutral-700 dark:text-white hover:bg-red-500 hover:text-white transition-all flex-shrink-0"
+                            className="p-2.5 sm:p-3 rounded-full bg-neutral-200 dark:bg-white/20 text-neutral-700 dark:text-white hover:bg-red-500 dark:hover:bg-red-500 hover:text-white dark:hover:text-white transition-all flex-shrink-0"
                             onClick={onClose}
                         >
                             <X className="size-4.5 sm:size-5" />
@@ -135,6 +151,14 @@ export function FullScreenTimer({ onClose, onMinimize }: FullScreenTimerProps) {
 
                 {/* Main timer display - Responsive adjustments */}
                 <div className="flex-grow flex flex-col items-center justify-center px-4 sm:px-0">
+                    {currentActivityUsers > 0 && (
+                        <div className='flex items-center w-full justify-center'>
+                            <span className="text-xs sm:text-sm text-neutral-500 flex items-center gap-1 ml-2">
+                                <span className="inline-block w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+                                {currentActivityUsers} {currentActivityUsers === 1 ? 'person' : 'people'} focusing now
+                            </span>
+                        </div>
+                    )}
                     <div className="relative mb-4 sm:mb-6">
                         {showAnalogClock ? (
                             <div onClick={() => setShowAnalogClock(false)} className="cursor-pointer scale-75 sm:scale-100">

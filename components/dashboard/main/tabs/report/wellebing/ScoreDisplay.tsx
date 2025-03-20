@@ -29,7 +29,6 @@ export const ScoreDisplay = ({ user, setTimeRange, timeRange }: { user: User | n
 
         setIsLoading(true);
         try {
-            // Get wellness score
             const today = new Date();
             const startDate = new Date();
             startDate.setDate(today.getDate() - 30); // Look back 30 days
@@ -84,15 +83,7 @@ export const ScoreDisplay = ({ user, setTimeRange, timeRange }: { user: User | n
 
     useEffect(() => {
         loadScores();
-    }, [user, timeRange, getMoodHistory, getFocusData]);
-
-    if (isLoading) {
-        return (
-            <div className="flex justify-center items-center p-4 bg-gradient-to-b from-indigo-800 to-purple-900 rounded-xl shadow-md">
-                <div className="animate-pulse rounded-full bg-white/20 h-24 w-24"></div>
-            </div>
-        );
-    }
+    }, [user, getMoodHistory, getFocusData]);
 
     // Calculate combined score
     const combinedScore = (wellnessScore !== null && focusScore !== null)
@@ -115,31 +106,53 @@ export const ScoreDisplay = ({ user, setTimeRange, timeRange }: { user: User | n
         }
     };
 
+    if (isLoading) {
+        return (
+            <TooltipProvider>
+                <div className="flex flex-col px-4 py-4 md:py-6 items-center bg-gradient-to-b from-indigo-800 to-purple-900 rounded-xl shadow-md gap-6 dark:from-indigo-950 dark:to-purple-950 w-full md:w-auto md:max-w-md overflow-hidden flex-col md:items-center md:justify-between">
+                    {/* Title placeholder */}
+                    <div className="flex items-center md:justify-center w-full text-white text-lg font-bold">
+                        Dashboard
+                    </div>
+
+                    <div className="flex flex-col items-center gap-2 -mt-6 w-full">
+                        <p className="w-full text-xs text-white md:text-center text-left text-opacity-90">Today's score</p>
+
+                        <div className="flex flex-row md:flex-col items-center gap-2 w-full justify-between">
+                            {/* Circle Progress Display Skeleton */}
+                            <div className="relative w-24 h-24 sm:w-28 sm:h-28 md:w-32 md:h-32 flex-shrink-0 mx-auto">
+                                <div className="animate-pulse rounded-full bg-white/20 h-full w-full"></div>
+                            </div>
+
+                            {/* Score Stats Skeleton */}
+                            <div className="flex flex-row gap-4 md:flex-row md:justify-center w-full">
+                                {/* Wellness Stats Skeleton */}
+                                <div className="bg-white/20 rounded-lg px-3 py-2 md:px-4 md:py-3 flex flex-col items-center backdrop-blur-sm w-full md:flex-1 md:max-w-[140px]">
+                                    <p className="text-xs text-white text-opacity-90">Wellness score</p>
+                                    <div className="h-7 w-16 animate-pulse bg-white/30 rounded-md mt-1"></div>
+                                </div>
+
+                                {/* Focus Stats Skeleton */}
+                                <div className="bg-white/20 rounded-lg px-3 py-2 md:px-4 md:py-3 flex flex-col items-center backdrop-blur-sm w-full md:flex-1 md:max-w-[140px]">
+                                    <p className="text-xs text-white text-opacity-90">Focus score</p>
+                                    <div className="h-7 w-16 animate-pulse bg-white/30 rounded-md mt-1"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Legend Skeleton */}
+                    <div className="flex flex-row md:flex-col justify-center text-xs text-white text-opacity-90 bg-white/10 py-2 px-4 rounded-lg backdrop-blur-sm md:w-full w-auto gap-3 md:max-w-[280px]">
+                        <div className="w-full h-4 animate-pulse bg-white/20 rounded"></div>
+                    </div>
+                </div>
+            </TooltipProvider>
+        );
+    }
+
     return (
         <TooltipProvider>
-            <div className="flex flex-col px-4 py-4 md:py-6 items-center bg-gradient-to-b from-indigo-800 to-purple-900 rounded-xl shadow-md gap-6 dark:from-indigo-950 dark:to-purple-950 w-full md:w-auto md:max-w-mdoverflow-hidden flex-col md:items-center md:justify-between">
-                {/* <Tabs value={timeRange} onValueChange={setTimeRange} className="w-auto">
-                    <TabsList className="bg-neutral-900/30 dark:bg-neutral-50/30">
-                        <TabsTrigger
-                            value="week"
-                            className="data-[state=active]:bg-white data-[state=active]:text-indigo-600 text-white"
-                        >
-                            Week
-                        </TabsTrigger>
-                        <TabsTrigger
-                            value="month"
-                            className="data-[state=active]:bg-white data-[state=active]:text-indigo-600 text-white"
-                        >
-                            Month
-                        </TabsTrigger>
-                        <TabsTrigger
-                            value="year"
-                            className="data-[state=active]:bg-white data-[state=active]:text-indigo-600 text-white"
-                        >
-                            Year
-                        </TabsTrigger>
-                    </TabsList>
-                </Tabs> */}
+            <div className="flex flex-col px-4 py-4 md:py-6 items-center bg-gradient-to-b from-indigo-800 to-purple-900 rounded-xl shadow-md gap-6 dark:from-indigo-950 dark:to-purple-950 w-full md:w-auto md:max-w-md overflow-hidden md:items-center md:justify-between">
                 {/* Title with Weko logo */}
                 <div className="flex items-center md:justify-center w-full text-white text-lg font-bold">
                     Dashboard

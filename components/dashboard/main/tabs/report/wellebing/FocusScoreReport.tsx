@@ -200,7 +200,7 @@ const FocusScoreReport = ({
         <div className={`space-y-${compactMode ? '4' : '6'}`}>
             <Card className="shadow-md bg-neutral-100 dark:bg-neutral-800 border-t-4 border-indigo-500 rounded-xl overflow-hidden">
                 <CardHeader className="pb-2">
-                    <CardTitle className="text-md font-medium text-indigo-600 dark:text-indigo-400">Focus Trend</CardTitle>
+                    <CardTitle className="text-md font-medium text-indigo-600 dark:text-indigo-400">Digital Wellbeing</CardTitle>
                 </CardHeader>
                 <CardContent>
                     {hasNoFocusData ? (

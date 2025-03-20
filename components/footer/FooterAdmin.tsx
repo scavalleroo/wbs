@@ -129,7 +129,10 @@ export default function Footer() {
               {getActivityIcon(activity)}
             </div>
             <div className="flex flex-col min-w-0">
-              <span className="font-medium text-sm sm:text-base sm:font-bold truncate text-white">Focus Session</span>
+              {/* <span className="font-medium text-sm sm:text-base sm:font-bold truncate text-white">Focus Session</span> */}
+              <span className="text-base sm:text-base font-bold text-white drop-shadow-md xs:hidden whitespace-nowrap overflow-visible inline-block">
+                {flowMode ? `Time Elapsed ${formatTime(timeElapsed)}` : `Time Remaining ${formatTime(timeRemaining)}`}
+              </span>
               <span className="text-[11px] sm:text-xs font-medium text-white/70 truncate">
                 {activity.charAt(0).toUpperCase() + activity.slice(1)}
               </span>
@@ -138,10 +141,6 @@ export default function Footer() {
 
           {/* Controls with larger sizes on mobile */}
           <div className="flex flex-row items-center justify-end gap-3 sm:gap-4">
-            <span className="text-base sm:text-base font-bold text-white drop-shadow-md xs:hidden mr-2">
-              {flowMode ? formatTime(timeElapsed) : formatTime(timeRemaining)}
-            </span>
-
             <div className="flex items-center gap-2 sm:gap-3">
               <button
                 className="p-2 sm:p-2.5 rounded-full bg-white/20 text-white hover:bg-white/30 transition-all"
@@ -242,12 +241,6 @@ export default function Footer() {
 
         {/* Right side: User counter - MOVED HERE */}
         <div className="flex items-center justify-end w-[80px] sm:w-[180px]">
-          {/* User counter - same styling but positioned on the right */}
-          <div className="flex items-center gap-1.5 bg-white/25 backdrop-blur-md rounded-full px-3 py-1.5 shadow-lg border border-white/30 transform-gpu">
-            <span className="inline-block w-2 h-2 bg-red-500 rounded-full animate-pulse shadow-sm"></span>
-            <span className="text-base sm:text-lg font-bold text-white drop-shadow-md">{totalActiveUsers}</span>
-            <span className="hidden sm:inline text-xs text-white/80 font-medium">people</span>
-          </div>
         </div>
 
         {/* Activity breakdown - moved to bottom and made more compact */}
@@ -269,6 +262,6 @@ export default function Footer() {
           </div>
         )}
       </div>
-    </div>
+    </div >
   );
 }

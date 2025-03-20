@@ -1,16 +1,22 @@
 'use client';
 
-import { PlayCircle } from 'lucide-react';
+import { PlayCircle, Users } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
 import { Dialog, DialogContent } from '../ui/dialog';
 import { FocusSelector } from './FocusSelector';
 import { FullScreenTimer } from './FullScreenTimer';
 import { DialogTitle } from '@radix-ui/react-dialog';
 import { useTimer } from '@/contexts/TimerProvider';
+import { useActiveSessions } from '@/hooks/use-active-session';
 
 export function FocusButton() {
     const [showFocusSelector, setShowFocusSelector] = useState(false);
     const [showFullScreenTimer, setShowFullScreenTimer] = useState(false);
+    const { activeSessions } = useActiveSessions();
+    const totalActiveUsers = activeSessions.reduce(
+        (sum, session) => sum + session.active_users,
+        0
+    ) || 30;
 
     // Track if we need to show fullscreen
     const pendingFullscreen = useRef(false);

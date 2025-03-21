@@ -205,7 +205,7 @@ export const RealtimeEditor: React.FC<RealtimeEditorProps> = ({
         </EditorContent>
 
         {/* Footer with justified content - Last saved on left, ProjectDialogs on right */}
-        <div className="flex justify-between items-center z-10 py-2 border-t">
+        <div className="flex justify-between items-center z-10 p-2 border-t">
           <div className="flex items-center gap-2">
             {isSaving && (
               <div className="text-xs text-muted-foreground">

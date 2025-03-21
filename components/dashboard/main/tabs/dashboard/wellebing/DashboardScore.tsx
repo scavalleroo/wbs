@@ -8,7 +8,7 @@ import { useEffect, useState } from "react";
 import MoodTrackingModal from "../../../moodTracking/MoodTrackingModal";
 import ScoreVisualization, { ScoreScaleLegend } from "@/components/ui/score";
 
-export const ScoreDisplay = ({ user, setTimeRange, timeRange }: {
+export const DashboardScore = ({ user, setTimeRange, timeRange }: {
     user: User | null | undefined;
     setTimeRange: ((value: string) => void) | undefined,
     timeRange: 'week' | 'month' | 'year'

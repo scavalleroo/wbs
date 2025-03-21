@@ -1,19 +1,18 @@
 import React, { useEffect, useState } from 'react';
 import { User } from '@supabase/supabase-js';
-import { format, subDays, eachDayOfInterval, startOfDay, endOfDay, isToday, isFuture, parseISO } from 'date-fns';
+import { format, subDays, eachDayOfInterval, startOfDay, endOfDay, isToday, isFuture } from 'date-fns';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import useMood from '@/hooks/use-mood';
 import MoodTrackingModal from '@/components/dashboard/main/moodTracking/MoodTrackingModal';
 import { getFormattedDateLabel } from '@/lib/utils';
 import { Toggle } from '@/components/ui/toggle';
-import { Heart, InfoIcon } from "lucide-react";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { getScoreTier } from '@/components/ui/score';
+import TimeRangeSelector from './TimeRangeSelector';
 
-interface WellnessReportProps {
+interface WellnessHistoryProps {
     user: User | null | undefined;
     compactMode?: boolean;
     timeRange?: 'week' | 'month' | 'year';
@@ -43,13 +42,13 @@ interface DailyScore {
     description: string | null;
 }
 
-const WellnessReport = ({
+const WellnessHistory = ({
     user,
     compactMode = false,
     timeRange: externalTimeRange,
     hideTitle = false
-}: WellnessReportProps) => {
-    const [timeRange, setTimeRange] = useState(externalTimeRange || 'week');
+}: WellnessHistoryProps) => {
+    const [timeRange, setTimeRange] = useState<'week' | 'month' | 'year' | 'all'>(externalTimeRange || 'week');
     const [wellbeingData, setWellbeingData] = useState<DailyScore[]>([]);
     const [currentScore, setCurrentScore] = useState<number | null>(null);
     const [showMoodModal, setShowMoodModal] = useState(false);
@@ -471,19 +470,24 @@ const WellnessReport = ({
         <div className={`space-y-${compactMode ? '4' : '6'}`}>
             {/* Trend Chart */}
             <Card className="shadow-md bg-gradient-to-b from-indigo-800 to-purple-900 dark:from-indigo-950 dark:to-purple-950 rounded-xl overflow-hidden">
-                <CardHeader className="pb-2">
-                    <CardTitle className="text-md font-medium text-white">Wellness history</CardTitle>
-
-                    {/* Add metric filter section */}
-                    <div className="flex flex-wrap gap-2 mt-2">
-                        {renderMetricToggle('wellbeing')}
-                        {renderMetricToggle('mood')}
-                        {renderMetricToggle('sleep')}
-                        {renderMetricToggle('nutrition')}
-                        {renderMetricToggle('exercise')}
-                        {renderMetricToggle('social')}
+                <CardHeader className="pb-4 flex flex-row items-center justify-between -mt-4">
+                    <CardTitle className="text-md font-bold text-white">Wellness history</CardTitle>
+                    <div className="flex flex-row gap-2 flex-wrap items-center">
+                        <TimeRangeSelector
+                            value={timeRange}
+                            onChange={(value) => setTimeRange(value)}
+                        />
                     </div>
                 </CardHeader>
+
+                <div className="flex flex-wrap gap-2 mt-2 mb-4 px-4">
+                    {renderMetricToggle('wellbeing')}
+                    {renderMetricToggle('mood')}
+                    {renderMetricToggle('sleep')}
+                    {renderMetricToggle('nutrition')}
+                    {renderMetricToggle('exercise')}
+                    {renderMetricToggle('social')}
+                </div>
 
                 <CardContent>
                     <div className="w-full h-64 bg-white/5 rounded-xl p-3">
@@ -652,4 +656,4 @@ const WellnessReport = ({
     );
 };
 
-export default WellnessReport;
+export default WellnessHistory;

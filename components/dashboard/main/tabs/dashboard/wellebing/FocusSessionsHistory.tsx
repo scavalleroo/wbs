@@ -10,20 +10,20 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogD
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { FocusSession } from '@/types/focus-session.types';
 import { toast } from "sonner";
-import { reportColors } from '@/utils/constants';
+import TimeRangeSelector from './TimeRangeSelector';
 
-interface FocusSessionsReportProps {
+interface FocusSessionsHistoryProps {
     user: User | null | undefined;
     compactMode?: boolean;
-    timeRange?: 'week' | 'month' | 'all';
+    timeRange?: 'week' | 'month' | 'year' | 'all';
 }
 
-const FocusSessionsReport = ({
+const FocusSessionsHistory = ({
     user,
     compactMode = false,
     timeRange: externalTimeRange,
-}: FocusSessionsReportProps) => {
-    const [timeRange, setTimeRange] = useState(externalTimeRange || 'week');
+}: FocusSessionsHistoryProps) => {
+    const [timeRange, setTimeRange] = useState<'week' | 'month' | 'year' | 'all'>(externalTimeRange || 'week');
     const [isLoading, setIsLoading] = useState(false);
     const [isHistoryDialogOpen, setIsHistoryDialogOpen] = useState(false);
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -391,10 +391,15 @@ const FocusSessionsReport = ({
     return (
         <>
             <Card className="shadow-md bg-gradient-to-b from-indigo-800 to-purple-900 dark:from-indigo-950 dark:to-purple-950 rounded-xl overflow-hidden">
-                <CardHeader className="pb-2">
-                    <CardTitle className="text-md font-medium text-white">
+                <CardHeader className="pb-6 flex flex-row items-center justify-between -mt-4">
+                    <CardTitle className="text-md font-bold text-white">
                         Focus sessions history
                     </CardTitle>
+                    <TimeRangeSelector
+                        value={timeRange === 'all' ? 'all' : timeRange}
+                        onChange={(value) => setTimeRange(value)}
+                        allowAll={true}
+                    />
                 </CardHeader>
                 <CardContent>
                     {hasNoSessionData ? (
@@ -468,9 +473,16 @@ const FocusSessionsReport = ({
                                         <Bar
                                             dataKey="totalDuration"
                                             name="Focus Time"
-                                            fill="rgba(255, 255, 255, 0.8)"  // Changed to semi-transparent white
+                                            fill="url(#focusGradient)"  // Use a gradient instead of solid color
                                             radius={[4, 4, 0, 0]}
                                         />
+
+                                        <defs>
+                                            <linearGradient id="focusGradient" x1="0" y1="0" x2="0" y2="1">
+                                                <stop offset="0%" stopColor="#a78bfa" stopOpacity={0.9} />  {/* Purple-400 */}
+                                                <stop offset="100%" stopColor="#818cf8" stopOpacity={0.9} />  {/* Indigo-400 */}
+                                            </linearGradient>
+                                        </defs>
                                     </BarChart>
                                 </ResponsiveContainer>
                             </div>
@@ -632,48 +644,77 @@ const FocusSessionsReport = ({
 
             {/* Delete Confirmation Dialog */}
             <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-                <DialogContent className="sm:max-w-[425px]">
-                    <DialogHeader>
-                        <DialogTitle className="flex items-center gap-2">
-                            <AlertCircle className="h-5 w-5 text-red-500" />
-                            Confirm Deletion
-                        </DialogTitle>
-                        <DialogDescription>
-                            Are you sure you want to delete this focus session? This action cannot be undone.
-                        </DialogDescription>
-                    </DialogHeader>
+                <DialogContent className="sm:max-w-[425px] p-0 border-0 bg-transparent max-h-[90vh] overflow-hidden">
+                    <div className="bg-gradient-to-br from-purple-500 to-indigo-600 rounded-xl p-1 shadow-xl">
+                        <div className="bg-white dark:bg-neutral-900 rounded-lg p-0 overflow-y-auto max-h-[80vh] [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+                            {/* Gradient Header */}
+                            <DialogHeader className="p-0">
+                                <div className="bg-gradient-to-r from-purple-500 via-indigo-500 to-purple-500 p-6 text-white">
+                                    <DialogTitle className="text-2xl font-bold mb-1 flex items-center gap-2">
+                                        <AlertCircle className="h-5 w-5 text-white/90" />
+                                        Confirm Deletion
+                                    </DialogTitle>
+                                    <DialogDescription className="text-white/80 m-0">
+                                        Are you sure you want to delete this focus session? This action cannot be undone.
+                                    </DialogDescription>
+                                </div>
+                            </DialogHeader>
 
-                    {sessionToDelete && (
-                        <div className="bg-neutral-100 dark:bg-neutral-800 p-3 rounded-md">
-                            <p className="text-sm font-medium">{capitalizeFirstLetter(sessionToDelete.activity)} session</p>
-                            <p className="text-xs text-neutral-500">Duration: {formatDuration(sessionToDelete.actual_duration)}</p>
-                            <p className="text-xs text-neutral-500">Date: {new Date(sessionToDelete.created_at).toLocaleDateString()}</p>
+                            {/* Content Area */}
+                            <div className="p-6">
+                                {sessionToDelete && (
+                                    <div className="bg-neutral-50 dark:bg-neutral-800 p-4 rounded-lg border border-neutral-200 dark:border-neutral-700">
+                                        <div className="flex items-center gap-3">
+                                            {/* Activity icon with styled container */}
+                                            <div className="flex items-center justify-center h-10 w-10 rounded-md bg-indigo-500/30 backdrop-blur-sm text-xl shadow-inner">
+                                                {getActivityIcon(sessionToDelete.activity)}
+                                            </div>
+
+                                            <div>
+                                                <p className="text-base font-medium">{capitalizeFirstLetter(sessionToDelete.activity)} session</p>
+                                                <p className="text-sm text-neutral-500">
+                                                    <span className="font-medium">{formatDuration(sessionToDelete.actual_duration)}</span> on {new Date(sessionToDelete.created_at).toLocaleDateString()}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Footer */}
+                            <div className="p-4 sm:p-6 border-t dark:border-neutral-800 flex sm:justify-between gap-3">
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    onClick={() => setIsDeleteDialogOpen(false)}
+                                    disabled={isDeleting}
+                                    className="flex-1"
+                                >
+                                    Cancel
+                                </Button>
+                                <Button
+                                    type="button"
+                                    variant="destructive"
+                                    onClick={handleDeleteSession}
+                                    disabled={isDeleting}
+                                    className="flex-1 bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 border-0"
+                                >
+                                    {isDeleting ? (
+                                        <>
+                                            <span className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white border-opacity-20 border-t-white"></span>
+                                            Deleting...
+                                        </>
+                                    ) : (
+                                        <>Delete Session</>
+                                    )}
+                                </Button>
+                            </div>
                         </div>
-                    )}
-
-                    <DialogFooter className="sm:justify-between">
-                        <Button
-                            type="button"
-                            variant="outline"
-                            onClick={() => setIsDeleteDialogOpen(false)}
-                            disabled={isDeleting}
-                        >
-                            Cancel
-                        </Button>
-                        <Button
-                            type="button"
-                            variant="destructive"
-                            onClick={handleDeleteSession}
-                            disabled={isDeleting}
-                            className="bg-red-600 hover:bg-red-700"
-                        >
-                            {isDeleting ? "Deleting..." : "Delete Session"}
-                        </Button>
-                    </DialogFooter>
+                    </div>
                 </DialogContent>
             </Dialog>
         </>
     );
 };
 
-export default FocusSessionsReport;
+export default FocusSessionsHistory;

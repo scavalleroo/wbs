@@ -162,59 +162,73 @@ const ProjectDialogs: React.FC<ProjectDialogsProps> = ({
                 </DialogContent>
             </Dialog>
 
-            {/* Delete Project Dialog - Updated Styling */}
             <Dialog open={isDeleteOpen} onOpenChange={setIsDeleteOpen}>
-                <DialogContent className="sm:max-w-[500px] p-0 border-0 bg-transparent max-h-[90vh] overflow-hidden">
-                    <div className="bg-gradient-to-br from-neutral-300 to-neutral-500 dark:from-neutral-600 dark:to-neutral-800 rounded-xl p-1 shadow-xl">
-                        <div className="bg-white dark:bg-neutral-900 rounded-lg p-0 overflow-y-auto max-h-[80vh]">
-                            {/* Softer Header with just a touch of rose */}
+                <DialogContent className="sm:max-w-[425px] p-0 border-0 bg-transparent max-h-[90vh] overflow-hidden">
+                    <div className="bg-gradient-to-br from-purple-500 to-indigo-600 rounded-xl p-1 shadow-xl">
+                        <div className="bg-white dark:bg-neutral-900 rounded-lg p-0 overflow-y-auto max-h-[80vh] [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+                            {/* Gradient Header */}
                             <DialogHeader className="p-0">
-                                <div className="bg-gradient-to-r from-neutral-700 via-neutral-700 to-neutral-700 dark:from-neutral-800 dark:via-neutral-800 dark:to-neutral-800 border-b-2 border-rose-500 p-6 text-white">
-                                    <DialogTitle className="text-2xl font-bold mb-1 flex items-center">
-                                        <Trash className="h-5 w-5 text-rose-400 mr-2" /> Delete Page
+                                <div className="bg-gradient-to-r from-purple-500 via-indigo-500 to-purple-500 p-6 text-white">
+                                    <DialogTitle className="text-2xl font-bold mb-1 flex items-center gap-2">
+                                        <Trash className="h-5 w-5 text-white/90" />
+                                        Delete Page
                                     </DialogTitle>
-                                    <DialogDescription className="text-white/80 text-sm">
+                                    <DialogDescription className="text-white/80 m-0">
                                         This action cannot be undone.
                                     </DialogDescription>
                                 </div>
                             </DialogHeader>
 
+                            {/* Content Area */}
                             <div className="p-6">
-                                <p className="mb-6">
+                                <p className="mb-2">
                                     Are you sure you want to delete "<span className="font-medium">{project.title}</span>"?
                                     All content will be permanently removed.
                                 </p>
 
-                                {/* Footer with Actions */}
-                                <div className="flex justify-end gap-3 mt-6">
-                                    <Button
-                                        type="button"
-                                        variant="outline"
-                                        onClick={() => setIsDeleteOpen(false)}
-                                        disabled={isDeleting}
-                                        className="border-neutral-200 dark:border-neutral-700"
-                                    >
-                                        Cancel
-                                    </Button>
-                                    <Button
-                                        type="submit"
-                                        onClick={handleDelete}
-                                        disabled={isDeleting}
-                                        className="bg-neutral-800 hover:bg-neutral-900 dark:bg-neutral-700 dark:hover:bg-neutral-600 text-white border-rose-500 border"
-                                    >
-                                        {isDeleting ? (
-                                            <>
-                                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                                Deleting...
-                                            </>
-                                        ) : (
-                                            <>
-                                                <Trash className="mr-2 h-4 w-4 text-rose-400" />
-                                                Delete Page
-                                            </>
-                                        )}
-                                    </Button>
+                                {/* Project preview card - similar to session preview */}
+                                <div className="bg-neutral-50 dark:bg-neutral-800 p-4 rounded-lg border border-neutral-200 dark:border-neutral-700 mt-4">
+                                    <div className="flex items-center gap-3">
+                                        <div className="flex items-center justify-center h-10 w-10 rounded-md bg-indigo-500/30 backdrop-blur-sm text-xl shadow-inner">
+                                            📄
+                                        </div>
+                                        <div>
+                                            <p className="text-base font-medium">{project.title}</p>
+                                            <p className="text-sm text-neutral-500">
+                                                Page will be permanently deleted
+                                            </p>
+                                        </div>
+                                    </div>
                                 </div>
+                            </div>
+
+                            {/* Footer */}
+                            <div className="p-4 sm:p-6 border-t dark:border-neutral-800 flex sm:justify-between gap-3">
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    onClick={() => setIsDeleteOpen(false)}
+                                    disabled={isDeleting}
+                                    className="flex-1"
+                                >
+                                    Cancel
+                                </Button>
+                                <Button
+                                    type="button"
+                                    variant="destructive"
+                                    onClick={handleDelete}
+                                    disabled={isDeleting}
+                                    className="flex-1 bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 border-0"
+                                >
+                                    {isDeleting ? (
+                                        <>
+                                            <span className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white border-opacity-20 border-t-white"></span>
+                                            Deleting...
+                                        </>
+                                    ) : (
+                                        <>Delete Page</>
+                                    )}
+                                </Button>
                             </div>
                         </div>
                     </div>

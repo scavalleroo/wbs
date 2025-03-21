@@ -8,19 +8,20 @@ import { useBlockedSite } from '@/hooks/use-blocked-site';
 import { DailyFocusData } from '@/types/report.types';
 import { ManageDistractionsDialog } from './ManageDistractionsDialog';
 import { getScoreTier } from '@/components/ui/score';
+import TimeRangeSelector from './TimeRangeSelector';
 
-interface FocusScoreReportProps {
+interface DigitalWellbeingHistoryProps {
     user: User | null | undefined;
     compactMode?: boolean;
     timeRange?: 'week' | 'month' | 'year';
 }
 
-const FocusScoreReport = ({
+const DigitalWellbeingHistory = ({
     user,
     compactMode = false,
     timeRange: externalTimeRange,
-}: FocusScoreReportProps) => {
-    const [timeRange, setTimeRange] = useState(externalTimeRange || 'week');
+}: DigitalWellbeingHistoryProps) => {
+    const [timeRange, setTimeRange] = useState<'week' | 'month' | 'year' | 'all'>(externalTimeRange || 'week');
     const [focusData, setFocusData] = useState<DailyFocusData[]>([]);
     const [currentScore, setCurrentScore] = useState<number | null>(null);
     const [isLoading, setIsLoading] = useState(false);
@@ -45,7 +46,9 @@ const FocusScoreReport = ({
 
             try {
                 setIsLoading(true);
-                const { focusData: data, currentScore: score } = await getFocusData(timeRange);
+                const { focusData: data, currentScore: score } = await getFocusData(
+                    timeRange === 'all' ? undefined : timeRange
+                );
                 setFocusData(data);
                 setCurrentScore(score);
 
@@ -171,7 +174,9 @@ const FocusScoreReport = ({
 
         try {
             setIsLoading(true);
-            const { focusData: data, currentScore: score } = await getFocusData(timeRange);
+            const { focusData: data, currentScore: score } = await getFocusData(
+                timeRange === 'all' ? undefined : timeRange
+            );
             setFocusData(data);
             setCurrentScore(score);
 
@@ -194,10 +199,14 @@ const FocusScoreReport = ({
     return (
         <div className={`space-y-${compactMode ? '4' : '6'}`}>
             <Card className="shadow-md bg-gradient-to-b from-indigo-800 to-purple-900 dark:from-indigo-950 dark:to-purple-950 rounded-xl overflow-hidden">
-                <CardHeader className="pb-2">
-                    <CardTitle className="text-md font-medium text-white">
+                <CardHeader className="pb-6 flex flex-row items-center justify-between -mt-4">
+                    <CardTitle className="text-md font-bold text-white">
                         Digital wellbeing history
                     </CardTitle>
+                    <TimeRangeSelector
+                        value={timeRange}
+                        onChange={(value) => setTimeRange(value)}
+                    />
                 </CardHeader>
                 <CardContent>
                     {hasNoFocusData ? (
@@ -322,4 +331,4 @@ const FocusScoreReport = ({
     );
 };
 
-export default FocusScoreReport;
+export default DigitalWellbeingHistory;

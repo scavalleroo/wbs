@@ -3,6 +3,11 @@ import { redirect } from 'next/navigation';
 import { getUserDetails, getUser } from '@/utils/supabase/queries';
 import { createClient } from '@/utils/supabase/server';
 
+export const metadata = {
+    title: 'Weko',
+    description: 'Your calm space for productivity',
+};
+
 export default async function Account() {
     const supabase = await createClient();
     const [user, userDetails] = await Promise.all([

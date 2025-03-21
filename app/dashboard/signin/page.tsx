@@ -2,6 +2,10 @@ import { redirect } from 'next/navigation';
 import { createClient } from '@/utils/supabase/server';
 import DefaultAuth from '@/components/auth/default-auth';
 
+export const metadata = {
+    title: 'Sign In | Weko',
+    description: 'Your calm space for productivity',
+};
 
 export default async function SignIn() {
     // Check if the user is already logged in and redirect to the account page if so

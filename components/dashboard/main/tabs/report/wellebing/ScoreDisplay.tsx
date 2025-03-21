@@ -1,14 +1,18 @@
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useBlockedSite } from "@/hooks/use-blocked-site";
 import useMood from "@/hooks/use-mood";
 import { User } from "@supabase/supabase-js";
-import { Brain, Download, Heart } from "lucide-react";
+import { Download, Heart } from "lucide-react";
 import { useEffect, useState } from "react";
 import MoodTrackingModal from "../../../moodTracking/MoodTrackingModal";
+import ScoreVisualization, { ScoreScaleLegend } from "@/components/ui/score";
 
-export const ScoreDisplay = ({ user, setTimeRange, timeRange }: { user: User | null | undefined; setTimeRange: ((value: string) => void) | undefined, timeRange: 'week' | 'month' | 'year' }) => {
+export const ScoreDisplay = ({ user, setTimeRange, timeRange }: {
+    user: User | null | undefined;
+    setTimeRange: ((value: string) => void) | undefined,
+    timeRange: 'week' | 'month' | 'year'
+}) => {
     const [wellnessScore, setWellnessScore] = useState<number | null>(null);
     const [focusScore, setFocusScore] = useState<number | null>(null);
     const [isLoading, setIsLoading] = useState(true);
@@ -109,7 +113,7 @@ export const ScoreDisplay = ({ user, setTimeRange, timeRange }: { user: User | n
     if (isLoading) {
         return (
             <TooltipProvider>
-                <div className="flex flex-col px-4 py-4 md:py-6 items-center bg-gradient-to-b from-indigo-800 to-purple-900 rounded-xl shadow-md gap-6 dark:from-indigo-950 dark:to-purple-950 w-full md:w-auto md:max-w-md overflow-hidden flex-col md:items-center md:justify-between">
+                <div className="flex flex-col px-3 py-4 md:w-80 w-full md:py-6 items-center bg-gradient-to-b from-indigo-800 to-purple-900 rounded-xl shadow-md gap-6 dark:from-indigo-950 dark:to-purple-950 overflow-hidden flex-col md:items-center md:justify-between">
                     {/* Title placeholder */}
                     <div className="flex items-center md:justify-center w-full text-white text-lg font-bold">
                         Dashboard
@@ -118,53 +122,98 @@ export const ScoreDisplay = ({ user, setTimeRange, timeRange }: { user: User | n
                     <div className="flex flex-col items-center gap-2 -mt-6 w-full">
                         <p className="w-full text-xs text-white md:text-center text-left text-opacity-90">Today's score</p>
 
-                        <div className="flex flex-row md:flex-col items-center gap-2 w-full justify-between">
-                            {/* Circle Progress Display Skeleton */}
-                            <div className="relative w-24 h-24 sm:w-28 sm:h-28 md:w-32 md:h-32 flex-shrink-0 mx-auto">
-                                <div className="animate-pulse rounded-full bg-white/20 h-full w-full"></div>
+                        {/* Loading skeleton */}
+                        <div className="relative w-28 h-28 flex-shrink-0 mx-auto">
+                            <div className="animate-pulse rounded-full bg-white/20 h-full w-full"></div>
+                        </div>
+
+                        <div className="flex justify-center gap-3 w-full mt-2 mb-3">
+                            <div className="h-3 w-20 bg-white/20 rounded-full animate-pulse"></div>
+                            <div className="h-3 w-20 bg-white/20 rounded-full animate-pulse"></div>
+                            <div className="h-3 w-20 bg-white/20 rounded-full animate-pulse"></div>
+                        </div>
+
+                        <div className="w-full space-y-3 mt-4">
+                            <div className="animate-pulse space-y-1">
+                                <div className="flex justify-between">
+                                    <div className="h-3 bg-white/30 rounded w-20"></div>
+                                    <div className="h-3 bg-white/30 rounded w-16"></div>
+                                </div>
+                                <div className="h-2 bg-white/20 rounded-full w-full"></div>
                             </div>
 
-                            {/* Score Stats Skeleton */}
-                            <div className="flex flex-row gap-4 md:flex-row md:justify-center w-full">
-                                {/* Wellness Stats Skeleton */}
-                                <div className="bg-white/20 rounded-lg px-3 py-2 md:px-4 md:py-3 flex flex-col items-center backdrop-blur-sm w-full md:flex-1 md:max-w-[140px]">
-                                    <p className="text-xs text-white text-opacity-90">Wellness score</p>
-                                    <div className="h-7 w-16 animate-pulse bg-white/30 rounded-md mt-1"></div>
+                            <div className="animate-pulse space-y-1">
+                                <div className="flex justify-between">
+                                    <div className="h-3 bg-white/30 rounded w-20"></div>
+                                    <div className="h-3 bg-white/30 rounded w-16"></div>
                                 </div>
-
-                                {/* Focus Stats Skeleton */}
-                                <div className="bg-white/20 rounded-lg px-3 py-2 md:px-4 md:py-3 flex flex-col items-center backdrop-blur-sm w-full md:flex-1 md:max-w-[140px]">
-                                    <p className="text-xs text-white text-opacity-90">Focus score</p>
-                                    <div className="h-7 w-16 animate-pulse bg-white/30 rounded-md mt-1"></div>
-                                </div>
+                                <div className="h-2 bg-white/20 rounded-full w-full"></div>
                             </div>
                         </div>
                     </div>
 
-                    {/* Legend Skeleton */}
-                    <div className="flex flex-row md:flex-col justify-center text-xs text-white text-opacity-90 bg-white/10 py-2 px-4 rounded-lg backdrop-blur-sm md:w-full w-auto gap-3 md:max-w-[280px]">
-                        <div className="w-full h-4 animate-pulse bg-white/20 rounded"></div>
+                    <div className="text-[10px] text-white/90 bg-white/10 py-2 px-3 rounded-lg backdrop-blur-sm w-full">
+                        <div className="animate-pulse flex flex-col space-y-2">
+                            {[1, 2, 3, 4, 5, 6].map((i) => (
+                                <div key={i} className="h-2 bg-white/20 rounded-full w-full"></div>
+                            ))}
+                        </div>
                     </div>
                 </div>
             </TooltipProvider>
         );
     }
 
+    // Prepare score data for the visualization component
+    const scoreData = [
+        {
+            label: "Digital Wellebing Score",
+            score: focusScore,
+            color: colors.focus.ring,
+            actionButton: focusScore === null ? (
+                <Button
+                    className="bg-white/30 hover:bg-white/40 text-white text-xs font-medium py-1 px-2 rounded-md flex items-center gap-1 transition-colors"
+                    onClick={() => window.open('/extension', '_blank')}
+                >
+                    <Download className="size-3 text-white" />
+                    Get extension
+                </Button>
+            ) : undefined
+        },
+        {
+            label: "Wellness Score",
+            score: wellnessScore,
+            color: colors.wellness.ring,
+            actionButton: wellnessScore === null ? (
+                <Button
+                    className="bg-white/30 hover:bg-white/40 text-white text-xs font-medium py-1 px-2 rounded-md flex items-center gap-1 transition-colors"
+                    onClick={() => {
+                        const today = new Date();
+                        setSelectedDate(today);
+                        setShowMoodModal(true);
+                    }}
+                >
+                    <Heart className="size-3 text-white" />
+                    Check in
+                </Button>
+            ) : undefined
+        },
+    ];
+
     return (
         <TooltipProvider>
-            <div className="flex flex-col px-4 py-4 md:py-6 items-center bg-gradient-to-b from-indigo-800 to-purple-900 rounded-xl shadow-md gap-6 dark:from-indigo-950 dark:to-purple-950 w-full md:w-auto md:max-w-md overflow-hidden md:items-center md:justify-between">
+            <div className="flex flex-col px-3 py-4 md:w-80 w-full md:py-6 items-center bg-gradient-to-b from-indigo-800 to-purple-900 rounded-xl shadow-md gap-4 dark:from-indigo-950 dark:to-purple-950 overflow-hidden md:items-center md:justify-between">
                 {/* Title with Weko logo */}
                 <div className="flex items-center md:justify-center w-full text-white text-lg font-bold">
                     Dashboard
                 </div>
 
-                <div className="flex flex-col items-center gap-2 -mt-6 w-full">
-                    <p className="w-full text-xs text-white md:text-center text-left text-opacity-90">Today's score</p>
+                <div className="flex flex-col items-center gap-1 -mt-4 w-full">
+                    <p className="w-full text-xs text-white md:text-center text-opacity-90">Today's score</p>
 
-                    <div className="flex flex-row md:flex-col items-center gap-2 w-full justify-between">
-
-                        {/* Circle Progress Display */}
-                        <div className="relative w-24 h-24 sm:w-28 sm:h-28 md:w-32 md:h-32 flex-shrink-0 mx-auto">
+                    <div className="flex flex-col items-center w-full justify-between">
+                        {/* Circle Progress Display - Keep original */}
+                        <div className="relative w-28 h-28 flex-shrink-0 mx-auto">
                             <svg viewBox="0 0 100 100" width="100%" height="100%">
                                 <circle
                                     cx="50" cy="50" r="45"
@@ -235,84 +284,35 @@ export const ScoreDisplay = ({ user, setTimeRange, timeRange }: { user: User | n
                                     textAnchor="middle"
                                     dominantBaseline="central"
                                     fontSize="16"
-                                    className="text-[16px] sm:text-[20px] md:text-[22px] font-semibold fill-white select-none"
+                                    className="text-[14px] sm:text-[16px] md:text-[20px] font-semibold fill-white select-none"
                                 >
                                     {combinedScore !== null ? combinedScore : '–'}
                                 </text>
                             </svg>
                         </div>
 
-                        {/* Score Stats - Enhanced contrast for accessibility */}
-                        <div className="flex flex-row gap-4 md:flex-row md:justify-center w-full">
-                            {/* Wellness Stats */}
-                            <div className="bg-white/20 rounded-lg px-3 py-2 md:px-4 md:py-3 flex flex-col items-center backdrop-blur-sm w-full md:flex-1 md:max-w-[140px]">
-                                <p className="text-xs text-white text-opacity-90">Wellness score</p>
-                                {wellnessScore !== null ? (
-                                    <div className="flex flex-row items-center gap-1.5">
-                                        <div className="bg-white/30 p-1 rounded-full" style={{ backgroundColor: colors.wellness.background }}>
-                                            <Heart className="size-3 text-white" style={{ color: colors.wellness.ring }} />
-                                        </div>
-                                        <span className="text-lg font-medium text-white">{wellnessScore}</span>
-                                    </div>
-                                ) : (
-                                    <Button
-                                        className="mt-1 bg-white/30 hover:bg-white/40 text-white text-xs font-medium py-1 px-2 rounded-md flex items-center gap-1 transition-colors"
-                                        onClick={() => {
-                                            const today = new Date();
-                                            setSelectedDate(today);
-                                            setShowMoodModal(true);
-                                        }}
-                                    >
-                                        <div className="bg-white/30 p-1 rounded-full" style={{ backgroundColor: colors.wellness.background }}>
-                                            <Heart className="size-3 text-white" style={{ color: colors.wellness.ring }} />
-                                        </div>
-                                        Check in
-                                    </Button>
-                                )}
+                        {/* Circle legend - compact version */}
+                        <div className="flex justify-center gap-3 w-full mt-2 mb-3">
+                            <div className="flex items-center gap-1">
+                                <div className="w-2 h-2 rounded-full" style={{ backgroundColor: colors.combined.ring }}></div>
+                                <span className="text-[10px] text-white/90">Combined</span>
                             </div>
-
-                            {/* Focus Stats */}
-                            <div className="bg-white/20 rounded-lg px-3 py-2 md:px-4 md:py-3 flex flex-col items-center backdrop-blur-sm w-full md:flex-1 md:max-w-[140px]">
-                                <p className="text-xs text-white text-opacity-90">Focus score</p>
-                                {focusScore !== null ? (
-                                    <div className="flex flex-row items-center gap-1.5">
-                                        <div className="bg-white/30 p-1 rounded-full" style={{ backgroundColor: colors.focus.background }}>
-                                            <Brain className="size-3 text-white" style={{ color: colors.focus.ring }} />
-                                        </div>
-                                        <span className="text-lg font-medium text-white">{focusScore}</span>
-                                    </div>
-                                ) : (
-                                    <Button
-                                        className="mt-1 bg-white/30 hover:bg-white/40 text-white text-xs font-medium py-1 px-2 rounded-md flex items-center gap-1 transition-colors"
-                                        onClick={() => window.open('/extension', '_blank')}
-                                    >
-                                        <div className="bg-white/30 p-1 rounded-full" style={{ backgroundColor: colors.focus.background }}>
-                                            <Download className="size-3 text-white" style={{ color: colors.focus.ring }} />
-                                        </div>
-                                        Get extension
-                                    </Button>
-                                )}
+                            <div className="flex items-center gap-1">
+                                <div className="w-2 h-2 rounded-full" style={{ backgroundColor: colors.wellness.ring }}></div>
+                                <span className="text-[10px] text-white/90">Wellness</span>
+                            </div>
+                            <div className="flex items-center gap-1">
+                                <div className="w-2 h-2 rounded-full" style={{ backgroundColor: colors.focus.ring }}></div>
+                                <span className="text-[10px] text-white/90">Focus</span>
                             </div>
                         </div>
+
+                        {/* Use the new ScoreVisualization component */}
+                        <ScoreVisualization scores={scoreData} showLegend={false} />
                     </div>
                 </div>
 
-                {/* Legend - Matching colors and enhanced contrast */}
-                <div className="flex flex-row md:flex-col justify-center text-xs text-white text-opacity-90 bg-white/10 py-2 px-4 rounded-lg backdrop-blur-sm md:w-full w-auto gap-3 md:max-w-[280px]">
-                    <div className="flex items-center gap-1.5">
-                        <div className="w-2 h-2 rounded-full" style={{ backgroundColor: colors.combined.ring }}></div>
-                        <span>Combined</span>
-                    </div>
-
-                    <div className="flex items-center gap-1.5">
-                        <div className="w-2 h-2 rounded-full" style={{ backgroundColor: colors.wellness.ring }}></div>
-                        <span>Wellness</span>
-                    </div>
-                    <div className="flex items-center gap-1.5">
-                        <div className="w-2 h-2 rounded-full" style={{ backgroundColor: colors.focus.ring }}></div>
-                        <span>Focus</span>
-                    </div>
-                </div>
+                <ScoreScaleLegend />
             </div>
 
             {showMoodModal && selectedDate && (
@@ -331,4 +331,4 @@ export const ScoreDisplay = ({ user, setTimeRange, timeRange }: { user: User | n
             )}
         </TooltipProvider>
     );
-}
+};

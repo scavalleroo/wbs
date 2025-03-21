@@ -20,7 +20,7 @@ export function TabsTriggers({ activeTab, setActiveTab }: MainNavProps) {
 
         switch (tabValue) {
             case 'report':
-                return cn(baseStyles, "data-[state=active]:bg-gradient-to-b data-[state=active]:from-indigo-800 data-[state=active]:to-purple-900 data-[state=active]:text-white");
+                return cn(baseStyles, "data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-500 data-[state=active]:to-indigo-600 data-[state=active]:text-white");
             case 'focus':
                 return cn(baseStyles, "data-[state=active]:bg-gradient-to-b data-[state=active]:from-blue-400 data-[state=active]:to-blue-600 data-[state=active]:text-white");
             case 'break':

@@ -131,7 +131,7 @@ export default function Footer() {
             <div className="flex flex-col min-w-0">
               {/* <span className="font-medium text-sm sm:text-base sm:font-bold truncate text-white">Focus Session</span> */}
               <span className="text-base sm:text-base font-bold text-white drop-shadow-md xs:hidden whitespace-nowrap overflow-visible inline-block">
-                {flowMode ? `Time Elapsed ${formatTime(timeElapsed)}` : `Time Remaining ${formatTime(timeRemaining)}`}
+                {flowMode ? `Time ${formatTime(timeElapsed)}` : `Remaining ${formatTime(timeRemaining)}`}
               </span>
               <span className="text-[11px] sm:text-xs font-medium text-white/70 truncate">
                 {activity.charAt(0).toUpperCase() + activity.slice(1)}

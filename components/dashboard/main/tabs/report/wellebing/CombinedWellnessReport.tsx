@@ -28,19 +28,19 @@ const CombinedWellnessReport = ({ user }: CombinedWellnessReportProps) => {
                                 <TabsList className="bg-neutral-100 dark:bg-neutral-800">
                                     <TabsTrigger
                                         value="week"
-                                        className="data-[state=active]:bg-purple-500 data-[state=active]:text-white"
+                                        className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-500 data-[state=active]:to-indigo-600 data-[state=active]:text-white"
                                     >
                                         Week
                                     </TabsTrigger>
                                     <TabsTrigger
                                         value="month"
-                                        className="data-[state=active]:bg-purple-500 data-[state=active]:text-white"
+                                        className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-500 data-[state=active]:to-indigo-600 data-[state=active]:text-white"
                                     >
                                         Month
                                     </TabsTrigger>
                                     <TabsTrigger
                                         value="year"
-                                        className="data-[state=active]:bg-purple-500 data-[state=active]:text-white"
+                                        className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-500 data-[state=active]:to-indigo-600 data-[state=active]:text-white"
                                     >
                                         Year
                                     </TabsTrigger>
@@ -61,19 +61,19 @@ const CombinedWellnessReport = ({ user }: CombinedWellnessReportProps) => {
                                 <TabsList className="bg-neutral-100 dark:bg-neutral-800">
                                     <TabsTrigger
                                         value="week"
-                                        className="data-[state=active]:bg-indigo-500 data-[state=active]:text-white"
+                                        className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-500 data-[state=active]:to-indigo-600 data-[state=active]:text-white"
                                     >
                                         Week
                                     </TabsTrigger>
                                     <TabsTrigger
                                         value="month"
-                                        className="data-[state=active]:bg-indigo-500 data-[state=active]:text-white"
+                                        className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-500 data-[state=active]:to-indigo-600 data-[state=active]:text-white"
                                     >
                                         Month
                                     </TabsTrigger>
                                     <TabsTrigger
                                         value="year"
-                                        className="data-[state=active]:bg-indigo-500 data-[state=active]:text-white"
+                                        className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-500 data-[state=active]:to-indigo-600 data-[state=active]:text-white"
                                     >
                                         Year
                                     </TabsTrigger>
@@ -95,19 +95,19 @@ const CombinedWellnessReport = ({ user }: CombinedWellnessReportProps) => {
                                 <TabsList className="bg-neutral-100 dark:bg-neutral-800">
                                     <TabsTrigger
                                         value="week"
-                                        className="data-[state=active]:bg-blue-500 data-[state=active]:text-white"
+                                        className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-500 data-[state=active]:to-indigo-600 data-[state=active]:text-white"
                                     >
                                         Week
                                     </TabsTrigger>
                                     <TabsTrigger
                                         value="month"
-                                        className="data-[state=active]:bg-blue-500 data-[state=active]:text-white"
+                                        className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-500 data-[state=active]:to-indigo-600 data-[state=active]:text-white"
                                     >
                                         Month
                                     </TabsTrigger>
                                     <TabsTrigger
                                         value="year"
-                                        className="data-[state=active]:bg-blue-500 data-[state=active]:text-white"
+                                        className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-500 data-[state=active]:to-indigo-600 data-[state=active]:text-white"
                                     >
                                         Year
                                     </TabsTrigger>

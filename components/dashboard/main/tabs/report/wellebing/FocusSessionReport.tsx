@@ -3,12 +3,14 @@ import { User } from '@supabase/supabase-js';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { Button } from "@/components/ui/button";
-import { Clock, Play, Calendar, Flame, Music, Timer, GitBranch } from "lucide-react";
+import { Clock, Play, Calendar, Flame, Music, Timer, GitBranch, Trash2, AlertCircle } from "lucide-react";
 import { useFocusSession } from '@/hooks/use-focus-session';
 import Link from 'next/link';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { FocusSession } from '@/types/focus-session.types';
+import { toast } from "sonner";
+import { reportColors } from '@/utils/constants';
 
 interface FocusSessionsReportProps {
     user: User | null | undefined;
@@ -24,9 +26,20 @@ const FocusSessionsReport = ({
     const [timeRange, setTimeRange] = useState(externalTimeRange || 'week');
     const [isLoading, setIsLoading] = useState(false);
     const [isHistoryDialogOpen, setIsHistoryDialogOpen] = useState(false);
-    const { recentSessions, fetchRecentSessions, stats, fetchSessionStats } = useFocusSession({ user });
+    const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+    const [sessionToDelete, setSessionToDelete] = useState<FocusSession | null>(null);
+    const [isDeleting, setIsDeleting] = useState(false);
+    const { recentSessions, fetchRecentSessions, fetchSessionStats, deleteSession } = useFocusSession({ user });
     const [sessionsData, setSessionsData] = useState<any[]>([]);
     const [filteredSessions, setFilteredSessions] = useState<FocusSession[]>([]);
+    const [calculatedStats, setCalculatedStats] = useState({
+        total_duration: 0,
+        average_duration: 0,
+        streak_days: 0,
+        total_sessions: 0,
+        favorite_activity: '',
+        sessionsToday: 0
+    });
 
     // Update time range when external prop changes
     useEffect(() => {
@@ -42,6 +55,66 @@ const FocusSessionsReport = ({
                 session.actual_duration >= 60
             );
             setFilteredSessions(validSessions);
+
+            // Calculate stats directly from filtered sessions
+            if (validSessions.length > 0) {
+                const totalDuration = validSessions.reduce((sum, session) => sum + session.actual_duration, 0);
+                const avgDuration = Math.round(totalDuration / validSessions.length);
+
+                // Count activities to find favorite
+                const activityCounts: Record<string, number> = {};
+                validSessions.forEach(session => {
+                    const activity = session.activity || 'none';
+                    if (!activityCounts[activity]) activityCounts[activity] = 0;
+                    activityCounts[activity]++;
+                });
+
+                let favoriteActivity = 'none';
+                let maxCount = 0;
+                Object.entries(activityCounts).forEach(([activity, count]) => {
+                    if (count > maxCount) {
+                        maxCount = count;
+                        favoriteActivity = activity;
+                    }
+                });
+
+                // Calculate streak days
+                const sessionDates = validSessions.map(session => {
+                    const date = new Date(session.created_at);
+                    return `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`;
+                });
+                const uniqueDates = [...new Set(sessionDates)].sort();
+
+                // Count streak days (simplified calculation)
+                let streakDays = 0;
+                if (uniqueDates.length > 0) {
+                    const today = new Date();
+                    const todayString = `${today.getFullYear()}-${today.getMonth() + 1}-${today.getDate()}`;
+
+                    if (uniqueDates.includes(todayString)) {
+                        streakDays = 1;
+                        // More accurate streak calculation would need to check consecutive days
+                    }
+                }
+
+                // Calculate sessions today
+                const today = new Date();
+                const sessionsToday = validSessions.filter(session => {
+                    const sessionDate = new Date(session.created_at);
+                    return sessionDate.getDate() === today.getDate() &&
+                        sessionDate.getMonth() === today.getMonth() &&
+                        sessionDate.getFullYear() === today.getFullYear();
+                }).length;
+
+                setCalculatedStats({
+                    total_duration: totalDuration,
+                    average_duration: avgDuration,
+                    streak_days: streakDays,
+                    total_sessions: validSessions.length,
+                    favorite_activity: favoriteActivity,
+                    sessionsToday
+                });
+            }
         } else {
             setFilteredSessions([]);
         }
@@ -127,6 +200,40 @@ const FocusSessionsReport = ({
         loadSessionsData();
     }, [timeRange, user, fetchRecentSessions, fetchSessionStats]);
 
+    // Handle session deletion
+    const handleDeleteSession = async () => {
+        if (!sessionToDelete) return;
+
+        try {
+            setIsDeleting(true);
+
+            // Call the API to delete the session
+            await deleteSession(sessionToDelete.id);
+
+            // Show success message
+            toast.success("Focus session deleted successfully");
+
+            // Refresh session data
+            await fetchRecentSessions();
+            await fetchSessionStats();
+
+            // Close the dialog
+            setIsDeleteDialogOpen(false);
+            setSessionToDelete(null);
+        } catch (error) {
+            console.error("Error deleting session:", error);
+            toast.error("Failed to delete session. Please try again.");
+        } finally {
+            setIsDeleting(false);
+        }
+    };
+
+    // Open delete confirmation dialog
+    const confirmDeleteSession = (session: FocusSession) => {
+        setSessionToDelete(session);
+        setIsDeleteDialogOpen(true);
+    };
+
     // Format duration in minutes and hours
     const formatDuration = (seconds: number) => {
         if (seconds < 60) return `${seconds}s`;
@@ -187,18 +294,12 @@ const FocusSessionsReport = ({
 
     // Calculate stats to display
     const displayStats = {
-        totalFocusTime: stats ? formatDuration(stats.total_duration) : '0m',
-        averageDuration: stats ? formatDuration(stats.average_duration) : '0m',
-        streakDays: stats ? stats.streak_days : 0,
-        totalSessions: stats ? stats.total_sessions : 0,
-        favoriteActivity: stats && stats.favorite_activity !== 'none' ? stats.favorite_activity : '—',
-        sessionsToday: filteredSessions.filter(session => {
-            const sessionDate = new Date(session.created_at);
-            const today = new Date();
-            return sessionDate.getDate() === today.getDate() &&
-                sessionDate.getMonth() === today.getMonth() &&
-                sessionDate.getFullYear() === today.getFullYear();
-        }).length
+        totalFocusTime: formatDuration(calculatedStats.total_duration),
+        averageDuration: formatDuration(calculatedStats.average_duration),
+        streakDays: calculatedStats.streak_days,
+        totalSessions: calculatedStats.total_sessions,
+        favoriteActivity: calculatedStats.favorite_activity !== 'none' ? calculatedStats.favorite_activity : '—',
+        sessionsToday: calculatedStats.sessionsToday
     };
 
     const hasNoSessionData = !isLoading && (!filteredSessions || filteredSessions.length === 0);
@@ -227,7 +328,7 @@ const FocusSessionsReport = ({
     const renderSessionItem = (session: FocusSession) => (
         <div
             key={session.id}
-            className="flex flex-row sm:items-center justify-between bg-white dark:bg-neutral-900 p-3 rounded-lg shadow-sm gap-2"
+            className="flex flex-row sm:items-center justify-between bg-white dark:bg-neutral-900 p-3 rounded-lg shadow-sm gap-2 group"
         >
             <div className="flex-grow flex items-center gap-3">
                 {/* Activity icon with styled container */}
@@ -259,35 +360,55 @@ const FocusSessionsReport = ({
             </div>
 
             <div className="text-right flex flex-col items-end justify-between sm:justify-center">
-                <p className={`font-medium ${session.status === 'completed' ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-400'}`}>
-                    {formatDuration(session.actual_duration)}
-                </p>
-                <p className="text-xs text-neutral-500">
-                    {session.status === 'completed' ? 'Completed' : 'Abandoned'}
-                </p>
+                <div className="flex items-center gap-2">
+                    <p className="font-medium text-neutral-800 dark:text-white text-right">
+                        {formatDuration(session.actual_duration)}
+                    </p>
+
+                    {/* Delete button (hidden by default, visible on hover) */}
+                    <button
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            confirmDeleteSession(session);
+                        }}
+                        className="opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded-full hover:bg-red-100 dark:hover:bg-red-900/30 text-red-500 dark:text-red-400"
+                        title="Delete session"
+                    >
+                        <Trash2 className="h-4 w-4" />
+                    </button>
+                </div>
+                <span className="text-xs text-neutral-500 dark:text-neutral-400">
+                    {session.status === 'completed' ? (
+                        <span className="text-neutral-700 dark:text-white/80">Completed</span>
+                    ) : (
+                        <span className="text-neutral-600 dark:text-white/70">Abandoned</span>
+                    )}
+                </span>
             </div>
         </div>
     );
 
     return (
         <>
-            <Card className="shadow-md bg-neutral-100 dark:bg-neutral-800 border-t-4 border-purple-500 rounded-xl overflow-hidden">
+            <Card className="shadow-md bg-gradient-to-b from-indigo-800 to-purple-900 dark:from-indigo-950 dark:to-purple-950 rounded-xl overflow-hidden">
                 <CardHeader className="pb-2">
-                    <CardTitle className="text-md font-medium text-purple-600 dark:text-purple-400">Focus Sessions</CardTitle>
+                    <CardTitle className="text-md font-medium text-white">
+                        Focus sessions history
+                    </CardTitle>
                 </CardHeader>
                 <CardContent>
                     {hasNoSessionData ? (
                         <div className="flex flex-col items-center justify-center py-8 px-4 space-y-6 text-center">
-                            <Clock className="h-16 w-16 text-purple-500 mb-2" />
+                            <Clock className="h-16 w-16 text-purple-200 mb-2" />
                             <div className="space-y-4 max-w-md">
-                                <h3 className="text-xl font-medium text-neutral-800 dark:text-neutral-200">Start Your First Focus Session</h3>
-                                <p className="text-neutral-600 dark:text-neutral-400">
+                                <h3 className="text-xl font-medium text-white">Start Your First Focus Session</h3>
+                                <p className="text-white/70">
                                     Track your focused work time with sessions. Set a timer, choose an activity, and stay focused to build a productive habit.
                                 </p>
                                 <div className="flex justify-center pt-4">
                                     <Link href="/focus">
                                         <Button
-                                            className="bg-gradient-to-br from-purple-800 to-indigo-900 hover:from-purple-700 hover:to-indigo-800 text-white shadow-md hover:shadow-lg transition-all duration-200 border-0"
+                                            className="bg-white hover:bg-white/90 text-indigo-900 shadow-md hover:shadow-lg transition-all duration-200 border-0"
                                         >
                                             <Play className="mr-2 h-4 w-4" />
                                             Start a Focus Session
@@ -300,71 +421,130 @@ const FocusSessionsReport = ({
                         <>
                             {/* Stats overview */}
                             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-                                <div className="bg-white dark:bg-neutral-900 p-3 rounded-lg shadow-sm">
-                                    <p className="text-xs text-neutral-500 mb-1">Total Focus Time</p>
-                                    <p className="text-lg font-semibold text-purple-700 dark:text-purple-400">{displayStats.totalFocusTime}</p>
+                                <div className="bg-white/10 backdrop-blur-sm p-3 rounded-lg shadow-sm">
+                                    <p className="text-xs text-white/70 mb-1">Total Focus Time</p>
+                                    <p className="text-lg font-semibold text-white">{displayStats.totalFocusTime}</p>
                                 </div>
-                                <div className="bg-white dark:bg-neutral-900 p-3 rounded-lg shadow-sm">
-                                    <p className="text-xs text-neutral-500 mb-1">Avg. Session</p>
-                                    <p className="text-lg font-semibold text-purple-700 dark:text-purple-400">{displayStats.averageDuration}</p>
+                                <div className="bg-white/10 backdrop-blur-sm p-3 rounded-lg shadow-sm">
+                                    <p className="text-xs text-white/70 mb-1">Avg. Session</p>
+                                    <p className="text-lg font-semibold text-white">{displayStats.averageDuration}</p>
                                 </div>
-                                <div className="bg-white dark:bg-neutral-900 p-3 rounded-lg shadow-sm">
-                                    <p className="text-xs text-neutral-500 mb-1">Current Streak</p>
+                                <div className="bg-white/10 backdrop-blur-sm p-3 rounded-lg shadow-sm">
+                                    <p className="text-xs text-white/70 mb-1">Current Streak</p>
                                     <div className="flex items-center">
-                                        <p className="text-lg font-semibold text-purple-700 dark:text-purple-400">{displayStats.streakDays}</p>
-                                        {displayStats.streakDays > 0 && <Flame className="h-4 w-4 ml-1 text-amber-500" />}
+                                        <p className="text-lg font-semibold text-white">{displayStats.streakDays}</p>
+                                        {displayStats.streakDays > 0 && <Flame className="h-4 w-4 ml-1 text-amber-300" />}
                                     </div>
                                 </div>
-                                <div className="bg-white dark:bg-neutral-900 p-3 rounded-lg shadow-sm">
-                                    <p className="text-xs text-neutral-500 mb-1">Focus Sessions Today</p>
+                                <div className="bg-white/10 backdrop-blur-sm p-3 rounded-lg shadow-sm">
+                                    <p className="text-xs text-white/70 mb-1">Focus Sessions Today</p>
                                     <div className="flex items-center">
-                                        <p className="text-lg font-semibold text-purple-700 dark:text-purple-400">{displayStats.sessionsToday}</p>
-                                        <span className="ml-1 text-neutral-500 text-sm">{displayStats.sessionsToday === 1 ? 'session' : 'sessions'}</span>
+                                        <p className="text-lg font-semibold text-white">{displayStats.sessionsToday}</p>
+                                        <span className="ml-1 text-white/70 text-sm">{displayStats.sessionsToday === 1 ? 'session' : 'sessions'}</span>
                                     </div>
                                 </div>
                             </div>
 
                             {/* Chart */}
-                            <div className="w-full h-64">
+                            <div className="w-full h-64 bg-white/5 rounded-xl p-3">
                                 <ResponsiveContainer width="100%" height="100%">
                                     <BarChart
                                         data={sessionsData}
                                         margin={{ top: 5, right: 5, left: 5, bottom: 15 }}
                                     >
-                                        <CartesianGrid strokeDasharray="3 3" opacity={0.2} />
+                                        <CartesianGrid strokeDasharray="3 3" opacity={0.1} stroke="rgba(255,255,255,0.2)" />
                                         <XAxis
                                             dataKey="displayDate"
-                                            tick={{ fontSize: 12 }}
+                                            tick={{ fontSize: 12, fill: "rgba(255,255,255,0.8)" }}
                                             tickMargin={10}
-                                            stroke="#6B7280"
+                                            stroke="rgba(255,255,255,0.3)"
                                         />
                                         <YAxis
-                                            tick={{ fontSize: 12 }}
+                                            tick={{ fontSize: 12, fill: "rgba(255,255,255,0.8)" }}
                                             tickFormatter={(value) => formatDuration(value)}
-                                            stroke="#6B7280"
+                                            stroke="rgba(255,255,255,0.3)"
                                         />
                                         <Tooltip content={<CustomTooltip />} />
                                         <Bar
                                             dataKey="totalDuration"
                                             name="Focus Time"
-                                            fill="#9F7AEA" // Purple-400
+                                            fill="rgba(255, 255, 255, 0.8)"  // Changed to semi-transparent white
                                             radius={[4, 4, 0, 0]}
                                         />
                                     </BarChart>
                                 </ResponsiveContainer>
                             </div>
 
-                            {/* Recent sessions list - only show in non-compact mode - limit to 3 */}
+                            {/* Recent sessions list */}
                             {!compactMode && filteredSessions.length > 0 && (
                                 <div className="mt-6">
-                                    <h4 className="text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-3">Recent Focus Sessions</h4>
+                                    <h4 className="text-sm font-medium text-white mb-3">Recent Focus Sessions</h4>
                                     <div className="space-y-2">
-                                        {filteredSessions.slice(0, 3).map(renderSessionItem)}
+                                        {filteredSessions.slice(0, 3).map(session => (
+                                            <div
+                                                key={session.id}
+                                                className="flex flex-row sm:items-center justify-between bg-white/10 backdrop-blur-sm p-3 rounded-lg shadow-sm gap-2 group"
+                                            >
+                                                <div className="flex-grow flex items-center gap-3">
+                                                    {/* Activity icon with styled container */}
+                                                    <div className="flex items-center justify-center h-10 w-10 rounded-md bg-indigo-500/30 backdrop-blur-sm text-xl shadow-inner">
+                                                        {getActivityIcon(session.activity)}
+                                                    </div>
+
+                                                    <div className="flex-grow">
+                                                        <div className="flex items-center gap-2">
+                                                            <p className="font-medium text-white">
+                                                                {capitalizeFirstLetter(session.activity)}
+                                                            </p>
+                                                            {/* Session type indicator */}
+                                                            {session.flow_mode ?
+                                                                <span title="Flow session (untimed)" className="inline-flex items-center text-xs font-medium bg-blue-500/30 px-1.5 py-0.5 rounded">
+                                                                    <span className="mr-1">🌊</span> Flow
+                                                                </span> :
+                                                                <span title="Timed session" className="inline-flex items-center text-xs font-medium bg-indigo-500/30 px-1.5 py-0.5 rounded">
+                                                                    <span className="mr-1">⏱️</span> Timed
+                                                                </span>
+                                                            }
+                                                        </div>
+
+                                                        <p className="text-xs text-white/60 mt-0.5">
+                                                            {formatTimeRange(session.started_at, session.ended_at)}
+                                                        </p>
+                                                    </div>
+                                                </div>
+
+                                                <div className="text-right flex flex-col items-end justify-between sm:justify-center">
+                                                    <div className="flex items-center gap-2">
+                                                        <p className="font-medium text-white text-right">
+                                                            {formatDuration(session.actual_duration)}
+                                                        </p>
+
+                                                        <button
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                confirmDeleteSession(session);
+                                                            }}
+                                                            className="opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded-full hover:bg-red-500/30 text-red-300"
+                                                            title="Delete session"
+                                                        >
+                                                            <Trash2 className="h-4 w-4" />
+                                                        </button>
+                                                    </div>
+                                                    <span className="text-xs text-white/60">
+                                                        {session.status === 'completed' ? (
+                                                            <span className="text-white/90">Completed</span>
+                                                        ) : (
+                                                            <span className="text-white/80">Abandoned</span>
+                                                        )}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        ))}
                                     </div>
                                     <div className="text-center mt-4">
                                         <Button
                                             variant="outline"
-                                            className="border-purple-600 text-purple-600 hover:bg-purple-100 dark:border-purple-500 dark:text-purple-400 dark:hover:bg-purple-950"
+                                            className="bg-white/10 border-white/30 text-white hover:bg-white/20 hover:border-white/50 shadow-sm hover:shadow transition-all duration-200"
                                             onClick={() => setIsHistoryDialogOpen(true)}
                                         >
                                             View All Sessions
@@ -378,7 +558,6 @@ const FocusSessionsReport = ({
                 </CardContent>
             </Card>
 
-            {/* Session History Dialog */}
             {/* Session History Dialog */}
             <Dialog open={isHistoryDialogOpen} onOpenChange={setIsHistoryDialogOpen}>
                 <DialogContent className="sm:max-w-[500px] p-0 border-0 bg-transparent max-h-[90vh] overflow-hidden">
@@ -448,6 +627,49 @@ const FocusSessionsReport = ({
                             </div>
                         </div>
                     </div>
+                </DialogContent>
+            </Dialog>
+
+            {/* Delete Confirmation Dialog */}
+            <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+                <DialogContent className="sm:max-w-[425px]">
+                    <DialogHeader>
+                        <DialogTitle className="flex items-center gap-2">
+                            <AlertCircle className="h-5 w-5 text-red-500" />
+                            Confirm Deletion
+                        </DialogTitle>
+                        <DialogDescription>
+                            Are you sure you want to delete this focus session? This action cannot be undone.
+                        </DialogDescription>
+                    </DialogHeader>
+
+                    {sessionToDelete && (
+                        <div className="bg-neutral-100 dark:bg-neutral-800 p-3 rounded-md">
+                            <p className="text-sm font-medium">{capitalizeFirstLetter(sessionToDelete.activity)} session</p>
+                            <p className="text-xs text-neutral-500">Duration: {formatDuration(sessionToDelete.actual_duration)}</p>
+                            <p className="text-xs text-neutral-500">Date: {new Date(sessionToDelete.created_at).toLocaleDateString()}</p>
+                        </div>
+                    )}
+
+                    <DialogFooter className="sm:justify-between">
+                        <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => setIsDeleteDialogOpen(false)}
+                            disabled={isDeleting}
+                        >
+                            Cancel
+                        </Button>
+                        <Button
+                            type="button"
+                            variant="destructive"
+                            onClick={handleDeleteSession}
+                            disabled={isDeleting}
+                            className="bg-red-600 hover:bg-red-700"
+                        >
+                            {isDeleting ? "Deleting..." : "Delete Session"}
+                        </Button>
+                    </DialogFooter>
                 </DialogContent>
             </Dialog>
         </>

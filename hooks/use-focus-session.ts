@@ -179,6 +179,39 @@ export const useFocusSession = ({ user }: UserIdParam) => {
     }
   }, [currentSession]);
 
+  // Delete a focus session
+  const deleteSession = useCallback(async (sessionId: string) => {
+    if (!user?.id || !sessionId) {
+      toast.error('Unable to delete session');
+      return false;
+    }
+    
+    try {
+      setLoading(true);
+      
+      // Delete session from database
+      const { error } = await supabase
+        .from('focus_sessions')
+        .delete()
+        .eq('id', sessionId)
+        .eq('user_id', user.id);
+      
+      if (error) throw error;
+      
+      // Remove from local state if exists
+      setRecentSessions(prev => prev.filter(session => session.id !== sessionId));
+      
+      return true;
+    } catch (err) {
+      console.error('Error deleting focus session:', err);
+      const errorMessage = err instanceof Error ? err.message : String(err);
+      setError(errorMessage);
+      throw err; // Rethrow for handling in the component
+    } finally {
+      setLoading(false);
+    }
+  }, [user?.id]);
+
   // End all active sessions for the user
   const endAllActiveSessions = useCallback(async (status: 'completed' | 'abandoned' = 'abandoned') => {
     if (!user?.id) return;
@@ -384,6 +417,7 @@ export const useFocusSession = ({ user }: UserIdParam) => {
     endAllActiveSessions,
     fetchRecentSessions,
     fetchSessionStats,
-    checkForActiveSession
+    checkForActiveSession,
+    deleteSession
   };
 };

@@ -11,6 +11,7 @@ import { Toggle } from '@/components/ui/toggle';
 import { Heart, InfoIcon } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
+import { getScoreTier } from '@/components/ui/score';
 
 interface WellnessReportProps {
     user: User | null | undefined;
@@ -56,11 +57,11 @@ const WellnessReport = ({
     const [selectedMetrics, setSelectedMetrics] = useState<string[]>(['wellbeing']);
 
     const metricColors = {
-        wellbeing: '#3B82F6', // Blue-500 - primary wellness color
+        wellbeing: 'rgba(255, 255, 255, 0.9)', // Main line in white
         mood: '#F59E0B',      // Amber-500
         sleep: '#8B5CF6',     // Purple-500
         nutrition: '#10B981', // Emerald-500
-        exercise: '#3B82F6',  // Blue-500
+        exercise: '#60A5FA',  // Blue-400
         social: '#EC4899'     // Pink-500
     };
 
@@ -247,15 +248,6 @@ const WellnessReport = ({
         loadWellbeingData();
     }, [timeRange, getMoodHistory, showMoodModal]); // Re-run when modal is closed
 
-    // Get score color based on value
-    const getScoreColor = (score: number | null) => {
-        if (score === null) return "text-neutral-400";
-        if (score >= 80) return "text-emerald-500";
-        if (score >= 60) return "text-blue-500";
-        if (score >= 40) return "text-amber-500";
-        return "text-rose-500";
-    };
-
     const handleDataPointClick = (data: any) => {
         // Allow clicking on any past date (whether it has data or not)
         if (data && !data.isFutureDate) {
@@ -295,8 +287,8 @@ const WellnessReport = ({
                         cx={cx}
                         cy={bottomY}
                         r={4}
-                        fill="white"
-                        stroke="#9CA3AF"
+                        fill="rgba(255, 255, 255, 0.2)"
+                        stroke="rgba(255, 255, 255, 0.5)"
                         strokeWidth={1}
                         strokeDasharray="2,1"
                     />
@@ -309,7 +301,7 @@ const WellnessReport = ({
             return <g key={`dot-future-${index}`} />;
         }
 
-        // For incomplete data, render gray dot
+        // For incomplete data, render semi-transparent white dot
         if (!payload.isComplete) {
             return (
                 <g
@@ -333,15 +325,19 @@ const WellnessReport = ({
                         cx={cx}
                         cy={cy}
                         r={4}
-                        fill="#9CA3AF"
-                        stroke="#6B7280"
+                        fill="rgba(255, 255, 255, 0.5)"
+                        stroke="rgba(255, 255, 255, 0.7)"
                         strokeWidth={1}
                     />
                 </g>
             );
         }
 
-        // Complete data dot
+        // Complete data dot - use score tier color or white
+        const scoreColor = payload.wellbeingScore !== null ?
+            getScoreTier(payload.wellbeingScore).color :
+            "rgba(255, 255, 255, 0.9)";
+
         return (
             <g
                 key={`dot-complete-${index}`}
@@ -351,8 +347,8 @@ const WellnessReport = ({
                     cx={cx}
                     cy={cy}
                     r={4}
-                    fill="#3B82F6"  // Blue-500 - matching primary blue theme
-                    stroke="#fff"
+                    fill={scoreColor}
+                    stroke="rgba(255, 255, 255, 0.7)"
                     strokeWidth={1}
                 />
             </g>
@@ -368,7 +364,7 @@ const WellnessReport = ({
             // Only show tooltip for days with actual data
             if (score === null && !data.hasMoodEntry) {
                 return (
-                    <div className="bg-neutral-100 dark:bg-neutral-800 p-2 border border-neutral-200 dark:border-neutral-700 shadow rounded-md">
+                    <div className="bg-white dark:bg-neutral-800 p-2 border border-neutral-200 dark:border-neutral-700 shadow rounded-md">
                         <p className="text-sm font-medium">{data.formattedDate}</p>
                         <p className="text-sm text-neutral-500">No data available</p>
                         <p className="text-xs text-neutral-500 mt-1">Click to add</p>
@@ -379,33 +375,34 @@ const WellnessReport = ({
             if (score === null) return null;
 
             const hasNote = data.description && data.description.trim().length > 0;
+            const { tier, color } = score !== null ? getScoreTier(score) : { tier: "No data", color: "#6B7280" };
 
             return (
-                <div className="bg-neutral-100 dark:bg-neutral-800 p-2 border border-neutral-200 dark:border-neutral-700 shadow rounded-md max-w-[260px]">
+                <div className="bg-white dark:bg-neutral-800 p-2 border border-neutral-200 dark:border-neutral-700 shadow rounded-md max-w-[260px]">
                     <p className="text-sm font-medium mb-1">{data.formattedDate}</p>
 
                     {/* Overall score */}
                     {selectedMetrics.includes('wellbeing') && (
-                        <p className={`text-sm font-bold ${getScoreColor(score)}`}>
-                            Overall Score: {score}
+                        <p className="text-sm font-bold" style={{ color }}>
+                            Overall Score: {score} <span className="text-xs font-normal">({tier})</span>
                         </p>
                     )}
 
                     {/* Individual metrics */}
                     {data.moodRaw !== null && selectedMetrics.includes('mood') && (
-                        <p className="text-sm text-amber-500">Mood: {data.moodRaw}/5</p>
+                        <p className="text-sm" style={{ color: metricColors.mood }}>Mood: {data.moodRaw}/5</p>
                     )}
                     {data.sleepRaw !== null && selectedMetrics.includes('sleep') && (
-                        <p className="text-sm text-purple-500">Sleep: {data.sleepRaw}/5</p>
+                        <p className="text-sm" style={{ color: metricColors.sleep }}>Sleep: {data.sleepRaw}/5</p>
                     )}
                     {data.nutritionRaw !== null && selectedMetrics.includes('nutrition') && (
-                        <p className="text-sm text-emerald-500">Nutrition: {data.nutritionRaw}/5</p>
+                        <p className="text-sm" style={{ color: metricColors.nutrition }}>Nutrition: {data.nutritionRaw}/5</p>
                     )}
                     {data.exerciseRaw !== null && selectedMetrics.includes('exercise') && (
-                        <p className="text-sm text-blue-500">Exercise: {data.exerciseRaw}/5</p>
+                        <p className="text-sm" style={{ color: metricColors.exercise }}>Exercise: {data.exerciseRaw}/5</p>
                     )}
                     {data.socialRaw !== null && selectedMetrics.includes('social') && (
-                        <p className="text-sm text-pink-500">Social: {data.socialRaw}/5</p>
+                        <p className="text-sm" style={{ color: metricColors.social }}>Social: {data.socialRaw}/5</p>
                     )}
 
                     {/* Notes section */}
@@ -452,10 +449,9 @@ const WellnessReport = ({
                 key={metric}
                 pressed={isSelected}
                 onPressedChange={() => toggleMetric(metric)}
-                className={`${isSelected ? 'bg-opacity-20' : 'bg-neutral-100 dark:bg-neutral-800'} border rounded-full px-3 py-1`}
+                className={`${isSelected ? 'bg-white/20' : 'bg-white/5'} border rounded-full px-3 py-1 text-white`}
                 style={{
-                    borderColor: isSelected ? metricColors[metricKey] : 'transparent',
-                    backgroundColor: isSelected ? `${metricColors[metricKey]}20` : ''
+                    borderColor: isSelected ? metricColors[metricKey] : 'rgba(255, 255, 255, 0.1)'
                 }}
             >
                 <div className="flex items-center gap-1.5">
@@ -463,7 +459,7 @@ const WellnessReport = ({
                         className="w-2 h-2 rounded-full"
                         style={{ backgroundColor: metricColors[metricKey] }}
                     ></span>
-                    <span className="text-xs font-medium text-neutral-800 dark:text-neutral-200">
+                    <span className="text-xs font-medium text-white">
                         {metricLabels[metricKey]}
                     </span>
                 </div>
@@ -474,9 +470,9 @@ const WellnessReport = ({
     return (
         <div className={`space-y-${compactMode ? '4' : '6'}`}>
             {/* Trend Chart */}
-            <Card className="shadow-md bg-neutral-100 dark:bg-neutral-800 border-t-4 border-blue-500 rounded-xl overflow-hidden">
+            <Card className="shadow-md bg-gradient-to-b from-indigo-800 to-purple-900 dark:from-indigo-950 dark:to-purple-950 rounded-xl overflow-hidden">
                 <CardHeader className="pb-2">
-                    <CardTitle className="text-md font-medium text-blue-600 dark:text-blue-400">Wellness Trend</CardTitle>
+                    <CardTitle className="text-md font-medium text-white">Wellness history</CardTitle>
 
                     {/* Add metric filter section */}
                     <div className="flex flex-wrap gap-2 mt-2">
@@ -490,25 +486,25 @@ const WellnessReport = ({
                 </CardHeader>
 
                 <CardContent>
-                    <div className="w-full h-64">
+                    <div className="w-full h-64 bg-white/5 rounded-xl p-3">
                         <ResponsiveContainer width="100%" height="100%">
                             <LineChart
                                 data={wellbeingData}
                                 margin={{ top: 5, right: 5, left: 5, bottom: 15 }}
                                 onClick={handleChartClick}
                             >
-                                <CartesianGrid strokeDasharray="3 3" opacity={0.2} />
+                                <CartesianGrid strokeDasharray="3 3" opacity={0.1} stroke="rgba(255,255,255,0.2)" />
                                 <XAxis
                                     dataKey="formattedDate"
-                                    tick={{ fontSize: 12 }}
+                                    tick={{ fontSize: 12, fill: "rgba(255,255,255,0.8)" }}
                                     tickMargin={10}
-                                    stroke="#6B7280"
+                                    stroke="rgba(255,255,255,0.3)"
                                 />
                                 <YAxis
                                     domain={[0, 100]}
-                                    tick={{ fontSize: 12 }}
+                                    tick={{ fontSize: 12, fill: "rgba(255,255,255,0.8)" }}
                                     tickCount={5}
-                                    stroke="#6B7280"
+                                    stroke="rgba(255,255,255,0.3)"
                                 />
                                 <Tooltip content={<CustomTooltip />} />
 
@@ -522,7 +518,7 @@ const WellnessReport = ({
                                         dot={renderDot}
                                         activeDot={{
                                             r: 8,
-                                            stroke: '#10B981',
+                                            stroke: '#FFFFFF',
                                             strokeWidth: 2,
                                             onClick: (data: any) => {
                                                 if (data && data.payload) {
@@ -606,20 +602,34 @@ const WellnessReport = ({
                         </ResponsiveContainer>
                     </div>
 
-                    {/* Keep existing legend with improved styling */}
+                    {/* Updated legend with appropriate styling for dark background */}
                     <div className="flex items-center justify-center mt-4 gap-4 text-xs">
                         <div className="flex items-center gap-1.5">
-                            <span className="inline-block w-3 h-3 rounded-full bg-blue-500"></span>
-                            <span className="text-neutral-700 dark:text-neutral-300">Complete</span>
+                            <span className="inline-block w-3 h-3 rounded-full bg-white/90"></span>
+                            <span className="text-white">Complete</span>
                         </div>
                         <div className="flex items-center gap-1.5">
-                            <span className="inline-block w-3 h-3 rounded-full bg-gray-400"></span>
-                            <span className="text-neutral-700 dark:text-neutral-300">Incomplete</span>
+                            <span className="inline-block w-3 h-3 rounded-full bg-white/50"></span>
+                            <span className="text-white">Incomplete</span>
                         </div>
                         <div className="flex items-center gap-1.5">
-                            <span className="inline-block w-3 h-3 mr-1 rounded-full border border-gray-400 bg-white dark:bg-neutral-800"></span>
-                            <span className="text-neutral-700 dark:text-neutral-300">Missing</span>
+                            <span className="inline-block w-3 h-3 mr-1 rounded-full border border-white/50 bg-transparent"></span>
+                            <span className="text-white">Missing</span>
                         </div>
+                    </div>
+
+                    <div className="flex justify-center mt-6">
+                        <Button
+                            variant="outline"
+                            className="bg-white/10 border-white/30 text-white hover:bg-white/20 hover:border-white/50 shadow-sm hover:shadow transition-all duration-200"
+                            onClick={() => {
+                                setSelectedDate(format(new Date(), 'yyyy-MM-dd'));
+                                setShowMoodModal(true);
+                            }}
+                        >
+                            <Heart className="mr-2 h-4 w-4" />
+                            Track Today's Wellness
+                        </Button>
                     </div>
                 </CardContent>
             </Card>

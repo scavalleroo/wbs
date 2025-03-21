@@ -4,6 +4,9 @@ import { Inter } from 'next/font/google'
 import { ThemeProvider } from '@/app/theme-provider'
 import SupabaseProvider from "./supabase-provider";
 import { Metadata } from 'next';
+import Script from 'next/script';
+import { GA_TRACKING_ID } from '@/utils/gtag';
+import Analytics from "@/components/analytics";
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -34,8 +37,28 @@ export default function RootLayout({
         <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
       </head>
       <body>
+        {/* Google Analytics */}
+        <Script
+          strategy="afterInteractive"
+          src={`https://www.googletagmanager.com/gtag/js?id=${GA_TRACKING_ID}`}
+        />
+        <Script
+          id="gtag-init"
+          strategy="afterInteractive"
+          dangerouslySetInnerHTML={{
+            __html: `
+              window.dataLayer = window.dataLayer || [];
+              function gtag(){dataLayer.push(arguments);}
+              gtag('js', new Date());
+              gtag('config', '${GA_TRACKING_ID}', {
+                page_path: window.location.pathname,
+              });
+            `,
+          }}
+        />
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           <SupabaseProvider>
+            <Analytics />
             {children}
           </SupabaseProvider>
         </ThemeProvider>

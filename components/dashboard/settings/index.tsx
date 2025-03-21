@@ -11,6 +11,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { createClient } from '@/utils/supabase/client';
 import { getURL, getStatusRedirect } from '@/utils/helpers';
 import { Input } from '@/components/ui/input';
+import Analytics from '@/components/analytics';
 
 interface Props {
   user: User | null | undefined;
@@ -94,6 +95,7 @@ export default function Settings(props: Props) {
       title="Account Settings"
       description="Profile settings."
     >
+      <Analytics />
       <div className="relative mx-auto flex w-max max-w-full flex-col md:pt-[unset] lg:pt-[100px] lg:pb-[100px]">
         <div className="maw-w-full mx-auto w-full flex-col justify-center md:w-full md:flex-row xl:w-full">
           <Card

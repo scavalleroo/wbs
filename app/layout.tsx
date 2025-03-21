@@ -6,7 +6,6 @@ import SupabaseProvider from "./supabase-provider";
 import { Metadata } from 'next';
 import Script from 'next/script';
 import { GA_TRACKING_ID } from '@/utils/gtag';
-import Analytics from "@/components/analytics";
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -58,7 +57,6 @@ export default function RootLayout({
         />
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           <SupabaseProvider>
-            <Analytics />
             {children}
           </SupabaseProvider>
         </ThemeProvider>

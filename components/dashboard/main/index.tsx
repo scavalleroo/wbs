@@ -11,6 +11,7 @@ import MoodTrackingModal from './moodTracking/MoodTrackingModal';
 import { User } from '@supabase/supabase-js';
 import Footer from '@/components/footer/FooterAdmin';
 import { TimerProvider } from '@/contexts/TimerProvider';
+import Analytics from '@/components/analytics';
 
 interface UserDetails {
     id: string;
@@ -33,6 +34,7 @@ export default function MainPage(props: Props) {
             title="Focus, Break, Report"
             description="Dashboard"
         >
+            <Analytics />
             <MoodTrackingModal user={props.user} />
             <Tabs defaultValue="focus">
                 <Navbar user={props.user} userDetails={props.userDetails} activeTab={activeTab} setActiveTab={setActiveTab} />

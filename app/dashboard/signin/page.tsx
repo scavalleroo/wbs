@@ -4,7 +4,7 @@ import DefaultAuth from '@/components/auth/default-auth';
 
 export const metadata = {
     title: 'Sign In | Weko',
-    description: 'Your calm space for productivity',
+    description: 'Your calm space for productivity, powered by AI',
 };
 
 export default async function SignIn() {

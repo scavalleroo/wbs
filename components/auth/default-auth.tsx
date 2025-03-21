@@ -13,7 +13,7 @@ export default async function DefaultAuth() {
                     <Image src="/logoTransparent.svg" alt="Weko Logo" width={128} height={128} />
                 </div>
                 <div className="relative z-20 mt-auto">
-                    <p className="text-foreground-muted">Your calm space for productivity</p>
+                    <p className="text-foreground-muted">Your calm space for productivity, powered by AI</p>
                     <p className="text-foreground-muted">© Weko 2025</p>
                 </div>
             </div>
@@ -35,7 +35,7 @@ export default async function DefaultAuth() {
                             height={128}
                             className="dark:hidden mb-[-24px]"
                         />
-                        <p className="text-primary">Your calm space for productivity</p>
+                        <p className="text-primary">Your calm space for productivity, powered by AI</p>
                     </div>
                     <div className="flex flex-col space-y-2 text-center">
                         <h1 className="text-4xl md:text-5xl lg:text-6xl font-light tracking-tight mb-4" style={{

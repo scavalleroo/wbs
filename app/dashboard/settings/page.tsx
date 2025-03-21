@@ -5,7 +5,7 @@ import { getUserDetails, getUser } from '@/utils/supabase/queries';
 
 export const metadata = {
     title: 'Settings | Weko',
-    description: 'Your calm space for productivity',
+    description: 'Your calm space for productivity, powered by AI',
 };
 
 export default async function SettingsPage() {

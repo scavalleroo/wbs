@@ -9,9 +9,9 @@ export default async function PrivacyPolicy() {
     return (
         <div className="relative min-h-screen grid w-full lg:max-w-none lg:grid-cols-2 lg:px-0 bg-neutral-100 dark:bg-neutral-800">
             {/* Left column - static */}
-            <div className="relative hidden h-full flex-col p-10 text-white dark:border-r lg:flex">
+            <div className="relative hidden h-full flex-col p-10 text-white lg:flex">
                 <div className="absolute inset-0" style={{
-                    background: 'linear-gradient(180deg, var(--weko-green), var(--weko-blue))'
+                    background: 'linear-gradient(180deg, #6CB4EE, #3730A3)'
                 }} />
                 <div className="relative z-20 flex items-start">
                     <Link href="/">
@@ -27,29 +27,14 @@ export default async function PrivacyPolicy() {
             {/* Right column - scrollable content with fixed navbar */}
             <div className="flex flex-col w-full h-screen overflow-hidden">
                 {/* Fixed navigation bar */}
-                <div className="sticky top-0 w-full bg-neutral-100/90 dark:bg-neutral-800/90 backdrop-blur-sm z-50 py-4 px-6 flex justify-between items-center border-b border-neutral-200 dark:border-neutral-700">
-                    <div>
-                        <Link href="/" className="flex items-center">
-                            <Image
-                                src="/logoTransparent.svg"
-                                alt="Weko Logo"
-                                width={64}
-                                height={64}
-                                className="hidden dark:block"
-                            />
-                            <Image
-                                src="/logoTransparentC.svg"
-                                alt="Weko Logo"
-                                width={64}
-                                height={64}
-                                className="dark:hidden"
-                            />
-                        </Link>
-                    </div>
+                <div className="sticky top-0 w-full bg-neutral-100/90 dark:bg-neutral-800/90 backdrop-blur-sm z-50 py-4 px-6 flex justify-between items-center">
                     <div className="ml-auto">
                         <Link
                             href={user ? "/dashboard/main" : "/dashboard/signin"}
-                            className="px-4 py-2 rounded-md bg-gradient-to-r from-[var(--weko-green)] to-[var(--weko-blue)] text-white hover:opacity-90 transition shadow-sm"
+                            className="px-4 py-2 rounded-md text-white hover:opacity-90 transition shadow-sm"
+                            style={{
+                                background: 'linear-gradient(to right, #6CB4EE, #3730A3)'
+                            }}
                         >
                             {user ? "Dashboard" : "Login"}
                         </Link>
@@ -77,17 +62,11 @@ export default async function PrivacyPolicy() {
                                     className="dark:hidden mb-[-24px]"
                                 />
                             </Link>
-                            <p className="text-primary">Your calm space for productivity, powered by AI</p>
+                            <p className="text-muted-primary">Your calm space for productivity, powered by AI</p>
                         </div>
 
                         <div className="text-left max-w-[800px] mx-auto">
-                            <h1 className="text-3xl md:text-4xl font-light mb-4" style={{
-                                background: 'linear-gradient(90deg, var(--weko-green), var(--weko-blue))',
-                                backgroundClip: 'text',
-                                WebkitBackgroundClip: 'text',
-                                color: 'transparent',
-                                WebkitTextFillColor: 'transparent'
-                            }}>
+                            <h1 className="text-3xl md:text-4xl font-light mb-4">
                                 Privacy Policy & Beta Test Agreement
                             </h1>
 

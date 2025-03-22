@@ -8,6 +8,8 @@ export const metadata = {
     description: 'Your calm space for productivity, powered by AI',
 };
 
+export const viewport = {};
+
 export default async function Account() {
     const supabase = await createClient();
     const [user, userDetails] = await Promise.all([

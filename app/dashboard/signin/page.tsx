@@ -7,6 +7,8 @@ export const metadata = {
     description: 'Your calm space for productivity, powered by AI',
 };
 
+export const viewport = {};
+
 export default async function SignIn() {
     // Check if the user is already logged in and redirect to the account page if so
     const supabase = await createClient();

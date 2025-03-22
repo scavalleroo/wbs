@@ -4,11 +4,14 @@ import Image from "next/image";
 
 export default async function DefaultAuth() {
     return (
-        <div className="relative min-h-screen grid w-full lg:max-w-none lg:grid-cols-2 lg:px-0 bg-neutral-100 dark:bg-neutral-800">
-            <div className="relative hidden h-full flex-col p-10 text-white dark:border-r lg:flex">
-                <div className="absolute inset-0" style={{
-                    background: 'linear-gradient(180deg, var(--weko-green), var(--weko-blue))'
+        <div className="relative min-h-screen grid w-full lg:max-w-none lg:grid-cols-2 lg:px-0">
+            {/* Left side with background image - unchanged */}
+            <div className="relative hidden h-full flex-col p-10 text-white lg:flex">
+                <div className="absolute inset-0 bg-cover bg-center" style={{
+                    backgroundImage: 'url("/images/login.jpg")'
                 }} />
+                {/* Add a dark overlay for better text visibility */}
+                <div className="absolute inset-0 bg-black/30 z-10"></div>
                 <div className="relative z-20 flex items-start">
                     <Image src="/logoTransparent.svg" alt="Weko Logo" width={128} height={128} />
                 </div>
@@ -17,8 +20,13 @@ export default async function DefaultAuth() {
                     <p className="text-foreground-muted">© Weko 2025</p>
                 </div>
             </div>
-            <div className="lg:p-8 flex items-center justify-center w-full">
-                <div className="mx-auto flex w-full max-w-[600px] flex-col justify-center space-y-6 sm:w-[550px] items-center px-6">
+
+            {/* Right side with gradient background */}
+            <div className="relative lg:p-8 flex items-center justify-center w-full">
+                <div className="absolute inset-0" style={{
+                    background: 'linear-gradient(135deg, #6CB4EE, #3730A3)'
+                }} />
+                <div className="mx-auto flex w-full max-w-[600px] flex-col justify-center space-y-6 sm:w-[550px] items-center px-6 relative z-10">
                     {/* Logo for mobile view */}
                     <div className="flex flex-col justify-center items-center lg:hidden mb-8">
                         <Image
@@ -26,48 +34,28 @@ export default async function DefaultAuth() {
                             alt="Weko Logo"
                             width={128}
                             height={128}
-                            className="hidden dark:block mb-[-24px]"
+                            className="mb-[-24px]"
                         />
-                        <Image
-                            src="/logoTransparentC.svg"
-                            alt="Weko Logo"
-                            width={128}
-                            height={128}
-                            className="dark:hidden mb-[-24px]"
-                        />
-                        <p className="text-primary">Your calm space for productivity, powered by AI</p>
+                        <p className="text-white">Your calm space for productivity, powered by AI</p>
                     </div>
                     <div className="flex flex-col space-y-2 text-center">
-                        <h1 className="text-4xl md:text-5xl lg:text-6xl font-light tracking-tight mb-4" style={{
-                            background: 'linear-gradient(90deg, var(--weko-green), var(--weko-blue))',
-                            backgroundClip: 'text',
-                            WebkitBackgroundClip: 'text',
-                            color: 'transparent',
-                            WebkitTextFillColor: 'transparent'
-                        }}>
+                        <h1 className="text-4xl md:text-5xl lg:text-6xl font-light tracking-tight mb-4 text-white">
                             What matters most, every day.
                         </h1>
                     </div>
                     <GoogleSignInButton />
-                    <p className="px-4 text-center text-sm text-muted-foreground">
+                    <p className="px-4 text-center text-sm text-white text-opacity-90">
                         By clicking continue, you agree to our{" "}
-                        <Link
-                            href="/#"
-                            className="underline underline-offset-4 hover:text-primary"
-                        >
-                            Terms of Service
-                        </Link>{" "}
-                        and{" "}
                         <Link
                             href="/privacy-policy"
                             target="_blank"
-                            className="underline underline-offset-4 hover:text-primary"
+                            className="underline underline-offset-4 hover:text-opacity-100"
                         >
                             Privacy Policy
                         </Link>
                         .
                     </p>
-                    <p className="px-4 text-center text-sm text-muted-foreground lg:hidden">© Weko 2025</p>
+                    <p className="px-4 text-center text-sm text-white text-opacity-90 lg:hidden">© Weko 2025</p>
                 </div>
             </div>
         </div>

@@ -3,18 +3,15 @@ import "./prosemirror.css";
 import { Inter } from 'next/font/google'
 import { ThemeProvider } from '@/app/theme-provider'
 import SupabaseProvider from "./supabase-provider";
-import { Metadata } from 'next';
 import Script from 'next/script';
 import { GA_TRACKING_ID } from '@/utils/gtag';
 
 const inter = Inter({ subsets: ['latin'] })
 
-export const metadata: Metadata = {
+export const metadata = {
   title: 'Weko',
   description: 'Work Breakdown Structure tool',
   manifest: '/manifest.json',
-  themeColor: '#4f46e5',
-  viewport: 'width=device-width, initial-scale=1, maximum-scale=1',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
@@ -23,6 +20,18 @@ export const metadata: Metadata = {
   formatDetection: {
     telephone: false,
   },
+  applicationName: 'Weko',
+  robots: 'index,follow',
+};
+
+export const viewport = {
+  themeColor: '#4f46e5',
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+  minimumScale: 1,
+  userScalable: false,
+  viewportFit: 'cover',
 };
 
 export default function RootLayout({
@@ -33,7 +42,18 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
+        <meta name="application-name" content="Weko" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+        <meta name="apple-mobile-web-app-title" content="Weko" />
+        <meta name="format-detection" content="telephone=no" />
+        <meta name="mobile-web-app-capable" content="yes" />
+        <meta name="msapplication-TileColor" content="#4f46e5" />
+        <meta name="msapplication-tap-highlight" content="no" />
+
         <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
+        <link rel="manifest" href="/manifest.json" />
+        <link rel="shortcut icon" href="/favicon.ico" />
       </head>
       <body>
         {/* Google Analytics */}

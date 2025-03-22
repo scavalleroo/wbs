@@ -52,7 +52,7 @@ export default function RootLayout({
         <meta name="msapplication-tap-highlight" content="no" />
 
         <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
-        <link rel="manifest" href="/manifest.json" />
+        <link rel="manifest" href="/manifest.json" crossOrigin="use-credentials" />
         <link rel="shortcut icon" href="/favicon.ico" />
       </head>
       <body>

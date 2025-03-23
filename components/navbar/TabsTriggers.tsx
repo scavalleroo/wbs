@@ -63,13 +63,20 @@ export function NavbarItems({ className }: NavbarItemsProps) {
         // Inactive text styles
         const inactiveText = "text-neutral-500 dark:text-neutral-400"
 
-        // Active styles with bottom border positioned to overlap the navbar border
+        // Active styles with indicator positioned differently based on screen size
         if (isActive) {
-            // Position the active indicator to be exactly at navbar bottom
-            const activeBorder = "after:absolute after:bottom-[-1px] after:left-0 after:w-full after:h-[2px] after:content-[''] after:z-10"
+            // Position indicator at the top for mobile (<sm) and at the bottom for larger screens (sm+)
+            const activeBorder = "after:absolute after:top-[-1px] sm:after:top-auto after:left-0 after:w-full after:h-[4px] after:content-[''] after:z-10 sm:after:bottom-[-1px] after:rounded-full"
 
-            // Use consistent theme color for all selected tabs
-            return cn(baseStyles, responsiveWidth, padding, activeBorder, "text-black dark:text-white after:bg-blue-600 dark:after:bg-blue-400")
+            // Use the same gradient as the footer
+            return cn(
+                baseStyles,
+                responsiveWidth,
+                padding,
+                activeBorder,
+                "text-black dark:text-white",
+                "after:bg-gradient-to-r after:from-blue-500 after:via-indigo-500 after:to-blue-500"
+            )
         }
 
         return cn(baseStyles, responsiveWidth, padding, inactiveText, hoverStyles)

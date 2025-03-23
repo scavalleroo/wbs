@@ -10,7 +10,11 @@ import { ActiveUsersParticles } from '../timer/ActiveUsersParticles';
 import { FocusButton } from '../timer/FocusButton';
 import { useTimerUI } from '@/contexts/TimerUIProvider';
 
-export default function Footer() {
+interface FooterProps {
+  position?: 'top' | 'bottom';
+}
+
+export default function Footer({ position = 'bottom' }: FooterProps) {
   const {
     timeRemaining,
     timeElapsed,
@@ -101,12 +105,20 @@ export default function Footer() {
     }
   };
 
+  // Add positioning classes based on prop
+  const positionClasses = position === 'top' ?
+    'top-0 bottom-auto sm:bottom-0 sm:top-auto' :
+    'bottom-0 top-auto';
+
   // Display minimized footer
   if (footerVisible) {
     return (
       <div
         className={cn(
-          "fixed inset-x-0 bottom-0 z-40 bg-gradient-to-r from-blue-500/95 via-indigo-500/95 to-blue-500/95 backdrop-blur-md animate-in slide-in-from-bottom-full [animation-duration:500ms] shadow-lg border-t border-white/10 flex flex-col"
+          "fixed inset-x-0 z-40 bg-gradient-to-r from-blue-500/95 via-indigo-500/95 to-blue-500/95 backdrop-blur-md animate-in slide-in-from-top-full sm:slide-in-from-bottom-full [animation-duration:500ms] shadow-lg border-t border-white/10 flex flex-col",
+          positionClasses,
+          position === 'top' && "sm:slide-in-from-bottom-full", // Keep animation consistent on desktop
+          position === 'top' && "border-b border-t-0 sm:border-t sm:border-b-0" // Border adjustment
         )}
       >
         {/* Progress bar - Top line for all screen sizes when not in flow mode */}
@@ -204,13 +216,13 @@ export default function Footer() {
     );
   }
 
-
-  // Replace the non-active session footer return statement with this improved version
-
-  // Updated non-active session footer with counter on right side
-
+  // Non-active session footer
   return (
-    <div className="fixed inset-x-0 bottom-0 z-40 flex items-center justify-center bg-gradient-to-r from-blue-500/95 via-indigo-500/95 to-blue-500/95 backdrop-blur-md shadow-lg h-[64px] sm:h-18 overflow-hidden">
+    <div className={cn(
+      "fixed inset-x-0 z-40 flex items-center justify-center bg-gradient-to-r from-blue-500/95 via-indigo-500/95 to-blue-500/95 backdrop-blur-md shadow-lg h-[64px] sm:h-18 overflow-hidden",
+      positionClasses,
+      position === 'top' ? "border-b border-t-0 sm:border-t sm:border-b-0" : "border-t border-b-0"
+    )}>
       {/* Animated user particles in the background - using diverse emojis now */}
       <ActiveUsersParticles count={totalActiveUsers} />
 

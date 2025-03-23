@@ -51,22 +51,22 @@ export function NavbarItems({ className }: NavbarItemsProps) {
         // Updated base styles to align content at the bottom
         const baseStyles = "flex flex-col items-center justify-end pb-1 pt-2 transition-all duration-200 relative h-full"
 
-        // Widths based on screen sizes - smaller for tiny screens
-        const responsiveWidth = "w-[calc(100%/3)]"
+        // Widths based on screen sizes - responsive width only for mobile
+        const responsiveWidth = "w-[calc(100%/3)] sm:w-auto"
 
-        // Horizontal padding scales with screen size
-        const padding = "px-2"
+        // Horizontal padding increases on larger screens
+        const padding = "px-2 sm:px-8"
 
         // Hover styles
         const hoverStyles = "hover:bg-neutral-200/70 dark:hover:bg-neutral-800/70"
 
-        // Inactive text styles
+        // Inactive text styles with larger font on desktop
         const inactiveText = "text-neutral-500 dark:text-neutral-400"
 
         // Active styles with indicator positioned differently based on screen size
         if (isActive) {
             // Position indicator at the top for mobile (<sm) and at the bottom for larger screens (sm+)
-            const activeBorder = "after:absolute after:top-[-1px] sm:after:top-auto after:left-0 after:w-full after:h-[4px] after:content-[''] after:z-10 sm:after:bottom-[-1px] after:rounded-full"
+            const activeBorder = "after:absolute after:top-[-4px] sm:after:top-auto after:left-0 after:w-full after:h-[4px] after:content-[''] after:z-10 sm:after:bottom-[-4px] after:rounded-full"
 
             // Use the same gradient as the footer
             return cn(
@@ -92,7 +92,7 @@ export function NavbarItems({ className }: NavbarItemsProps) {
                     className={getItemStyles(item.path, item.type)}
                 >
                     <item.icon className="size-[18px] mb-0.5" />
-                    <span className="text-xs font-medium pb-0">{item.name}</span>
+                    <span className="text-xs font-extralight pb-0">{item.name}</span>
                 </a>
             ))}
         </nav>

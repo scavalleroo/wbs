@@ -105,20 +105,7 @@ export function FocusButton() {
                     }
                 }}
             >
-                <DialogContent className="sm:max-w-xl md:max-w-2xl p-0 border-0 bg-transparent max-h-[90vh] overflow-hidden">
-                    <div className="bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl p-1 shadow-xl">
-                        <div className="bg-white dark:bg-neutral-900 rounded-lg p-0 overflow-y-auto max-h-[80vh] [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
-                            <DialogTitle>
-                                <div className="bg-gradient-to-r from-blue-500 via-indigo-500 to-blue-500 p-6 text-white">
-                                    <h2 className="text-2xl font-bold mb-1">Set up your focus session</h2>
-                                    <p className="opacity-80">Customize your perfect environment</p>
-                                </div>
-                            </DialogTitle>
-
-                            <FocusSelector onStart={startFocusSession} />
-                        </div>
-                    </div>
-                </DialogContent>
+                <FocusSelector onStart={startFocusSession} />
             </Dialog>
         </>
     );

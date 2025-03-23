@@ -7,7 +7,7 @@ import { Target, Chrome, Settings, Download, Brain } from "lucide-react";
 import { useBlockedSite } from '@/hooks/use-blocked-site';
 import { DailyFocusData } from '@/types/report.types';
 import { ManageDistractionsDialog } from './ManageDistractionsDialog';
-import { getScoreTier } from '@/components/ui/score';
+import { getScoreTier, ScoreScaleLegend } from '@/components/ui/score';
 import TimeRangeSelector from './TimeRangeSelector';
 
 interface DigitalWellbeingHistoryProps {
@@ -277,7 +277,7 @@ const DigitalWellbeingHistory = ({
                             </div>
 
                             {/* Score Range Legend using the consistent colors from getScoreTier */}
-                            <div className="flex flex-wrap items-center justify-center mt-4 gap-4 text-xs">
+                            {/* <div className="flex flex-wrap items-center justify-center mt-4 gap-4 text-xs">
                                 <div className="flex items-center">
                                     <span className="inline-block w-3 h-3 mr-1 rounded-full" style={{ backgroundColor: "#3B82F6" }}></span>
                                     <span className="text-white">Superior (96-100)</span>
@@ -302,7 +302,11 @@ const DigitalWellbeingHistory = ({
                                     <span className="inline-block w-3 h-3 mr-1 rounded-full" style={{ backgroundColor: "#EF4444" }}></span>
                                     <span className="text-white">Very Poor (0-20)</span>
                                 </div>
-                            </div>
+                            </div> */}
+
+                            {/* <div className='pt-4'>
+                                <ScoreScaleLegend />
+                            </div> */}
 
                             {/* Manage distractions button for when data exists */}
                             <div className="flex justify-center mt-6">

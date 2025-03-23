@@ -26,7 +26,8 @@ export default function NavbarUser({ user, userDetails }: NavbarUserProps) {
     const { theme, setTheme } = useTheme();
 
     return (
-        <div className="flex items-center gap-1 sm:gap-2">
+        // Make container take full navbar item width on mobile
+        <div className="flex items-center justify-center w-[calc(100%/3)] sm:w-auto sm:justify-end">
             <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                     <Button variant="ghost" className="relative h-8 w-8 rounded-full p-0">

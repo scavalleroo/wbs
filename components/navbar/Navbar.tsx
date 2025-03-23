@@ -11,8 +11,8 @@ interface NavbarProps {
 
 export function Navbar({ user, userDetails }: NavbarProps) {
     return (
-        <div className="flex items-center px-1 sm:px-4 h-12 bg-neutral-100 dark:bg-neutral-800 border-b border-neutral-200 dark:border-neutral-700">
-            <div className="min-w-6 sm:min-w-8 sm:flex-1 flex items-center">
+        <div className="flex items-center px-1 sm:px-4 h-[3.5rem] bg-neutral-100 dark:bg-neutral-800 border-b border-neutral-200 dark:border-neutral-700">
+            <div className="min-w-6 sm:min-w-8 flex-1 flex items-center">
                 {/* Dark mode logos - tiered sizes for responsiveness */}
                 <Image
                     src="/logoTransparent.svg"
@@ -50,7 +50,7 @@ export function Navbar({ user, userDetails }: NavbarProps) {
                 <NavbarItems />
             </div>
 
-            <div className="min-w-6 sm:flex-1 flex justify-end items-center">
+            <div className="min-w-6 flex-1 flex justify-end items-center">
                 <NavbarUser user={user} userDetails={userDetails} />
             </div>
         </div>

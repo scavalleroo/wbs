@@ -48,11 +48,11 @@ export function NavbarItems({ className }: NavbarItemsProps) {
     const getItemStyles = (path: string, type: string) => {
         const isActive = currentPath === path
 
-        // Base styles with adaptive width for small screens
-        const baseStyles = "flex flex-col items-center justify-center py-1 transition-all duration-200 relative h-full"
+        // Updated base styles to align content at the bottom
+        const baseStyles = "flex flex-col items-center justify-end pb-1 pt-2 transition-all duration-200 relative h-full"
 
         // Widths based on screen sizes - smaller for tiny screens
-        const responsiveWidth = "w-16 md:w-20"
+        const responsiveWidth = "w-[calc(100%/3)]"
 
         // Horizontal padding scales with screen size
         const padding = "px-1 md:px-2"
@@ -76,7 +76,7 @@ export function NavbarItems({ className }: NavbarItemsProps) {
     }
 
     return (
-        <nav className={cn("flex justify-center backdrop-blur-sm h-full", className)}>
+        <nav className={cn("flex w-full backdrop-blur-sm h-full", className)}>
             {navItems.map((item) => (
                 <a
                     key={item.name}
@@ -85,7 +85,7 @@ export function NavbarItems({ className }: NavbarItemsProps) {
                     className={getItemStyles(item.path, item.type)}
                 >
                     <item.icon className="size-4 mb-0.5" />
-                    <span className="text-[10px] md:text-xs font-medium">{item.name}</span>
+                    <span className="text-[10px] md:text-xs font-medium pb-0">{item.name}</span>
                 </a>
             ))}
         </nav>

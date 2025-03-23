@@ -123,7 +123,10 @@ export default function Footer() {
         <div className="flex flex-row items-center justify-between px-3 py-3 sm:py-3 h-[64px] sm:h-18">
           {/* Activity info with larger size on mobile */}
           <div className="flex flex-row items-center gap-2.5 min-w-0 max-w-[40%] sm:w-1/3">
-            <div className="flex items-center justify-center h-9 w-9 sm:h-12 sm:w-12 rounded-md sm:rounded-lg bg-white/20 backdrop-blur-sm text-lg sm:text-2xl shadow-inner">
+            <div
+              className="flex items-center justify-center h-9 w-9 sm:h-12 sm:w-12 rounded-md sm:rounded-lg bg-white/20 backdrop-blur-sm text-lg sm:text-2xl shadow-inner cursor-pointer"
+              onClick={maximizeSession}
+            >
               {getActivityIcon(activity)}
             </div>
             <div className="flex flex-col min-w-0">

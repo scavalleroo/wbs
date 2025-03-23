@@ -1,61 +1,93 @@
-import { TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { ChartArea, Coffee, HomeIcon, Notebook } from "lucide-react"
-import { Dispatch, SetStateAction } from "react"
-import { TabValue } from "../dashboard/main"
-import { cn } from "@/lib/utils"
+"use client"
 
-interface MainNavProps {
-    activeTab: string
-    setActiveTab: Dispatch<SetStateAction<TabValue>>
+import { Coffee, HomeIcon, Notebook } from "lucide-react"
+import { cn } from "@/lib/utils"
+import { usePathname, useRouter } from "next/navigation"
+
+interface NavbarItemsProps {
+    className?: string
 }
 
-export function TabsTriggers({ activeTab, setActiveTab }: MainNavProps) {
-    const handleTabChange = (tab: TabValue) => {
-        setActiveTab(tab);
+export function NavbarItems({ className }: NavbarItemsProps) {
+    const pathname = usePathname()
+    const router = useRouter()
+
+    // Extract the current section from the pathname
+    const currentPath = pathname.split('/')[1] || 'dashboard'
+
+    const navItems = [
+        {
+            name: "Dashboard",
+            href: "/dashboard",
+            path: "dashboard",
+            icon: HomeIcon,
+            type: "report"
+        },
+        {
+            name: "Notes",
+            href: "/notes",
+            path: "notes",
+            icon: Notebook,
+            type: "focus"
+        },
+        {
+            name: "Break",
+            href: "/break",
+            path: "break",
+            icon: Coffee,
+            type: "break"
+        }
+    ]
+
+    // Client-side navigation handler
+    const handleNavigation = (href: string, e: React.MouseEvent) => {
+        e.preventDefault()
+        router.push(href)
     }
 
-    // Define colors for each tab type
-    const getTabStyles = (tabValue: TabValue) => {
-        const baseStyles = "transition-all duration-200 px-4 py-2 rounded-md flex items-center gap-2 dark:hover:bg-neutral-800 hover:bg-neutral-300/80";
+    const getItemStyles = (path: string, type: string) => {
+        const isActive = currentPath === path
 
-        switch (tabValue) {
-            case 'report':
-                return cn(baseStyles, "data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-500 data-[state=active]:to-indigo-600 data-[state=active]:text-white");
-            case 'focus':
-                return cn(baseStyles, "data-[state=active]:bg-gradient-to-b data-[state=active]:from-blue-400 data-[state=active]:to-blue-600 data-[state=active]:text-white");
-            case 'break':
-                return cn(baseStyles, "data-[state=active]:bg-gradient-to-b data-[state=active]:from-green-400 data-[state=active]:to-green-600 data-[state=active]:text-white");
-            default:
-                return cn(baseStyles, "data-[state=active]:bg-primary data-[state=active]:text-primary-foreground");
+        // Base styles with adaptive width for small screens
+        const baseStyles = "flex flex-col items-center justify-center py-1 transition-all duration-200 relative h-full"
+
+        // Widths based on screen sizes - smaller for tiny screens
+        const responsiveWidth = "w-12 sm:w-16 md:w-20"
+
+        // Horizontal padding scales with screen size
+        const padding = "px-0.5 sm:px-1 md:px-2"
+
+        // Hover styles
+        const hoverStyles = "hover:bg-neutral-200/70 dark:hover:bg-neutral-800/70"
+
+        // Inactive text styles
+        const inactiveText = "text-neutral-500 dark:text-neutral-400"
+
+        // Active styles with bottom border positioned to overlap the navbar border
+        if (isActive) {
+            // Position the active indicator to be exactly at navbar bottom
+            const activeBorder = "after:absolute after:bottom-[-1px] after:left-0 after:w-full after:h-[2px] after:content-[''] after:z-10"
+
+            // Use consistent theme color for all selected tabs
+            return cn(baseStyles, responsiveWidth, padding, activeBorder, "text-black dark:text-white after:bg-blue-600 dark:after:bg-blue-400")
         }
+
+        return cn(baseStyles, responsiveWidth, padding, inactiveText, hoverStyles)
     }
 
     return (
-        <TabsList className="bg-neutral-300/40 dark:bg-neutral-50/10 backdrop-blur-sm p-0.5 sm:p-1 rounded-lg">
-            <TabsTrigger
-                onClick={() => handleTabChange('report')}
-                className={getTabStyles('report')}
-                value="report"
-            >
-                <HomeIcon className="size-4" />
-                <p className="hidden sm:inline font-medium sm:text-xs">Dashboard</p>
-            </TabsTrigger>
-            <TabsTrigger
-                onClick={() => handleTabChange('focus')}
-                className={getTabStyles('focus')}
-                value="focus"
-            >
-                <Notebook className="size-4" />
-                <p className="hidden sm:inline font-medium sm:text-xs">Notes</p>
-            </TabsTrigger>
-            <TabsTrigger
-                onClick={() => handleTabChange('break')}
-                className={getTabStyles('break')}
-                value="break"
-            >
-                <Coffee className="size-4" />
-                <p className="hidden sm:inline font-medium sm:text-xs">Break</p>
-            </TabsTrigger>
-        </TabsList>
+        <nav className={cn("flex justify-center backdrop-blur-sm h-full", className)}>
+            {navItems.map((item) => (
+                <a
+                    key={item.name}
+                    href={item.href}
+                    onClick={(e) => handleNavigation(item.href, e)}
+                    className={getItemStyles(item.path, item.type)}
+                >
+                    <item.icon className="size-3.5 sm:size-4 mb-0.5" />
+                    <span className="text-[8px] sm:text-[10px] md:text-xs font-medium">{item.name}</span>
+                </a>
+            ))}
+        </nav>
     )
 }

@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation';
-import { createClient } from '@/utils/supabase/server';
 import DefaultAuth from '@/components/auth/default-auth';
+import { getUser } from '@/utils/supabase/queries';
+import { createClient } from '@/utils/supabase/server';
 
 export const metadata = {
     title: 'Sign In | Weko',
@@ -10,15 +11,13 @@ export const metadata = {
 export const viewport = {};
 
 export default async function SignIn() {
-    // Check if the user is already logged in and redirect to the account page if so
     const supabase = await createClient();
-
-    const {
-        data: { user }
-    } = await supabase.auth.getUser();
+    const [user] = await Promise.all([
+        getUser(supabase)
+    ]);
 
     if (user) {
-        return redirect('/dashboard/main');
+        return redirect('/dashboard');
     }
 
     return (

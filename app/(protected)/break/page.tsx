@@ -1,25 +1,20 @@
-import Main from '@/components/dashboard/main';
 import { redirect } from 'next/navigation';
 import { getUserDetails, getUser } from '@/utils/supabase/queries';
 import { createClient } from '@/utils/supabase/server';
+import Break from '@/components/break';
 
 export const metadata = {
-    title: 'Weko',
+    title: 'Break | Weko',
     description: 'Your calm space for productivity, powered by AI',
 };
 
 export const viewport = {};
 
-export default async function Account() {
+export default async function BreakPage() {
     const supabase = await createClient();
-    const [user, userDetails] = await Promise.all([
+    const [user] = await Promise.all([
         getUser(supabase),
-        getUserDetails(supabase)
     ]);
 
-    if (!user) {
-        return redirect('/dashboard/signin');
-    }
-
-    return <Main user={user} userDetails={userDetails} />;
+    return <Break user={user} />;
 }

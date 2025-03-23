@@ -163,7 +163,6 @@ export const FocusTabs: React.FC<FocusTabsProps> = ({
   };
 
   const handleRenameProject = async (id: number, newTitle: string) => {
-    console.log('Renaming project', id, 'to', newTitle);
     await saveProjectNotes(id, { title: newTitle });
     await fetchAllProjectNotes();
     setSelectedProject(null);
@@ -179,7 +178,8 @@ export const FocusTabs: React.FC<FocusTabsProps> = ({
     <Tabs
       value={activeTab}
       onValueChange={handleTabChange}
-      className='flex flex-col w-full h-[calc(100vh-142px)] max-h-[calc(100vh-142px)] overflow-y-auto'
+      className='pt-2 pb-4'
+    // className='flex flex-col w-full h-[calc(100vh-112px)] max-h-[calc(100vh-112px)] overflow-y-auto py-2'
     >
       <div className="space-y-0 max-w-screen-lg mx-auto px-2 w-full">
         {/* Selection Header Area */}

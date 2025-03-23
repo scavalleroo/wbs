@@ -9,7 +9,7 @@ import useMood from '@/hooks/use-mood';
 import { User } from '@supabase/supabase-js';
 import { AnimatePresence, motion } from 'framer-motion';
 import { endOfDay, format, startOfDay, subDays } from 'date-fns';
-import { supabase } from '@/lib/superbase';
+import { supabase } from '@/lib/supabase';
 
 interface MoodTrackingModalProps {
     user: User | null | undefined;

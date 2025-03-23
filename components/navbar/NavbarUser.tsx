@@ -26,13 +26,13 @@ export default function NavbarUser({ user, userDetails }: NavbarUserProps) {
     const { theme, setTheme } = useTheme();
 
     return (
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1 sm:gap-2">
             <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" className="relative h-8 w-8 rounded-full">
-                        <Avatar className="min-h-10 min-w-10">
+                    <Button variant="ghost" className="relative h-6 w-6 sm:h-8 sm:w-8 rounded-full p-0">
+                        <Avatar className="h-6 w-6 sm:h-8 sm:w-8">
                             <AvatarImage src={user?.user_metadata.avatar_url} />
-                            <AvatarFallback className="font-bold dark:text-zinc-950">
+                            <AvatarFallback className="text-[10px] sm:text-xs font-bold dark:text-zinc-950">
                             </AvatarFallback>
                         </Avatar>
                     </Button>

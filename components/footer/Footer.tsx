@@ -2,14 +2,14 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { cn } from '@/lib/utils';
-import { Maximize2, Pause, Play, User, Users, Volume2, VolumeX, X } from 'lucide-react';
+import { Maximize2, Pause, Play, Volume2, VolumeX, X } from 'lucide-react';
 import { Slider } from '../ui/slider';
 import { Progress } from '../ui/progress';
-import { FullScreenTimer } from '../timer/FullScreenTimer';
 import { useTimer } from '@/contexts/TimerProvider';
 import { useActiveSessions } from '@/hooks/use-active-session';
 import { ActiveUsersParticles } from '../timer/ActiveUsersParticles';
 import { FocusButton } from '../timer/FocusButton';
+import { useTimerUI } from '@/contexts/TimerUIProvider';
 
 export default function Footer() {
   const {
@@ -32,7 +32,13 @@ export default function Footer() {
   } = useTimer();
 
   const [footerVisible, setFooterVisible] = useState(false);
-  const [showFullScreenTimer, setShowFullScreenTimer] = useState(false);
+  const {
+    showFullScreenTimer,
+    setShowFullScreenTimer,
+    wasManuallyMinimized,
+    setWasManuallyMinimized
+  } = useTimerUI();
+
   const prevSound = useRef('none');
   const { activeSessions } = useActiveSessions();
   const totalActiveUsers = activeSessions.reduce(
@@ -40,13 +46,19 @@ export default function Footer() {
     0
   );
 
-  // Enhanced effect - handles both footer visibility AND fullscreen detection
+  // Enhanced effect - handles both footer visibility AND fullscreen detection with user preference
   useEffect(() => {
-    // If sound just changed from 'none' to something else, show fullscreen
+    // If sound just changed from 'none' to something else, AND this is a new session (not page navigation)
     if (prevSound.current === 'none' && sound !== 'none') {
-      // This means a new session just started - show fullscreen
-      setShowFullScreenTimer(true);
-      setFooterVisible(false);
+      // New session just started - show fullscreen ONLY IF user hasn't previously minimized
+      if (!wasManuallyMinimized) {
+        setShowFullScreenTimer(true);
+        setFooterVisible(false);
+      } else {
+        // User previously minimized a session, respect that preference
+        setShowFullScreenTimer(false);
+        setFooterVisible(true);
+      }
     }
     // Normal footer visibility logic
     else if (sound !== 'none' && !showFullScreenTimer) {
@@ -57,25 +69,21 @@ export default function Footer() {
 
     // Update prevSound for next comparison
     prevSound.current = sound;
-  }, [sound, showFullScreenTimer]);
+  }, [sound, showFullScreenTimer, wasManuallyMinimized]);
 
   const closeSession = () => {
-    // Reset timer state - we should call resetTimer() and then set sound to 'none'
     endSession();
     setSound('none');
     resetTimer();
-    setShowFullScreenTimer(false); // Add this line to ensure fullscreen is closed
+    setShowFullScreenTimer(false);
     setFooterVisible(false);
+    setWasManuallyMinimized(false); // Reset minimized preference
   };
 
   const maximizeSession = () => {
     setShowFullScreenTimer(true);
     setFooterVisible(false);
-  };
-
-  const handleMinimize = () => {
-    setShowFullScreenTimer(false);
-    setFooterVisible(true);
+    setWasManuallyMinimized(false); // User explicitly maximized
   };
 
   const formatTime = (seconds: number) => {
@@ -93,16 +101,6 @@ export default function Footer() {
       default: return '🧠';
     }
   };
-
-  // Display fullscreen timer
-  if (showFullScreenTimer) {
-    return (
-      <FullScreenTimer
-        onClose={closeSession}
-        onMinimize={handleMinimize}
-      />
-    );
-  }
 
   // Display minimized footer
   if (footerVisible) {

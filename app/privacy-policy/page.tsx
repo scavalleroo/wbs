@@ -2,6 +2,14 @@ import { createClient } from '@/utils/supabase/server'
 import Image from "next/image";
 import Link from "next/link";
 
+
+export const metadata = {
+    title: 'Privacy Policy | Weko',
+    description: 'Your calm space for productivity, powered by AI',
+};
+
+export const viewport = {};
+
 export default async function PrivacyPolicy() {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
@@ -30,7 +38,7 @@ export default async function PrivacyPolicy() {
                 <div className="sticky top-0 w-full bg-neutral-100/90 dark:bg-neutral-800/90 backdrop-blur-sm z-50 py-4 px-6 flex justify-between items-center">
                     <div className="ml-auto">
                         <Link
-                            href={user ? "/dashboard/main" : "/dashboard/signin"}
+                            href={user ? "/dashboard" : "/signin"}
                             className="px-4 py-2 rounded-md text-white hover:opacity-90 transition shadow-sm"
                             style={{
                                 background: 'linear-gradient(to right, #6CB4EE, #3730A3)'

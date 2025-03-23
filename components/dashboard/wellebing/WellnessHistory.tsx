@@ -4,7 +4,7 @@ import { format, subDays, eachDayOfInterval, startOfDay, endOfDay, isToday, isFu
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import useMood from '@/hooks/use-mood';
-import MoodTrackingModal from '@/components/dashboard/main/moodTracking/MoodTrackingModal';
+import MoodTrackingModal from '@/components/moodTracking/MoodTrackingModal';
 import { getFormattedDateLabel } from '@/lib/utils';
 import { Toggle } from '@/components/ui/toggle';
 import { Heart } from "lucide-react";

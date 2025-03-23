@@ -17,7 +17,7 @@ export async function GET(request: NextRequest) {
         if (error) {
             return NextResponse.redirect(
                 getErrorRedirect(
-                    `${requestUrl.origin}/dashboard/signin`,
+                    `${requestUrl.origin}/signin`,
                     error.name,
                     "Sorry, we weren't able to log you in. Please try again."
                 )
@@ -28,7 +28,7 @@ export async function GET(request: NextRequest) {
     // URL to redirect to after sign in process completes
     return NextResponse.redirect(
         getStatusRedirect(
-            `${requestUrl.origin}/dashboard/main`,
+            `${requestUrl.origin}/dashboard`,
             'Success!',
             'You are now signed in.'
         )

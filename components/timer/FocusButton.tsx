@@ -1,22 +1,28 @@
 'use client';
 
-import { PlayCircle, Users } from 'lucide-react';
+import { PlayCircle } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
 import { Dialog, DialogContent } from '../ui/dialog';
 import { FocusSelector } from './FocusSelector';
-import { FullScreenTimer } from './FullScreenTimer';
 import { DialogTitle } from '@radix-ui/react-dialog';
 import { useTimer } from '@/contexts/TimerProvider';
 import { useActiveSessions } from '@/hooks/use-active-session';
+import { useTimerUI } from '@/contexts/TimerUIProvider';
 
 export function FocusButton() {
     const [showFocusSelector, setShowFocusSelector] = useState(false);
-    const [showFullScreenTimer, setShowFullScreenTimer] = useState(false);
     const { activeSessions } = useActiveSessions();
     const totalActiveUsers = activeSessions.reduce(
         (sum, session) => sum + session.active_users,
         0
     ) || 30;
+
+    // Use the shared UI context with additional user preference
+    const {
+        showFullScreenTimer,
+        setShowFullScreenTimer,
+        setWasManuallyMinimized
+    } = useTimerUI();
 
     // Track if we need to show fullscreen
     const pendingFullscreen = useRef(false);
@@ -35,6 +41,9 @@ export function FocusButton() {
         // First close the selector dialog and mark that we want to show fullscreen
         pendingFullscreen.current = true;
         setShowFocusSelector(false);
+
+        // New session starting - always reset the minimized preference
+        setWasManuallyMinimized(false);
 
         // Initialize the session with the settings
         initializeSession({
@@ -59,7 +68,7 @@ export function FocusButton() {
                 setShowFullScreenTimer(true);
             }, 100);
         }
-    }, [showFocusSelector]);
+    }, [showFocusSelector, setShowFullScreenTimer]);
 
     // Ensure sound state is synced with UI
     useEffect(() => {
@@ -67,16 +76,7 @@ export function FocusButton() {
         if (sound !== 'none' && !showFullScreenTimer && !showFocusSelector && !pendingFullscreen.current) {
             setShowFullScreenTimer(true);
         }
-    }, [sound, showFullScreenTimer, showFocusSelector]);
-
-    const handleCloseFullScreen = () => {
-        endSession();
-        setShowFullScreenTimer(false);
-    };
-
-    const handleMinimizeFullScreen = () => {
-        setShowFullScreenTimer(false);
-    };
+    }, [sound, showFullScreenTimer, showFocusSelector, setShowFullScreenTimer]);
 
     return (
         <>
@@ -120,14 +120,6 @@ export function FocusButton() {
                     </div>
                 </DialogContent>
             </Dialog>
-
-            {/* Fullscreen timer - conditionally rendered */}
-            {showFullScreenTimer && (
-                <FullScreenTimer
-                    onClose={handleCloseFullScreen}
-                    onMinimize={handleMinimizeFullScreen}
-                />
-            )}
         </>
     );
 }

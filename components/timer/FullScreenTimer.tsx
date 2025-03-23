@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Play, Pause, Minimize2, X, Volume2, VolumeX, RefreshCw, Music, ChevronDown } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Slider } from '../ui/slider';
@@ -11,6 +11,7 @@ import {
 } from "../ui/popover";
 import { useTimer } from '@/contexts/TimerProvider';
 import { useActiveSessions } from '@/hooks/use-active-session';
+import { useTimerUI } from '@/contexts/TimerUIProvider'; // Import the TimerUI hook
 
 // Sound options remain the same
 const SOUNDS = [
@@ -26,13 +27,9 @@ const SOUNDS = [
     { id: 'none', name: 'No Sound', src: '', emoji: '🔇' },
 ];
 
-interface FullScreenTimerProps {
-    onClose: () => void;
-    onMinimize: () => void;
-}
-
-export function FullScreenTimer({ onClose, onMinimize }: FullScreenTimerProps) {
-    // Get all timer state from context instead of local state
+// Updated props - no need for onClose/onMinimize props anymore
+export function FullScreenTimer() {
+    // Get timer state from context
     const {
         timeRemaining,
         timeElapsed,
@@ -48,13 +45,76 @@ export function FullScreenTimer({ onClose, onMinimize }: FullScreenTimerProps) {
         setVolume,
         setSound,
         resetTimer,
+        endSession,
         autoplayBlocked,
     } = useTimer();
 
     // Local UI state only (not timer state)
     const [showAnalogClock, setShowAnalogClock] = useState(false);
     const { activeSessions } = useActiveSessions();
+    const {
+        setShowFullScreenTimer,
+        setWasManuallyMinimized
+    } = useTimerUI();
 
+    // Use refs to track click state and prevent double-click issues
+    const containerRef = useRef<HTMLDivElement>(null);
+    const isMinimizingRef = useRef(false);
+    const isClosingRef = useRef(false);
+
+    const handleMinimize = (e: React.MouseEvent) => {
+        // Prevent event bubbling
+        e.stopPropagation();
+
+        // Mark that user explicitly minimized the timer
+        setWasManuallyMinimized(true);
+
+        // Hide the fullscreen timer
+        setShowFullScreenTimer(false);
+
+        // For immediate visual feedback, hide the container directly
+        if (containerRef.current) {
+            containerRef.current.style.display = 'none';
+        }
+    };
+
+    const handleClose = (e: React.MouseEvent) => {
+        // Prevent event bubbling
+        e.stopPropagation();
+
+        // Return early if action is already in progress
+        if (isClosingRef.current) return;
+
+        // Set flag to prevent multiple clicks
+        isClosingRef.current = true;
+
+        // End the session
+        endSession();
+
+        // Reset minimized preference on close
+        setWasManuallyMinimized(false);
+
+        // Hide the fullscreen timer
+        setShowFullScreenTimer(false);
+
+        // For immediate visual feedback, hide the container directly
+        if (containerRef.current) {
+            containerRef.current.style.display = 'none';
+        }
+    };
+
+    // Reset refs when component mounts/unmounts
+    useEffect(() => {
+        isMinimizingRef.current = false;
+        isClosingRef.current = false;
+
+        return () => {
+            isMinimizingRef.current = false;
+            isClosingRef.current = false;
+        };
+    }, []);
+
+    // Your existing helper functions remain unchanged...
     const currentActivityUsers = activeSessions.find(
         session => session.activity === activity
     )?.active_users || 0;
@@ -95,16 +155,7 @@ export function FullScreenTimer({ onClose, onMinimize }: FullScreenTimerProps) {
         : 100 - (timeRemaining / duration) * 100; // Invert for completion percentage
 
     return (
-        <div className="fixed inset-0 bg-white dark:bg-neutral-900 z-50 overflow-hidden flex flex-col">
-            {/* {autoplayBlocked && sound !== 'none' && (
-                <div className="absolute top-4 left-1/2 transform -translate-x-1/2 bg-amber-50 dark:bg-amber-900 text-amber-800 dark:text-amber-100 px-4 py-2 rounded-full text-sm flex items-center gap-2 shadow-md z-50 max-w-[90%] sm:max-w-md">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                        <path d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" fillRule="evenodd" />
-                    </svg>
-                    <span>Click the play button to enable sound</span>
-                </div>
-            )} */}
-
+        <div ref={containerRef} className="fixed inset-0 bg-white dark:bg-neutral-900 z-50 overflow-hidden flex flex-col">
             {/* Background gradients */}
             <div className="absolute inset-0 overflow-hidden">
                 <div className="absolute top-0 left-0 w-[500px] h-[500px] bg-blue-500/10 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2" />
@@ -113,8 +164,7 @@ export function FullScreenTimer({ onClose, onMinimize }: FullScreenTimerProps) {
 
             {/* Content */}
             <div className="relative z-10 flex flex-col h-full">
-                {/* Top bar with controls - Made responsive */}
-                {/* Top bar with controls - Made responsive */}
+                {/* Top bar with controls */}
                 <div className="flex flex-row justify-between items-center p-4 sm:p-6">
                     <div className="flex items-center gap-3 flex-1 min-w-0">
                         <div className="flex items-center justify-center h-10 w-10 sm:h-12 sm:w-12 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 text-white text-lg sm:text-xl shadow-lg flex-shrink-0">
@@ -131,18 +181,20 @@ export function FullScreenTimer({ onClose, onMinimize }: FullScreenTimerProps) {
                     </div>
 
                     <div className="flex items-center gap-2 sm:gap-3">
-                        {/* Minimize button - Increased mobile size */}
+                        {/* Minimize button - Updated with event parameter */}
                         <button
+                            type="button"
                             className="p-2.5 sm:p-3 rounded-full bg-neutral-200 dark:bg-white/20 text-neutral-700 dark:text-white hover:bg-neutral-300 dark:hover:bg-white/30 transition-all flex-shrink-0"
-                            onClick={onMinimize}
+                            onClick={handleMinimize}
                         >
                             <Minimize2 className="size-4.5 sm:size-5" />
                         </button>
 
-                        {/* Close button - Increased mobile size */}
+                        {/* Close button - Updated with event parameter */}
                         <button
+                            type="button"
                             className="p-2.5 sm:p-3 rounded-full bg-neutral-200 dark:bg-white/20 text-neutral-700 dark:text-white hover:bg-red-500 dark:hover:bg-red-500 hover:text-white dark:hover:text-white transition-all flex-shrink-0"
-                            onClick={onClose}
+                            onClick={handleClose}
                         >
                             <X className="size-4.5 sm:size-5" />
                         </button>

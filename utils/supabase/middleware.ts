@@ -3,6 +3,7 @@ import { NextResponse, type NextRequest } from 'next/server'
 
 export async function updateSession(request: NextRequest) {
     try {
+        // Create a response object we can modify
         let supabaseResponse = NextResponse.next({
             request: {
                 headers: request.headers,
@@ -38,20 +39,18 @@ export async function updateSession(request: NextRequest) {
 
         if (
             !user &&
-            !request.nextUrl.pathname.startsWith('/dashboard/signin') &&
+            !request.nextUrl.pathname.startsWith('/signin') &&
             !request.nextUrl.pathname.startsWith('/auth') &&
             !request.nextUrl.pathname.startsWith('/privacy-policy')
         ) {
             const url = request.nextUrl.clone()
-            url.pathname = '/dashboard/signin'
+            url.pathname = '/signin'
             return NextResponse.redirect(url)
         }
 
         return supabaseResponse
     } catch (error) {
-        // If you are here, a Supabase client could not be created!
-        // This is likely because you have not set up environment variables.
-        // Check out http://localhost:3000 for Next Steps.
+        console.error('Supabase middleware error:', error)
         return NextResponse.next({
             request: {
                 headers: request.headers,

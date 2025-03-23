@@ -112,8 +112,6 @@ export function TimerProvider({ children, user }: { children: ReactNode; user: U
             const session = await checkForActiveSession();
 
             if (session && wasSessionClosed(session.id)) {
-                // If this session was manually closed, end it
-                console.log('Session was manually closed, not reopening');
                 await endFocusSession(session.id, 'abandoned');
                 resetTimerState();
             }
@@ -200,7 +198,6 @@ export function TimerProvider({ children, user }: { children: ReactNode; user: U
                     // Playback started successfully
                     setAutoplayBlocked(false);
                 }).catch(err => {
-                    console.log('Audio autoplay prevented:', err);
                     setAutoplayBlocked(true);
                 });
             }
@@ -268,7 +265,6 @@ export function TimerProvider({ children, user }: { children: ReactNode; user: U
             audioRef.current.play().then(() => {
                 setAutoplayBlocked(false);
             }).catch(err => {
-                console.log('Audio playback still blocked:', err);
                 setAutoplayBlocked(true);
             });
         } else {
@@ -321,7 +317,7 @@ export function TimerProvider({ children, user }: { children: ReactNode; user: U
     const playEndSound = () => {
         const endSound = new Audio('/sounds/timer-complete.mp3');
         endSound.play().catch(err => {
-            console.log('End sound autoplay prevented. User interaction required.');
+            // console.log('End sound autoplay prevented. User interaction required.');
         });
     };
     return (

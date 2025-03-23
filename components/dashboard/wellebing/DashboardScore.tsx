@@ -5,7 +5,7 @@ import useMood from "@/hooks/use-mood";
 import { User } from "@supabase/supabase-js";
 import { Download, Heart } from "lucide-react";
 import { useEffect, useState } from "react";
-import MoodTrackingModal from "../../../moodTracking/MoodTrackingModal";
+import MoodTrackingModal from "../../moodTracking/MoodTrackingModal";
 import ScoreVisualization, { ScoreScaleLegend } from "@/components/ui/score";
 
 export const DashboardScore = ({ user, setTimeRange, timeRange }: {

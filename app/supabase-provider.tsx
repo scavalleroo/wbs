@@ -1,7 +1,7 @@
 'use client'
 
-import { createContext, useContext, useEffect, useState } from 'react'
-import { supabase } from '@/lib/superbase'
+import { createContext, useContext, useEffect, useRef, useState } from 'react'
+import { supabase } from '@/lib/supabase'
 import type { SupabaseClient, Session } from '@supabase/supabase-js'
 import type { Database } from '@/types/database.types'
 import { useRouter } from 'next/navigation'
@@ -22,12 +22,14 @@ export default function SupabaseProvider({
     const [session, setSession] = useState<Session | null>(null)
     const [isLoading, setIsLoading] = useState(true)
     const router = useRouter()
+    const isInitialLoad = useRef(true)
 
     useEffect(() => {
         // Get initial session
         supabase.auth.getSession().then(({ data: { session } }) => {
             setSession(session)
             setIsLoading(false)
+            isInitialLoad.current = false
         })
 
         const {
@@ -38,9 +40,9 @@ export default function SupabaseProvider({
             if (event === 'SIGNED_IN') {
                 router.refresh()
             }
-            if (event === 'SIGNED_OUT') {
+            if (event === 'SIGNED_OUT' && !isInitialLoad.current) {
                 router.refresh()
-                router.push('/dashboard/signin')
+                router.push('/signin')
             }
             if (event === 'USER_UPDATED') {
                 router.refresh()

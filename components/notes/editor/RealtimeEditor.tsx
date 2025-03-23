@@ -31,6 +31,7 @@ import { EventSelector } from './selectors/event-selector';
 import { formatRelativeTime } from '@/lib/utils';
 import { Book, Calendar, ChevronLeft, ChevronRight, Plus } from 'lucide-react';
 import CreateProjectDialog from '../create-project-dialog';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 
 const extensions = [...defaultExtensions, slashCommand];
 
@@ -88,9 +89,6 @@ export const RealtimeEditor: React.FC<RealtimeEditorProps> = ({
   const editorRef = useRef<EditorInstance | null>(null);
   const prevRowIdRef = useRef<string | number>(rowId);
   const prevInitialContentRef = useRef<JSONContent>(initialContent);
-
-
-  // Create a debounced version of the content
   const debouncedContent = useDebounce(localContent, 2000);
 
   // Update content when initialContent prop changes or rowId changes
@@ -161,60 +159,100 @@ export const RealtimeEditor: React.FC<RealtimeEditorProps> = ({
   return (
     <EditorRoot>
       <div className="flex flex-col w-full h-full bg-neutral-100 dark:bg-neutral-800 rounded-lg border border-gray-200 dark:border-gray-700 relative">
-        {/* Sticky Integrated Header */}
-        {/* Sticky Integrated Header */}
         {onTabChange && (
-          <div
-            className="sticky top-0 z-50 border-b border-gray-200 dark:border-gray-700 bg-gradient-to-r from-blue-500 via-indigo-500 to-blue-500 shadow-md"
-          >
-            {/* Tab Navigation - Clear tab-like design */}
-            {/* Tab Navigation with consistent styling */}
-            <div className="px-2 pt-2"> {/* Removed border-b border-white/10 */}
+          <div className="border-b border-gray-200 dark:border-gray-700 bg-gradient-to-r from-blue-500 via-indigo-500 to-blue-500 shadow-md">
+            {/* Header with dropdown */}
+            <div className="px-2 pt-2 pb-1">
               <div className="flex justify-between items-center">
-                {/* Tab Buttons with consistent styling and border radius */}
-                <div className="flex space-x-2">
-                  <button
-                    onClick={() => onTabChange('daily')}
-                    className={`px-3 py-1.5 text-xs rounded-md transition-colors ${activeTab === 'daily'
-                      ? 'bg-white dark:bg-neutral-800 text-blue-600 dark:text-blue-300 font-medium shadow-sm'
-                      : 'bg-blue-600/50 text-white/90 hover:bg-blue-600/70'
-                      }`}
-                  >
-                    <span className="flex items-center">
-                      <Calendar className="h-3.5 w-3.5 mr-1.5" />
-                      <span>Diary</span>
-                    </span>
-                  </button>
-                  <button
-                    onClick={() => onTabChange('project')}
-                    className={`px-3 py-1.5 text-xs rounded-md transition-colors ${activeTab === 'project'
-                      ? 'bg-white dark:bg-neutral-800 text-blue-600 dark:text-blue-300 font-medium shadow-sm'
-                      : 'bg-blue-600/50 text-white/90 hover:bg-blue-600/70'
-                      }`}
-                  >
-                    <span className="flex items-center">
-                      <Book className="h-3.5 w-3.5 mr-1.5" />
-                      <span>Pages</span>
-                    </span>
-                  </button>
+                {/* Dropdown for switching between Diary and Pages */}
+                <div className="relative">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <button
+                        className="px-4 py-2 text-sm rounded-md transition-colors bg-blue-600/50 text-white hover:bg-blue-600/70 flex items-center"
+                      >
+                        <span className="flex items-center">
+                          {activeTab === 'daily' ? (
+                            <>
+                              <Calendar className="h-4 w-4 mr-2" />
+                              <span>Diary</span>
+                            </>
+                          ) : (
+                            <>
+                              <Book className="h-4 w-4 mr-2" />
+                              <span>Pages</span>
+                            </>
+                          )}
+                        </span>
+                        <svg className="ml-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                        </svg>
+                      </button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="start" className="w-40 bg-white dark:bg-neutral-800 border-gray-200 dark:border-gray-700">
+                      <DropdownMenuItem
+                        onClick={() => onTabChange('daily')}
+                        className={`flex items-center ${activeTab === 'daily'
+                          ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-300'
+                          : 'text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700'}`}
+                      >
+                        <Calendar className="h-4 w-4 mr-2" />
+                        <span>Diary</span>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => onTabChange('project')}
+                        className={`flex items-center ${activeTab === 'project'
+                          ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-300'
+                          : 'text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700'}`}
+                      >
+                        <Book className="h-4 w-4 mr-2" />
+                        <span>Pages</span>
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </div>
 
-                {/* Always visible create project button when in project tab */}
-                {activeTab === 'project' && onCreateProject && (
-                  <div className="flex-shrink-0">
+                {/* Right side buttons remain the same */}
+                <div className="flex-shrink-0">
+                  {activeTab === 'daily' && onDateChange && selectedDate.toDateString() !== new Date().toDateString() && (
+                    <button
+                      className="px-3 py-1.5 text-xs rounded-md bg-blue-600/50 text-white/90 hover:bg-blue-600/70"
+                      onClick={() => {
+                        const today = new Date();
+                        onDateChange(today);
+
+                        // Center today in the visible days
+                        if (onDaysChange) {
+                          const middleIndex = Math.floor(days.length / 2);
+                          const newDays = Array.from({ length: days.length }, (_, i) => {
+                            const newDate = new Date(today);
+                            newDate.setDate(newDate.getDate() + (i - middleIndex));
+                            return newDate;
+                          });
+                          onDaysChange(newDays);
+                        }
+                      }}
+                    >
+                      <span className="flex items-center">
+                        <Calendar className="h-3.5 w-3.5 mr-1.5" />
+                        <span className="font-medium">Today</span>
+                      </span>
+                    </button>
+                  )}
+                  {activeTab === 'project' && onCreateProject && (
                     <CreateProjectDialog onCreateProject={onCreateProject} />
-                  </div>
-                )}
+                  )}
+                </div>
               </div>
             </div>
 
-            {/* Dynamic Content Area - Improved scrolling */}
-            <div className="p-1.5 flex items-center">
+            {/* Dynamic Content Area - Improved touch targets */}
+            <div className="py-2 px-2 flex items-center min-h-[50px]">
               {/* Daily content */}
               {activeTab === 'daily' && onDateChange && days.length > 0 && (
                 <div className="flex items-center w-full justify-center">
                   <button
-                    className="p-1 text-white/90 hover:bg-white/20 rounded-full flex-shrink-0"
+                    className="p-2 text-white/90 hover:bg-white/20 rounded-full flex-shrink-0"
                     onClick={() => {
                       if (onDaysChange) {
                         const newDays = days.map(day => {
@@ -230,31 +268,43 @@ export const RealtimeEditor: React.FC<RealtimeEditorProps> = ({
                       }
                     }}
                   >
-                    <ChevronLeft className="h-3.5 w-3.5" />
+                    <ChevronLeft className="h-5 w-5" />
                   </button>
 
-                  <div className="overflow-x-auto scrollbar-hide flex-grow mx-1">
+                  <div className="overflow-x-auto scrollbar-hide flex-grow mx-2">
                     <div className="flex w-max mx-auto">
-                      {days.map(day => (
-                        <button
-                          key={day.toISOString()}
-                          onClick={() => onDateChange(day)}
-                          className={`mx-0.5 px-2 py-0.5 text-xs rounded-md whitespace-nowrap transition-all ${day.toDateString() === selectedDate.toDateString()
-                            ? 'bg-white dark:bg-neutral-800 text-blue-600 dark:text-blue-300 font-medium shadow-sm'
-                            : 'bg-white/10 text-white/90 hover:bg-white/20'
-                            }`}
-                        >
-                          {day.toLocaleDateString('en-US', {
-                            weekday: window.innerWidth < 375 ? 'narrow' : 'short',
-                            day: 'numeric'
-                          })}
-                        </button>
-                      ))}
+                      {days.map(day => {
+                        const isToday = day.toDateString() === new Date().toDateString();
+                        const isSelected = day.toDateString() === selectedDate.toDateString();
+
+                        return (
+                          <button
+                            key={day.toISOString()}
+                            onClick={() => onDateChange(day)}
+                            className={`mx-1 px-3 py-1.5 text-sm rounded-md whitespace-nowrap transition-all 
+                               flex flex-col items-center justify-center min-h-[3.25rem] min-w-[3.5rem]
+                               ${isSelected
+                                ? 'bg-white text-blue-600 font-medium shadow-sm'
+                                : 'bg-white/10 text-white/90 hover:bg-white/20'
+                              }`}
+                          >
+                            <span className="text-center">{day.toLocaleDateString('en-US', {
+                              weekday: window.innerWidth < 375 ? 'narrow' : 'short',
+                              day: 'numeric'
+                            })}</span>
+                            {isToday && (
+                              <span className="text-xs mt-0.5 font-medium text-center">
+                                Today
+                              </span>
+                            )}
+                          </button>
+                        );
+                      })}
                     </div>
                   </div>
 
                   <button
-                    className="p-1 text-white/90 hover:bg-white/20 rounded-full flex-shrink-0"
+                    className="p-2 text-white/90 hover:bg-white/20 rounded-full flex-shrink-0"
                     onClick={() => {
                       if (onDaysChange) {
                         const newDays = days.map(day => {
@@ -270,16 +320,16 @@ export const RealtimeEditor: React.FC<RealtimeEditorProps> = ({
                       }
                     }}
                   >
-                    <ChevronRight className="h-3.5 w-3.5" />
+                    <ChevronRight className="h-5 w-5" />
                   </button>
                 </div>
               )}
 
-              {/* Project content - with consistent text size */}
+              {/* Project content - with improved touch targets */}
               {activeTab === 'project' && onProjectSelect && (
                 <div className="flex items-center w-full">
                   {projectNotes.length === 0 ? (
-                    <span className="text-xs text-white/80 px-2 flex-grow text-center">No pages</span>
+                    <span className="text-sm text-white/80 px-2 flex-grow text-center">No pages</span>
                   ) : (
                     <div className="overflow-x-auto scrollbar-hide flex-grow px-1 max-w-full">
                       <div className="flex w-max">
@@ -287,8 +337,8 @@ export const RealtimeEditor: React.FC<RealtimeEditorProps> = ({
                           <button
                             key={project.id}
                             onClick={() => onProjectSelect(project)}
-                            className={`mx-0.5 px-2 py-0.5 text-xs rounded-md whitespace-nowrap transition-all ${selectedProject?.id === project.id
-                              ? 'bg-white dark:bg-neutral-800 text-blue-600 dark:text-blue-300 font-medium shadow-sm'
+                            className={`mx-1 px-3 py-1.5 text-sm rounded-md whitespace-nowrap transition-all ${selectedProject?.id === project.id
+                              ? 'bg-white text-blue-600 font-medium shadow-sm'
                               : 'bg-white/10 text-white/90 hover:bg-white/20'
                               }`}
                           >
@@ -304,9 +354,7 @@ export const RealtimeEditor: React.FC<RealtimeEditorProps> = ({
           </div>
         )}
 
-        <div
-          className="flex flex-col flex-grow overflow-auto"
-        >
+        <div className="flex flex-col flex-grow overflow-auto">
           <EditorContent
             className="w-full break-words radius-lg h-full"
             extensions={extensions}
@@ -354,7 +402,7 @@ export const RealtimeEditor: React.FC<RealtimeEditorProps> = ({
 
             <GenerativeMenuSwitch open={openAI} onOpenChange={setOpenAI}>
               <Separator orientation="vertical" />
-              <EventSelector open={openEvent} onOpenChange={setOpenEvent} /> {/* Add the new component here */}
+              <EventSelector open={openEvent} onOpenChange={setOpenEvent} />
               <Separator orientation="vertical" />
               <NodeSelector open={openNode} onOpenChange={setOpenNode} />
               <Separator orientation="vertical" />

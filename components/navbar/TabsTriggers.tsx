@@ -55,7 +55,7 @@ export function NavbarItems({ className }: NavbarItemsProps) {
         const responsiveWidth = "w-[calc(100%/3)]"
 
         // Horizontal padding scales with screen size
-        const padding = "px-1 md:px-2"
+        const padding = "px-2"
 
         // Hover styles
         const hoverStyles = "hover:bg-neutral-200/70 dark:hover:bg-neutral-800/70"
@@ -84,8 +84,8 @@ export function NavbarItems({ className }: NavbarItemsProps) {
                     onClick={(e) => handleNavigation(item.href, e)}
                     className={getItemStyles(item.path, item.type)}
                 >
-                    <item.icon className="size-4 mb-0.5" />
-                    <span className="text-[10px] md:text-xs font-medium pb-0">{item.name}</span>
+                    <item.icon className="size-[18px] mb-0.5" />
+                    <span className="text-xs font-medium pb-0">{item.name}</span>
                 </a>
             ))}
         </nav>

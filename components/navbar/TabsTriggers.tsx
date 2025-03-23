@@ -52,10 +52,10 @@ export function NavbarItems({ className }: NavbarItemsProps) {
         const baseStyles = "flex flex-col items-center justify-center py-1 transition-all duration-200 relative h-full"
 
         // Widths based on screen sizes - smaller for tiny screens
-        const responsiveWidth = "w-12 sm:w-16 md:w-20"
+        const responsiveWidth = "w-16 md:w-20"
 
         // Horizontal padding scales with screen size
-        const padding = "px-0.5 sm:px-1 md:px-2"
+        const padding = "px-1 md:px-2"
 
         // Hover styles
         const hoverStyles = "hover:bg-neutral-200/70 dark:hover:bg-neutral-800/70"
@@ -84,8 +84,8 @@ export function NavbarItems({ className }: NavbarItemsProps) {
                     onClick={(e) => handleNavigation(item.href, e)}
                     className={getItemStyles(item.path, item.type)}
                 >
-                    <item.icon className="size-3.5 sm:size-4 mb-0.5" />
-                    <span className="text-[8px] sm:text-[10px] md:text-xs font-medium">{item.name}</span>
+                    <item.icon className="size-4 mb-0.5" />
+                    <span className="text-[10px] md:text-xs font-medium">{item.name}</span>
                 </a>
             ))}
         </nav>

@@ -29,8 +29,8 @@ export default function NavbarUser({ user, userDetails }: NavbarUserProps) {
         <div className="flex items-center gap-1 sm:gap-2">
             <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" className="relative h-6 w-6 sm:h-8 sm:w-8 rounded-full p-0">
-                        <Avatar className="h-6 w-6 sm:h-8 sm:w-8">
+                    <Button variant="ghost" className="relative h-8 w-8 rounded-full p-0">
+                        <Avatar className="h-8 w-8">
                             <AvatarImage src={user?.user_metadata.avatar_url} />
                             <AvatarFallback className="text-[10px] sm:text-xs font-bold dark:text-zinc-950">
                             </AvatarFallback>

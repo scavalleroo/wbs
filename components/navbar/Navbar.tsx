@@ -24,16 +24,9 @@ export function Navbar({ user, userDetails }: NavbarProps) {
                 <Image
                     src="/iconW.svg"
                     alt="Weko Icon"
-                    width={20}
-                    height={20}
-                    className="hidden sm:dark:block md:dark:hidden -my-1"
-                />
-                <Image
-                    src="/iconW.svg"
-                    alt="Weko Icon"
-                    width={16}
-                    height={16}
-                    className="dark:block sm:dark:hidden -my-1"
+                    width={28}
+                    height={28}
+                    className="hidden dark:block md:dark:hidden -my-1"
                 />
 
                 {/* Light mode logos - tiered sizes for responsiveness */}
@@ -47,16 +40,9 @@ export function Navbar({ user, userDetails }: NavbarProps) {
                 <Image
                     src="/iconB.svg"
                     alt="Weko Icon"
-                    width={20}
-                    height={20}
-                    className="hidden sm:block md:hidden dark:hidden -my-1"
-                />
-                <Image
-                    src="/iconB.svg"
-                    alt="Weko Icon"
-                    width={16}
-                    height={16}
-                    className="block sm:hidden dark:hidden -my-1"
+                    width={28}
+                    height={28}
+                    className="block md:hidden dark:hidden -my-1"
                 />
             </div>
 
@@ -64,7 +50,7 @@ export function Navbar({ user, userDetails }: NavbarProps) {
                 <NavbarItems />
             </div>
 
-            <div className="min-w-6 sm:min-w-8 sm:flex-1 flex justify-end items-center">
+            <div className="min-w-6 sm:flex-1 flex justify-end items-center">
                 <NavbarUser user={user} userDetails={userDetails} />
             </div>
         </div>

@@ -1,6 +1,6 @@
 import { getUser } from '@/utils/supabase/queries';
 import { createClient } from '@/utils/supabase/server';
-import { FocusTabs } from '@/components/notes/editor/focus-tabs';
+import { NotesPageComponent } from '@/components/notes/editor/NotesPageComponent';
 
 export const metadata = {
     title: 'Notes | Weko',
@@ -15,5 +15,5 @@ export default async function NotesPage() {
         getUser(supabase),
     ]);
 
-    return <FocusTabs user={user} />
+    return <NotesPageComponent user={user} />
 }

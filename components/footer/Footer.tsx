@@ -4,7 +4,6 @@ import { useEffect, useRef, useState } from 'react';
 import { cn } from '@/lib/utils';
 import { Maximize2, Pause, Play, Volume2, VolumeX, X } from 'lucide-react';
 import { Slider } from '../ui/slider';
-import { Progress } from '../ui/progress';
 import { useTimer } from '@/contexts/TimerProvider';
 import { useActiveSessions } from '@/hooks/use-active-session';
 import { ActiveUsersParticles } from '../timer/ActiveUsersParticles';
@@ -107,14 +106,14 @@ export default function Footer() {
     return (
       <div
         className={cn(
-          "fixed inset-x-0 bottom-0 z-40 bg-gradient-to-r from-blue-500/90 via-indigo-500/90 to-blue-500/90 animate-in slide-in-from-bottom-full [animation-duration:500ms] shadow-lg border-t border-white/10 flex flex-col"
+          "fixed inset-x-0 bottom-0 z-40 bg-gradient-to-r from-blue-500/95 via-indigo-500/95 to-blue-500/95 backdrop-blur-md animate-in slide-in-from-bottom-full [animation-duration:500ms] shadow-lg border-t border-white/10 flex flex-col"
         )}
       >
-        {/* Progress bar - Top line style on mobile with increased height */}
+        {/* Progress bar - Top line for all screen sizes when not in flow mode */}
         {!flowMode && (
-          <div className="relative w-full h-[3px] sm:hidden bg-white/20">
+          <div className="relative w-full h-[3px] bg-white/20">
             <div
-              className="absolute top-0 left-0 h-full bg-white"
+              className="absolute top-0 left-0 h-full bg-blue-400"
               style={{ width: `${Math.max(0, Math.min(100, ((duration - timeRemaining) * 100) / duration))}%` }}
             />
           </div>
@@ -194,25 +193,13 @@ export default function Footer() {
                   value={[volume]}
                   max={100}
                   step={1}
-                  className="w-24 cursor-pointer"
+                  className="w-24 cursor-pointer [&_[data-orientation=horizontal]]:h-1.5 [&_[role=slider]]:h-3.5 [&_[role=slider]]:w-3.5 [&_[role=slider]]:opacity-90"
                   onValueChange={value => setVolume(value[0])}
                 />
               </>
             )}
           </div>
         </div>
-
-        {/* Progress bar - Adjusted size for desktop */}
-        {!flowMode && (
-          <div className="hidden sm:flex flex-row items-center justify-center w-full">
-            <div className="relative w-full h-2">
-              <Progress
-                value={((duration - timeRemaining) * 100) / duration}
-                className="h-2 bg-white/20"
-              />
-            </div>
-          </div>
-        )}
       </div>
     );
   }
@@ -223,7 +210,7 @@ export default function Footer() {
   // Updated non-active session footer with counter on right side
 
   return (
-    <div className="fixed inset-x-0 bottom-0 z-40 flex items-center justify-center bg-gradient-to-r from-blue-500 via-indigo-500 to-blue-500 shadow-lg h-[64px] sm:h-18 overflow-hidden">
+    <div className="fixed inset-x-0 bottom-0 z-40 flex items-center justify-center bg-gradient-to-r from-blue-500/95 via-indigo-500/95 to-blue-500/95 backdrop-blur-md shadow-lg h-[64px] sm:h-18 overflow-hidden">
       {/* Animated user particles in the background - using diverse emojis now */}
       <ActiveUsersParticles count={totalActiveUsers} />
 

@@ -51,13 +51,10 @@ const CreateProjectDialog: React.FC<CreateProjectDialogProps> = ({
             <DialogTrigger asChild>
                 <Button
                     variant="ghost"
-                    size="sm"
-                    className="rounded-md px-3 py-1 text-sm transition-colors
-                              bg-neutral-900/30 dark:bg-neutral-50/30 text-white
-                              hover:bg-white hover:bg-opacity-20 flex-shrink-0"
+                    size="icon"
+                    className="ml-1 p-1.5 rounded-full text-white/90 hover:bg-white/20 transition-all"
                 >
-                    <PlusCircle className="sm:mr-1" />
-                    <span className="whitespace-nowrap sm:block hidden">New Page</span>
+                    <PlusCircle className="h-4 w-4" />
                 </Button>
             </DialogTrigger>
 

@@ -1,5 +1,5 @@
 import React from 'react';
-import { NavbarItems } from './TabsTriggers';
+import { NavbarItems } from './NavbarItems';
 import NavbarUser from './NavbarUser';
 import { User } from '@supabase/supabase-js';
 import Image from "next/image";

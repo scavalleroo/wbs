@@ -15,14 +15,71 @@ import Footer from '../footer/Footer';
 import { useTimerUI } from '@/contexts/TimerUIProvider';
 import { FullScreenTimer } from '../timer/FullScreenTimer';
 
-interface ClientLayoutProps {
+// Define props interface for InnerLayout component
+interface InnerLayoutProps {
   children: React.ReactNode;
   user: User;
   userDetails: any;
+  isMobile: boolean;
 }
 
-export default function ClientLayout({ user, userDetails, children }: ClientLayoutProps) {
+// Create an internal layout component that can safely use the timer hooks
+function InnerLayout({ children, user, userDetails, isMobile }: InnerLayoutProps) {
   const { showFullScreenTimer } = useTimerUI();
+  const { sound } = useTimer();
+
+  // Now this is safe because we're inside TimerProvider
+  const isTopFooterVisible = isMobile && sound !== 'none' && !showFullScreenTimer;
+
+  // Determine height based on session status
+  const contentHeight = sound === 'none' && isMobile ?
+    'h-[calc(100vh-58px)] max-h-[calc(100vh-58px)]' :
+    'h-[calc(100vh-112px)] max-h-[calc(100vh-112px)]';
+
+  return (
+    <>
+      <Toaster />
+      <main className='mx-auto h-screen bg-neutral-50 dark:bg-neutral-900 flex flex-col'>
+        <Analytics />
+        <MoodTrackingModal user={user} />
+
+        {/* Conditionally render Navbar/Footer based on screen size */}
+        {!isMobile ? (
+          // Desktop layout (original)
+          <Navbar user={user} userDetails={userDetails} />
+        ) : (
+          // Mobile layout (Footer at top, only when visible)
+          <div className="footer-container order-first">
+            <Footer position="top" />
+          </div>
+        )}
+
+        {/* Content area - conditionally apply top margin and adjust height */}
+        <div className={`flex flex-col w-full ${isTopFooterVisible ? 'mt-16' : 'mt-0'} sm:mt-0 pb-4 ${contentHeight} overflow-y-auto flex-grow`}>
+          <div className="space-y-6 max-w-screen-lg mx-auto px-2 w-full">
+            {children}
+          </div>
+        </div>
+
+        {/* Conditionally render Footer/Navbar based on screen size */}
+        {!isMobile ? (
+          // Desktop layout (original)
+          <Footer position="bottom" />
+        ) : (
+          // Mobile layout (Navbar at bottom)
+          <div className="navbar-container order-last">
+            <Navbar user={user} userDetails={userDetails} position="bottom" />
+          </div>
+        )}
+
+        {showFullScreenTimer && <FullScreenTimer />}
+      </main>
+    </>
+  );
+}
+
+// Main layout component that sets up providers
+export default function ClientLayout({ user, userDetails, children }: ClientLayoutProps) {
   const [isMobile, setIsMobile] = useState(false);
 
   // Detect screen size on mount and resize
@@ -45,44 +102,24 @@ export default function ClientLayout({ user, userDetails, children }: ClientLayo
     <UserContext.Provider value={user}>
       <UserDetailsContext.Provider value={userDetails}>
         <TimerProvider user={user}>
-          <Toaster />
-          <main className='mx-auto h-screen bg-neutral-50 dark:bg-neutral-900 flex flex-col'>
-            <Analytics />
-            <MoodTrackingModal user={user} />
-
-            {/* Conditionally render Navbar/Footer based on screen size */}
-            {!isMobile ? (
-              // Desktop layout (original)
-              <Navbar user={user} userDetails={userDetails} />
-            ) : (
-              // Mobile layout (Footer at top)
-              <div className="footer-container order-first">
-                <Footer position="top" />
-              </div>
-            )}
-
-            {/* Content area */}
-            <div className='flex flex-col w-full sm:mt-0 mt-16 pb-4 h-[calc(100vh-112px)] max-h-[calc(100vh-112px)] overflow-y-auto flex-grow'>
-              <div className="space-y-6 max-w-screen-lg mx-auto px-2 w-full">
-                {children}
-              </div>
-            </div>
-
-            {/* Conditionally render Footer/Navbar based on screen size */}
-            {!isMobile ? (
-              // Desktop layout (original)
-              <Footer position="bottom" />
-            ) : (
-              // Mobile layout (Navbar at bottom)
-              <div className="navbar-container order-last">
-                <Navbar user={user} userDetails={userDetails} position="bottom" />
-              </div>
-            )}
-
-            {showFullScreenTimer && <FullScreenTimer />}
-          </main>
+          <InnerLayout
+            user={user}
+            userDetails={userDetails}
+            isMobile={isMobile}
+          >
+            {children}
+          </InnerLayout>
         </TimerProvider>
       </UserDetailsContext.Provider>
     </UserContext.Provider>
   );
-};
+}
+
+// Don't forget to import useTimer for the inner component
+import { useTimer } from '@/contexts/TimerProvider';
+
+interface ClientLayoutProps {
+  children: React.ReactNode;
+  user: User;
+  userDetails: any;
+}

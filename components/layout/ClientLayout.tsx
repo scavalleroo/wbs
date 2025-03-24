@@ -33,7 +33,7 @@ function InnerLayout({ children, user, userDetails, isMobile }: InnerLayoutProps
 
   // Determine height based on session status
   const contentHeight = sound === 'none' && isMobile ?
-    'h-[calc(100vh-58px)] max-h-[calc(100vh-58px)]' :
+    'h-[calc(100vh-44px)] max-h-[calc(100vh-44px)]' :
     'h-[calc(100vh-112px)] max-h-[calc(100vh-112px)]';
 
   return (
@@ -55,8 +55,8 @@ function InnerLayout({ children, user, userDetails, isMobile }: InnerLayoutProps
         )}
 
         {/* Content area - conditionally apply top margin and adjust height */}
-        <div className={`flex flex-col w-full ${isTopFooterVisible ? 'mt-16' : 'mt-0'} sm:mt-0 pb-4 ${contentHeight} overflow-y-auto flex-grow`}>
-          <div className="space-y-6 max-w-screen-lg mx-auto px-2 w-full">
+        <div className={`flex flex-col w-full ${isTopFooterVisible ? 'mt-16' : 'mt-0'} sm:mt-0 pb-4 ${contentHeight} flex-grow overflow-y-auto overflow-x-hidden`}>
+          <div className="space-y-6 max-w-screen-lg mx-auto px-1 w-full">
             {children}
           </div>
         </div>
@@ -117,6 +117,7 @@ export default function ClientLayout({ user, userDetails, children }: ClientLayo
 
 // Don't forget to import useTimer for the inner component
 import { useTimer } from '@/contexts/TimerProvider';
+import { ScrollArea } from '../ui/scroll-area';
 
 interface ClientLayoutProps {
   children: React.ReactNode;

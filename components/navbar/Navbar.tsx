@@ -39,11 +39,14 @@ export function Navbar({ user, userDetails, position = 'top' }: NavbarProps) {
             </div>
 
             {/* Mobile layout - grid for equal distribution */}
-            <div className="grid grid-cols-4 w-full sm:hidden md:hidden">
-                <NavbarItems className="col-span-3" />
-                <div className="flex justify-center items-center">
-                    <NavbarUser user={user} userDetails={userDetails} />
-                </div>
+            <div className="grid grid-cols-5 w-full gap-0 sm:hidden md:hidden pl-2">
+                <NavbarItems className="col-span-4" />
+                <NavbarUser
+                    user={user}
+                    userDetails={userDetails}
+                    condensed={true}
+                    className="w-auto h-full"
+                />
             </div>
 
             {/* Desktop layout */}

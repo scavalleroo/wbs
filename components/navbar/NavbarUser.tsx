@@ -16,24 +16,41 @@ import LogoutButton from "../LogoutButton";
 import { User } from "@supabase/supabase-js";
 import { HiOutlineMoon, HiOutlineSun } from "react-icons/hi2";
 import { useTheme } from "next-themes";
+import { cn } from "@/lib/utils";
 
 interface NavbarUserProps {
     user: User | null | undefined;
     userDetails: { [x: string]: any } | null | any;
+    condensed?: boolean;
+    className?: string;  // Add className prop
 }
 
-export default function NavbarUser({ user, userDetails }: NavbarUserProps) {
+export default function NavbarUser({ user, userDetails, condensed, className }: NavbarUserProps) {
     const { theme, setTheme } = useTheme();
+    const displayName = user?.user_metadata?.name || user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'User';
+    const userInitials = displayName.split(' ')
+        .map((name: string) => name[0])
+        .join('')
+        .toUpperCase();
 
     return (
-        // Make container take full navbar item width on mobile
-        <div className="flex items-center justify-center w-[calc(100%/3)] sm:w-auto sm:justify-end">
+        <div className={cn(
+            // Remove all padding and fill the container completely
+            "flex flex-col items-center justify-center h-full p-0 m-0 w-auto",
+            className
+        )}>
             <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" className="relative h-8 w-8 rounded-full p-0">
-                        <Avatar className="h-8 w-8">
+                    {/* Remove button padding completely */}
+                    <Button variant="ghost" className="p-0 m-0 h-auto w-auto flex justify-center items-center hover:bg-transparent">
+                        <Avatar className={cn(
+                            "h-7 w-7",
+                            // Add right padding to align with grid edge
+                            "mr-0"
+                        )}>
                             <AvatarImage src={user?.user_metadata.avatar_url} />
-                            <AvatarFallback className="text-[10px] sm:text-xs font-bold dark:text-zinc-950">
+                            <AvatarFallback className="text-[10px] font-bold dark:text-zinc-950">
+                                {userInitials}
                             </AvatarFallback>
                         </Avatar>
                     </Button>
@@ -85,6 +102,9 @@ export default function NavbarUser({ user, userDetails }: NavbarUserProps) {
                     </DropdownMenuItem>
                 </DropdownMenuContent>
             </DropdownMenu>
+            <span className="text-xs font-extralight mt-0.5 sm:hidden text-neutral-500 dark:text-neutral-400">
+                Profile
+            </span>
         </div>
     );
 }

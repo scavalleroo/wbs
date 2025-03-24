@@ -175,7 +175,7 @@ export const NotesPageComponent: React.FC<NotesPageComponentProps> = ({
   };
 
   return (
-    <div className="w-full h-full p-2">
+    <div className="w-full h-full py-2">
       <div className="max-w-screen-lg mx-auto w-full h-full">
         <Card className="h-full shadow-md bg-neutral-100 dark:bg-neutral-800 overflow-hidden">
           {activeTab === 'daily' && dailyNote && !loading ? (

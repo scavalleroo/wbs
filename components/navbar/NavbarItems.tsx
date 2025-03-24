@@ -120,42 +120,39 @@ export function NavbarItems({ className }: NavbarItemsProps) {
     const getItemStyles = (path: string, type: string, mobileOnly?: boolean, isTimer?: boolean) => {
         const isActive = currentPath === path
 
-        // Updated base styles to align content at the bottom
-        const baseStyles = "flex flex-col items-center justify-end pb-1 pt-2 transition-all duration-200 relative h-full"
+        // Base styles - changed to center alignment
+        const baseStyles = "flex flex-col items-center justify-center transition-all duration-200 relative h-full"
 
-        // Widths based on screen sizes - responsive width only for mobile
-        // For 4 items, adjust the width calculation
+        // Adjust width calculation for 4 items
         const responsiveWidth = "w-[calc(100%/4)] sm:w-auto"
 
         // Hide focus button on desktop
         const visibilityClass = mobileOnly ? "sm:hidden" : ""
 
-        // Horizontal padding increases on larger screens
-        const padding = "px-2 sm:px-8"
+        // Horizontal padding - reduced on mobile to save space
+        const padding = "px-1 sm:px-8"
 
         // Hover styles
         const hoverStyles = "hover:bg-neutral-200/70 dark:hover:bg-neutral-800/70"
 
-        // Inactive text styles with larger font on desktop
+        // Inactive text styles 
         const inactiveText = "text-neutral-500 dark:text-neutral-400"
 
         // Special styling for active timer
         const timerStyle = isTimer ? "text-blue-500 font-medium dark:text-blue-400" : ""
 
-        // Active styles with indicator positioned differently based on screen size
         if (isActive) {
-            // Position indicator at the top for mobile (<sm) and at the bottom for larger screens (sm+)
-            const activeBorder = "after:absolute after:top-[-4px] sm:after:top-auto after:left-0 after:w-full after:h-[4px] after:content-[''] after:z-10 sm:after:bottom-[-4px] after:rounded-full"
-
-            // Use the same gradient as the footer
+            // Different styling for mobile vs desktop
             return cn(
                 baseStyles,
                 responsiveWidth,
                 padding,
-                activeBorder,
                 visibilityClass,
-                "text-black dark:text-white",
-                "after:bg-gradient-to-r after:from-blue-500 after:via-indigo-500 after:to-blue-500",
+                // Desktop gradient border
+                "sm:after:absolute sm:after:bottom-[-4px] sm:after:left-0 sm:after:w-full sm:after:h-[4px] sm:after:content-[''] sm:after:z-10 sm:after:rounded-full",
+                "sm:after:bg-gradient-to-r sm:after:from-blue-500 sm:after:via-indigo-500 sm:after:to-blue-500",
+                // Mobile special styling
+                "sm:text-black sm:dark:text-white",
                 timerStyle
             )
         }
@@ -163,12 +160,7 @@ export function NavbarItems({ className }: NavbarItemsProps) {
         return cn(baseStyles, responsiveWidth, padding, inactiveText, hoverStyles, visibilityClass, timerStyle)
     }
 
-    // Force component to re-render when timer changes
-    useEffect(() => {
-        // This empty effect will cause the component to re-render 
-        // when timeRemaining or sound changes, updating the nav items
-    }, [timeRemaining, sound, isRunning, flowMode]);
-
+    // Inside the return statement, update the icon and label styling
     return (
         <>
             <nav className={cn("flex w-full backdrop-blur-sm h-full", className)}>
@@ -179,8 +171,33 @@ export function NavbarItems({ className }: NavbarItemsProps) {
                         onClick={(e) => handleNavigation(item, e)}
                         className={getItemStyles(item.path, item.type, item.mobileOnly, item.isTimer)}
                     >
-                        <item.icon className={cn("size-[18px] mb-0.5", item.isTimer && isRunning ? "text-blue-500" : "")} />
-                        <span className={cn("text-xs font-extralight pb-0", item.isTimer && "font-medium")}>{item.name}</span>
+                        {/* Centered content with tighter spacing */}
+                        <div className="flex flex-col items-center space-y-1.5">
+                            {/* Icon container with wide but short background */}
+                            <div className="relative">
+                                {/* Background pill for selected items - wider but shorter */}
+                                {currentPath === item.path && (
+                                    <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 
+                                        w-[40px] h-[28px] bg-neutral-200/80 dark:bg-neutral-700/80 rounded-full -z-10" />
+                                )}
+
+                                {/* Icon */}
+                                <item.icon className={cn(
+                                    "size-[18px]",
+                                    item.isTimer && isRunning ? "text-blue-500" : "",
+                                    currentPath === item.path && "text-black dark:text-white"
+                                )} />
+                            </div>
+
+                            {/* Label with tighter spacing */}
+                            <span className={cn(
+                                "text-xs",
+                                item.isTimer && "font-medium",
+                                currentPath === item.path ? "font-medium text-black dark:text-white" : "font-medium"
+                            )}>
+                                {item.name}
+                            </span>
+                        </div>
                     </a>
                 ))}
             </nav>

@@ -369,28 +369,28 @@ export function ManageDistractionsDialog({
 
     return (
         <Dialog open={isOpen} onOpenChange={onOpenChange} modal={true}>
-            <DialogContent className="sm:max-w-[600px] p-0 border-0 bg-transparent overflow-hidden">
+            <DialogContent className="sm:max-w-[600px] max-w-[95vw] p-0 border-0 bg-transparent overflow-hidden">
                 <div className="bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl p-1 shadow-xl">
                     <div className="bg-white dark:bg-neutral-900 rounded-lg overflow-hidden flex flex-col max-h-[90vh]">
                         <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'current' | 'add')}>
                             {/* Fixed Header - Simplified without explicit close button */}
                             <DialogHeader className="p-0 sticky top-0 z-10">
-                                <div className="bg-gradient-to-r from-blue-500 via-indigo-500 to-blue-600 p-6 text-white">
-                                    <DialogTitle className="text-2xl font-bold mb-1 flex items-center">
-                                        <Ban className="mr-2 h-6 w-6" />
+                                <div className="bg-gradient-to-r from-blue-500 via-indigo-500 to-blue-600 p-4 sm:p-6 text-white">
+                                    <DialogTitle className="text-xl sm:text-2xl font-bold mb-1 flex items-center">
+                                        <Ban className="mr-2 h-5 w-5 sm:h-6 sm:w-6" />
                                         Manage Distractions
                                     </DialogTitle>
                                     {/* Tabs Navigation */}
-                                    <TabsList className="grid w-full grid-cols-2 p-1 bg-blue-600/30 rounded-lg mt-4">
+                                    <TabsList className="grid w-full grid-cols-2 p-1 bg-blue-600/30 rounded-lg mt-3 sm:mt-4">
                                         <TabsTrigger
                                             value="current"
-                                            className="rounded-md data-[state=active]:bg-white data-[state=active]:text-blue-700 data-[state=active]:shadow-sm data-[state=active]:font-medium transition-all"
+                                            className="rounded-md data-[state=active]:bg-white data-[state=active]:text-blue-700 data-[state=active]:shadow-sm data-[state=active]:font-medium transition-all text-xs sm:text-sm"
                                         >
                                             Blocked Sites ({blockedSitesCount})
                                         </TabsTrigger>
                                         <TabsTrigger
                                             value="add"
-                                            className="rounded-md data-[state=active]:bg-white data-[state=active]:text-blue-700 data-[state=active]:shadow-sm data-[state=active]:font-medium transition-all"
+                                            className="rounded-md data-[state=active]:bg-white data-[state=active]:text-blue-700 data-[state=active]:shadow-sm data-[state=active]:font-medium transition-all text-xs sm:text-sm"
                                         >
                                             Add New
                                         </TabsTrigger>
@@ -400,7 +400,7 @@ export function ManageDistractionsDialog({
 
                             {/* Scrollable Content Area */}
                             <ScrollArea className="flex-grow overflow-y-auto max-h-[calc(90vh-230px)]">
-                                <div className="p-6">
+                                <div className="p-3 sm:p-6">
                                     <TabsContent value="current" className="space-y-4 mt-0 focus-visible:outline-none focus-visible:ring-0">
                                         <BlockedSitesList
                                             loading={loading}
@@ -415,7 +415,7 @@ export function ManageDistractionsDialog({
                                             handleRemoveSite={handleRemoveSite}
                                             toggleSiteDay={toggleSiteDay}
                                             setSiteTimeLimit={setSiteTimeLimit}
-                                            handleUpdateLimit={updateMaxDailyVisits} // Add this prop
+                                            handleUpdateLimit={updateMaxDailyVisits}
                                             getTodayUsage={getTodayUsage}
                                             getTodayLimit={getTodayLimit}
                                             getSiteBrandColor={getSiteBrandColor}

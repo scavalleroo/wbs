@@ -68,7 +68,7 @@ export function BlockedSiteCard({
             />
 
             <CardContent className="p-3">
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                     {/* Domain and stats */}
                     <div className="flex-grow min-w-0">
                         <div className="flex items-center">
@@ -84,11 +84,11 @@ export function BlockedSiteCard({
                                     bgColor="transparent"
                                 />
                             </div>
-                            <div>
+                            <div className="flex-grow min-w-0">
                                 <span className="font-medium text-sm truncate block">{site.domain}</span>
 
                                 {/* Stats badges */}
-                                <div className="flex items-center gap-2 mt-1 text-xs">
+                                <div className="flex flex-wrap items-center gap-2 mt-1 text-xs">
                                     <UsageStatsBadges
                                         todayVisits={todayVisits}
                                         maxVisits={maxVisits}
@@ -101,7 +101,7 @@ export function BlockedSiteCard({
                     </div>
 
                     {/* Controls */}
-                    <div className="flex items-center space-x-2">
+                    <div className="flex items-center space-x-2 mt-2 sm:mt-0 ml-auto">
                         {/* Time settings toggle */}
                         <Button
                             variant="ghost"
@@ -136,7 +136,7 @@ export function BlockedSiteCard({
                         currentSiteWeekdayLimits={currentSiteWeekdayLimits}
                         toggleSiteDay={toggleSiteDay}
                         setSiteTimeLimit={setSiteTimeLimit}
-                        handleUpdateLimit={handleUpdateLimit} // Now properly typed
+                        handleUpdateLimit={handleUpdateLimit}
                     />
                 )}
             </CardContent>
@@ -182,7 +182,7 @@ function UsageStatsBadges({ todayVisits, maxVisits, todayTimeMinutes, todayLimit
             <TooltipProvider>
                 <Tooltip>
                     <TooltipTrigger asChild>
-                        <div className="flex items-center px-1.5 py-0.5 rounded-full bg-opacity-10 border"
+                        <div className="flex items-center px-1.5 py-0.5 rounded-full bg-opacity-10 border max-w-full overflow-hidden"
                             style={{
                                 backgroundColor: `${todayVisits === 0 ? 'rgba(16, 185, 129, 0.1)' :
                                     todayVisits >= maxVisits ? 'rgba(239, 68, 68, 0.1)' :
@@ -198,7 +198,7 @@ function UsageStatsBadges({ todayVisits, maxVisits, todayTimeMinutes, todayLimit
                                 }`}>{todayVisits}</span>
                             <span className="mx-1 opacity-50">/</span>
                             <span className="opacity-70">{maxVisits}</span>
-                            <span className="ml-1 opacity-70">visits</span>
+                            <span className="ml-1 opacity-70 truncate">visits</span>
                         </div>
                     </TooltipTrigger>
                     <TooltipContent>
@@ -207,12 +207,12 @@ function UsageStatsBadges({ todayVisits, maxVisits, todayTimeMinutes, todayLimit
                 </Tooltip>
             </TooltipProvider>
 
-            {/* Time badge */}
+            {/* Time badge - similar updates */}
             {todayLimit.enabled && todayLimit.minutes > 0 && (
                 <TooltipProvider>
                     <Tooltip>
                         <TooltipTrigger asChild>
-                            <div className="flex items-center px-1.5 py-0.5 rounded-full bg-opacity-10 border"
+                            <div className="flex items-center px-1.5 py-0.5 rounded-full bg-opacity-10 border max-w-full overflow-hidden"
                                 style={{
                                     backgroundColor: `${todayTimeMinutes === 0 ? 'rgba(16, 185, 129, 0.1)' :
                                         todayTimeMinutes >= todayLimit.minutes ? 'rgba(239, 68, 68, 0.1)' :
@@ -222,7 +222,7 @@ function UsageStatsBadges({ todayVisits, maxVisits, todayTimeMinutes, todayLimit
                                             'rgba(59, 130, 246, 0.2)'}`
                                 }}
                             >
-                                <Clock className="h-3 w-3 mr-1" />
+                                <Clock className="h-3 w-3 mr-1 flex-shrink-0" />
                                 <span className={`font-medium ${todayTimeMinutes === 0 ? 'text-emerald-600 dark:text-emerald-400' :
                                     todayTimeMinutes >= todayLimit.minutes ? 'text-rose-600 dark:text-rose-400' :
                                         'text-blue-600 dark:text-blue-400'
@@ -236,12 +236,6 @@ function UsageStatsBadges({ todayVisits, maxVisits, todayTimeMinutes, todayLimit
                         </TooltipContent>
                     </Tooltip>
                 </TooltipProvider>
-            )}
-
-            {todayVisits === 0 && todayTimeMinutes === 0 && (
-                <span className="text-emerald-600 dark:text-emerald-400 flex items-center ml-1">
-                    <Trophy className="h-3 w-3 mr-1" /> Perfect!
-                </span>
             )}
         </>
     );

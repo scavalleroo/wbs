@@ -1,15 +1,10 @@
 .ProseMirror {
     @apply p-4 px-4 sm:p-8 sm:px-8;
+    font-size: 1rem;
+    line-height: 1.4;
 }
 
 @media screen and (max-width: 640px) {
-    .ProseMirror {
-        font-size: 1rem;
-        line-height: 1.4;
-        /* Changed to 1 as requested */
-        /* Makes text smaller on mobile */
-    }
-
     ul[data-type="taskList"] li>label input[type="checkbox"] {
         top: 0px !important;
         margin-right: 0.0rem !important;

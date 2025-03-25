@@ -45,7 +45,7 @@ export function SiteTimeControls({
                 <div className="space-y-4">
                     {/* Days of Week Toggles */}
                     <div>
-                        <div className="grid grid-cols-7 gap-2">
+                        <div className="grid grid-cols-7 gap-1 sm:gap-2">
                             {daysOfWeek.map((day) => {
                                 const dayKey = day.key;
                                 const dayEnabled = currentSiteWeekdayLimits[dayKey].enabled;
@@ -55,7 +55,7 @@ export function SiteTimeControls({
                                         key={day.key}
                                         variant="outline"
                                         size="sm"
-                                        className={`w-8 h-8 p-0 ${dayEnabled ?
+                                        className={`w-7 h-7 sm:w-8 sm:h-8 p-0 text-xs ${dayEnabled ?
                                             'bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-900/30 dark:text-blue-400 dark:border-blue-800' :
                                             'bg-neutral-100 text-neutral-500 dark:bg-neutral-800 dark:text-neutral-400'}`}
                                         onClick={() => toggleSiteDay(site.id, day.key, dayEnabled)}
@@ -210,9 +210,9 @@ function TimeLimitsControl({ site, currentSiteWeekdayLimits, setSiteTimeLimit }:
 
     return (
         <div className="flex flex-col items-center">
-            <div className="flex items-center justify-center space-x-1 mb-2">
+            <div className="flex items-center justify-center space-x-1 mb-2 w-full max-w-[280px]">
                 {/* Time Picker Container with 3D effect */}
-                <div className="flex items-center justify-center bg-neutral-100 dark:bg-neutral-800 rounded-lg p-3 shadow-inner">
+                <div className="flex items-center justify-center bg-neutral-100 dark:bg-neutral-800 rounded-lg p-2 sm:p-3 shadow-inner w-full">
                     {/* Hour Control */}
                     <div className="flex flex-col items-center">
                         {/* Up arrow */}
@@ -228,7 +228,7 @@ function TimeLimitsControl({ site, currentSiteWeekdayLimits, setSiteTimeLimit }:
                         </button>
 
                         {/* Hours Display - Fixed Height with 3D effect */}
-                        <div className="relative w-16 h-10 flex items-center justify-center overflow-hidden">
+                        <div className="relative w-12 sm:w-16 h-10 flex items-center justify-center overflow-hidden">
                             <div className="wheel-display">
                                 {hours.map(hour => (
                                     <div
@@ -265,9 +265,9 @@ function TimeLimitsControl({ site, currentSiteWeekdayLimits, setSiteTimeLimit }:
                         </button>
                     </div>
 
-                    <div className="text-lg font-medium mx-2 text-neutral-800 dark:text-neutral-200">h</div>
+                    <div className="text-lg font-medium mx-1 sm:mx-2 text-neutral-800 dark:text-neutral-200">h</div>
 
-                    {/* Minutes Control */}
+                    {/* Minutes Control - similar updates for width */}
                     <div className="flex flex-col items-center">
                         {/* Up arrow */}
                         <button
@@ -324,7 +324,7 @@ function TimeLimitsControl({ site, currentSiteWeekdayLimits, setSiteTimeLimit }:
                         </button>
                     </div>
 
-                    <div className="text-lg font-medium mx-2 text-neutral-800 dark:text-neutral-200">m</div>
+                    <div className="text-lg font-medium mx-1 sm:mx-2 text-neutral-800 dark:text-neutral-200">m</div>
                 </div>
             </div>
 

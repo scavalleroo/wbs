@@ -1,6 +1,6 @@
 "use client"
 
-import { Coffee, HomeIcon, Notebook, Timer } from "lucide-react"
+import { Coffee, HomeIcon, Notebook, Timer, TreePalm } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { usePathname, useRouter } from "next/navigation"
 import { useState, useEffect } from "react" // Added useEffect
@@ -76,10 +76,10 @@ export function NavbarItems({ className }: NavbarItemsProps) {
             isTimer: isTimerActive
         },
         {
-            name: "Break",
+            name: "Relax",
             href: "/break",
             path: "break",
-            icon: Coffee,
+            icon: TreePalm,
             type: "break"
         }
     ];

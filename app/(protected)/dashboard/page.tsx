@@ -1,7 +1,7 @@
 
 import { getUser } from '@/utils/supabase/queries';
 import { createClient } from '@/utils/supabase/server';
-import CombinedWellnessReport from '@/components/dashboard/wellebing/CombinedWellnessReport';
+import DashboardComponet from '@/components/dashboard/DashboardComponet';
 
 export const metadata = {
     title: 'Dashboard | Weko',
@@ -16,5 +16,5 @@ export default async function DashboardPage() {
         getUser(supabase),
     ]);
 
-    return <CombinedWellnessReport user={user} />;
+    return <DashboardComponet user={user} />;
 }

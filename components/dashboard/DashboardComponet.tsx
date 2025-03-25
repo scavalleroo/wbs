@@ -2,17 +2,17 @@
 
 import React, { useState } from 'react';
 import { User } from '@supabase/supabase-js';
-import WellnessHistory from './WellnessHistory';
-import DigitalWellbeingHistory from './DigitalWellbeingHistory';
+import WellnessHistory from './wellebing/WellnessHistory';
+import DigitalWellbeingHistory from './wellebing/DigitalWellbeingHistory';
 import 'react-circular-progressbar/dist/styles.css';
-import { DashboardScore } from './DashboardScore';
-import FocusSessionsHistory from './FocusSessionsHistory';
+import { DashboardScore } from './wellebing/DashboardScore';
+import FocusSessionsHistory from './wellebing/FocusSessionsHistory';
 
-interface CombinedWellnessReportProps {
+interface DashboardComponetProps {
     user: User | null | undefined;
 }
 
-const CombinedWellnessReport = ({ user }: CombinedWellnessReportProps) => {
+const DashboardComponet = ({ user }: DashboardComponetProps) => {
     const [timeRange, setTimeRange] = useState<'week' | 'month' | 'year'>('week');
 
     return (
@@ -46,4 +46,4 @@ const CombinedWellnessReport = ({ user }: CombinedWellnessReportProps) => {
     );
 };
 
-export default CombinedWellnessReport;
+export default DashboardComponet;

@@ -1,14 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Dialog, DialogClose, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Ban, Loader2, Flame, MinusCircle, PlusCircle, Trash2, Trophy } from "lucide-react";
-import { SocialIcon } from 'react-social-icons';
+import { Ban, X } from "lucide-react";
 import { toast } from 'sonner';
 import { useBlockedSite } from "@/hooks/use-blocked-site";
 import { UserIdParam } from '@/types/types';
 import { BlockedSite } from '@/types/report.types';
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { BlockedSitesList } from '../blockedSite/BlockedSitesList';
+import { AddNewSiteForm } from '../blockedSite/AddNewSiteForm';
 
 interface ManageDistractionsDialogProps extends UserIdParam {
     isOpen: boolean;
@@ -22,6 +23,15 @@ interface PopularSite {
     domain: string;
 }
 
+interface DayTimeLimit {
+    enabled: boolean;
+    minutes: number;
+}
+
+type WeekdayLimits = {
+    [key in 'monday' | 'tuesday' | 'wednesday' | 'thursday' | 'friday' | 'saturday' | 'sunday']: DayTimeLimit
+}
+
 const popularSites: PopularSite[] = [
     { name: 'Facebook', domain: 'facebook.com' },
     { name: 'Instagram', domain: 'instagram.com' },
@@ -30,6 +40,16 @@ const popularSites: PopularSite[] = [
     { name: 'YouTube', domain: 'youtube.com' },
     { name: 'Reddit', domain: 'reddit.com' },
     { name: 'LinkedIn', domain: 'linkedin.com' },
+];
+
+const daysOfWeek = [
+    { key: 'monday', label: 'M' },
+    { key: 'tuesday', label: 'T' },
+    { key: 'wednesday', label: 'W' },
+    { key: 'thursday', label: 'T' },
+    { key: 'friday', label: 'F' },
+    { key: 'saturday', label: 'S' },
+    { key: 'sunday', label: 'S' }
 ];
 
 export function ManageDistractionsDialog({
@@ -43,7 +63,22 @@ export function ManageDistractionsDialog({
     const [searchQuery, setSearchQuery] = useState('');
     const [newDomain, setNewDomain] = useState('');
     const [domainError, setDomainError] = useState('');
-    const [filteredSites, setFilteredSites] = useState<BlockedSite[] | null>(null);
+    const [showTimeControls, setShowTimeControls] = useState<Record<number, boolean>>({});
+
+    // Default time limits for new sites
+    const defaultWeekdayLimits: WeekdayLimits = {
+        monday: { enabled: true, minutes: 15 },
+        tuesday: { enabled: true, minutes: 15 },
+        wednesday: { enabled: true, minutes: 15 },
+        thursday: { enabled: true, minutes: 15 },
+        friday: { enabled: true, minutes: 15 },
+        saturday: { enabled: true, minutes: 15 },
+        sunday: { enabled: true, minutes: 15 }
+    };
+
+    const [newSiteWeekdayLimits, setNewSiteWeekdayLimits] = useState<WeekdayLimits>(defaultWeekdayLimits);
+    const [editingSiteId, setEditingSiteId] = useState<number | null>(null);
+    const [currentSiteWeekdayLimits, setCurrentSiteWeekdayLimits] = useState<WeekdayLimits>(defaultWeekdayLimits);
 
     // Use the hook for blocked site management
     const {
@@ -53,7 +88,9 @@ export function ManageDistractionsDialog({
         addBlockedSite,
         removeBlockedSite,
         updateMaxDailyVisits,
-        getBlockedSiteStats
+        updateDayTimeLimit,
+        getBlockedSiteStats,
+        formatTime
     } = useBlockedSite({ user });
 
     // Stats for each site's usage
@@ -68,9 +105,93 @@ export function ManageDistractionsDialog({
 
     // Fetch blocked sites and stats
     const fetchData = async () => {
-        await fetchBlockedSites();
-        const stats = await getBlockedSiteStats();
-        setSiteStats(stats);
+        try {
+            const sites = await fetchBlockedSites();
+            const stats = await getBlockedSiteStats();
+            setSiteStats(stats);
+        } catch (err) {
+            console.error("Error in fetchData:", err);
+        }
+    };
+
+    // Toggle specific day for new site
+    const toggleNewSiteDay = (day: string) => {
+        const dayKey = day as keyof WeekdayLimits;
+        setNewSiteWeekdayLimits(prev => ({
+            ...prev,
+            [dayKey]: {
+                ...prev[dayKey],
+                enabled: !prev[dayKey].enabled
+            }
+        }));
+    };
+
+    // Set time limit for specific day for new site
+    const setNewSiteTimeLimit = (day: string, minutes: number) => {
+        const dayKey = day as keyof WeekdayLimits;
+        setNewSiteWeekdayLimits(prev => ({
+            ...prev,
+            [dayKey]: {
+                ...prev[dayKey],
+                minutes
+            }
+        }));
+    };
+
+    // Apply same time limit to all days
+    const applyToAllDays = (minutes: number) => {
+        const updated = { ...newSiteWeekdayLimits };
+
+        Object.keys(updated).forEach(day => {
+            const dayKey = day as keyof WeekdayLimits;
+            updated[dayKey].minutes = minutes;
+        });
+
+        setNewSiteWeekdayLimits(updated);
+    };
+
+    // Toggle day for existing site
+    const toggleSiteDay = async (siteId: number, day: string, currentEnabled: boolean) => {
+        const dayKey = day as keyof WeekdayLimits;
+        const success = await updateDayTimeLimit(
+            siteId,
+            dayKey,
+            !currentEnabled,
+            currentSiteWeekdayLimits[dayKey].minutes
+        );
+
+        if (success) {
+            setCurrentSiteWeekdayLimits(prev => ({
+                ...prev,
+                [dayKey]: {
+                    ...prev[dayKey],
+                    enabled: !currentEnabled
+                }
+            }));
+            await fetchData();
+        }
+    };
+
+    // Set time limit for specific day for existing site
+    const setSiteTimeLimit = async (siteId: number, day: string, minutes: number) => {
+        const dayKey = day as keyof WeekdayLimits;
+        const success = await updateDayTimeLimit(
+            siteId,
+            dayKey,
+            currentSiteWeekdayLimits[dayKey].enabled,
+            minutes
+        );
+
+        if (success) {
+            setCurrentSiteWeekdayLimits(prev => ({
+                ...prev,
+                [dayKey]: {
+                    ...prev[dayKey],
+                    minutes
+                }
+            }));
+            await fetchData();
+        }
     };
 
     // Handle domain input validation and submission
@@ -92,7 +213,16 @@ export function ManageDistractionsDialog({
         }
 
         try {
-            const result = await addBlockedSite(formattedDomain, 3);
+            // Convert new site settings to appropriate format for API
+            const daySettings: Record<string, boolean | number> = {};
+
+            Object.entries(newSiteWeekdayLimits).forEach(([day, settings]) => {
+                daySettings[`${day}_enabled`] = settings.enabled;
+                daySettings[`${day}_time_limit_minutes`] = settings.minutes;
+            });
+
+            const result = await addBlockedSite(formattedDomain, 3, daySettings);
+
             if (result) {
                 setNewDomain('');
                 setDomainError('');
@@ -108,7 +238,16 @@ export function ManageDistractionsDialog({
     // Quick add a popular site
     const handleQuickAdd = async (site: PopularSite) => {
         try {
-            const result = await addBlockedSite(site.domain, 3);
+            // Convert new site settings to appropriate format for API
+            const daySettings: Record<string, boolean | number> = {};
+
+            Object.entries(newSiteWeekdayLimits).forEach(([day, settings]) => {
+                daySettings[`${day}_enabled`] = settings.enabled;
+                daySettings[`${day}_time_limit_minutes`] = settings.minutes;
+            });
+
+            const result = await addBlockedSite(site.domain, 3, daySettings);
+
             if (result) {
                 await fetchData();
                 await onBlockedSitesUpdated();
@@ -128,12 +267,41 @@ export function ManageDistractionsDialog({
         }
     };
 
-    // Handle limit updates
-    const handleUpdateLimit = async (id: number, currentLimit: number, increment: boolean) => {
-        const newLimit = increment ? currentLimit + 1 : Math.max(1, currentLimit - 1);
-        const success = await updateMaxDailyVisits(id, newLimit);
+    // Handle visit limit updates
+    const handleUpdateLimit = async (id: number, maxVisits: number) => {
+        const success = await updateMaxDailyVisits(id, maxVisits);
         if (success) {
             await fetchData();
+        }
+    };
+
+    // Toggle time controls visibility and load current settings
+    const toggleTimeControls = (id: number, site: BlockedSite) => {
+        if (showTimeControls[id]) {
+            // Closing the controls
+            setShowTimeControls(prev => ({
+                ...prev,
+                [id]: false
+            }));
+            setEditingSiteId(null);
+        } else {
+            // Opening the controls - load current settings from site
+            const currentSettings: WeekdayLimits = {
+                monday: { enabled: site.monday_enabled, minutes: site.monday_time_limit_minutes },
+                tuesday: { enabled: site.tuesday_enabled, minutes: site.tuesday_time_limit_minutes },
+                wednesday: { enabled: site.wednesday_enabled, minutes: site.wednesday_time_limit_minutes },
+                thursday: { enabled: site.thursday_enabled, minutes: site.thursday_time_limit_minutes },
+                friday: { enabled: site.friday_enabled, minutes: site.friday_time_limit_minutes },
+                saturday: { enabled: site.saturday_enabled, minutes: site.saturday_time_limit_minutes },
+                sunday: { enabled: site.sunday_enabled, minutes: site.sunday_time_limit_minutes }
+            };
+
+            setCurrentSiteWeekdayLimits(currentSettings);
+            setShowTimeControls(prev => ({
+                ...prev,
+                [id]: true
+            }));
+            setEditingSiteId(id);
         }
     };
 
@@ -142,6 +310,7 @@ export function ManageDistractionsDialog({
         site => !blockedSites.some(blocked => blocked.domain === site.domain)
     );
 
+    // Get site brand color
     const getSiteBrandColor = (domain: string) => {
         const siteName = domain.replace(/^(https?:\/\/)?(www\.)?/, '').split('.')[0].toLowerCase();
 
@@ -163,240 +332,116 @@ export function ManageDistractionsDialog({
         }
     };
 
+    // Calculate today's usage for a site
+    const getTodayUsage = (site: BlockedSite, stats: any[]) => {
+        const siteStat = stats?.find(s => s.domain === site.domain);
+        if (!siteStat) return { visits: 0, timeMinutes: 0 };
+
+        return {
+            visits: siteStat.todayCount || 0,
+            timeMinutes: Math.round((siteStat.todayTimeSeconds || 0) / 60)
+        };
+    };
+
+    // Get time limit for today
+    const getTodayLimit = (site: BlockedSite) => {
+        const today = new Date().getDay(); // 0 = Sunday, 1 = Monday, etc.
+
+        // Type-safe day mapping
+        const dayMap: Record<number, keyof WeekdayLimits> = {
+            1: 'monday',
+            2: 'tuesday',
+            3: 'wednesday',
+            4: 'thursday',
+            5: 'friday',
+            6: 'saturday',
+            0: 'sunday'
+        };
+
+        const dayKey = dayMap[today];
+
+        // Use type assertion to safely access these properties
+        const enabled = site[`${dayKey}_enabled`] as boolean;
+        const minutes = site[`${dayKey}_time_limit_minutes`] as number;
+
+        return { enabled, minutes };
+    };
+
     return (
-        <Dialog open={isOpen} onOpenChange={onOpenChange}>
-            <DialogContent className="sm:max-w-[500px] p-0 border-0 bg-transparent max-h-[90vh] overflow-hidden">
+        <Dialog open={isOpen} onOpenChange={onOpenChange} modal={true}>
+            <DialogContent className="sm:max-w-[600px] p-0 border-0 bg-transparent overflow-hidden">
                 <div className="bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl p-1 shadow-xl">
-                    <div className="bg-white dark:bg-neutral-900 rounded-lg p-0 overflow-y-auto max-h-[80vh] [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
-                        {/* Gradient Header */}
-                        <DialogHeader className="p-0">
-                            <div className="bg-gradient-to-r from-blue-500 via-indigo-500 to-blue-500 p-6 text-white">
-                                <DialogTitle className="text-2xl font-bold mb-1">Manage Distractions</DialogTitle>
-                                <p className="opacity-80">Control your focus by limiting distracting sites</p>
-                            </div>
-                        </DialogHeader>
+                    <div className="bg-white dark:bg-neutral-900 rounded-lg overflow-hidden flex flex-col max-h-[90vh]">
+                        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'current' | 'add')}>
+                            {/* Fixed Header - Simplified without explicit close button */}
+                            <DialogHeader className="p-0 sticky top-0 z-10">
+                                <div className="bg-gradient-to-r from-blue-500 via-indigo-500 to-blue-600 p-6 text-white">
+                                    <DialogTitle className="text-2xl font-bold mb-1 flex items-center">
+                                        <Ban className="mr-2 h-6 w-6" />
+                                        Manage Distractions
+                                    </DialogTitle>
+                                    {/* Tabs Navigation */}
+                                    <TabsList className="grid w-full grid-cols-2 p-1 bg-blue-600/30 rounded-lg mt-4">
+                                        <TabsTrigger
+                                            value="current"
+                                            className="rounded-md data-[state=active]:bg-white data-[state=active]:text-blue-700 data-[state=active]:shadow-sm data-[state=active]:font-medium transition-all"
+                                        >
+                                            Blocked Sites ({blockedSitesCount})
+                                        </TabsTrigger>
+                                        <TabsTrigger
+                                            value="add"
+                                            className="rounded-md data-[state=active]:bg-white data-[state=active]:text-blue-700 data-[state=active]:shadow-sm data-[state=active]:font-medium transition-all"
+                                        >
+                                            Add New
+                                        </TabsTrigger>
+                                    </TabsList>
+                                </div>
+                            </DialogHeader>
 
-                        {/* Content Area */}
-                        <div className="p-6">
-                            <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'current' | 'add')} className="w-full">
-                                {/* Enhanced tab styling with more evident selection */}
-                                <TabsList className="grid w-full grid-cols-2 mb-4 p-1 bg-neutral-100 dark:bg-neutral-800 rounded-lg">
-                                    <TabsTrigger
-                                        value="current"
-                                        className="rounded-md data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-indigo-600 data-[state=active]:text-white data-[state=active]:shadow-sm data-[state=active]:font-medium transition-all"
-                                    >
-                                        Blocked Sites ({blockedSitesCount})
-                                    </TabsTrigger>
-                                    <TabsTrigger
-                                        value="add"
-                                        className="rounded-md data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-indigo-600 data-[state=active]:text-white data-[state=active]:shadow-sm data-[state=active]:font-medium transition-all"
-                                    >
-                                        Add New
-                                    </TabsTrigger>
-                                </TabsList>
+                            {/* Scrollable Content Area */}
+                            <ScrollArea className="flex-grow overflow-y-auto max-h-[calc(90vh-230px)]">
+                                <div className="p-6">
+                                    <TabsContent value="current" className="space-y-4 mt-0 focus-visible:outline-none focus-visible:ring-0">
+                                        <BlockedSitesList
+                                            loading={loading}
+                                            blockedSites={blockedSites}
+                                            siteStats={siteStats}
+                                            searchQuery={searchQuery}
+                                            setActiveTab={setActiveTab}
+                                            showTimeControls={showTimeControls}
+                                            editingSiteId={editingSiteId}
+                                            currentSiteWeekdayLimits={currentSiteWeekdayLimits}
+                                            toggleTimeControls={toggleTimeControls}
+                                            handleRemoveSite={handleRemoveSite}
+                                            toggleSiteDay={toggleSiteDay}
+                                            setSiteTimeLimit={setSiteTimeLimit}
+                                            handleUpdateLimit={updateMaxDailyVisits} // Add this prop
+                                            getTodayUsage={getTodayUsage}
+                                            getTodayLimit={getTodayLimit}
+                                            getSiteBrandColor={getSiteBrandColor}
+                                        />
+                                    </TabsContent>
 
-                                {/* Current blocked sites tab */}
-                                <TabsContent value="current" className="space-y-4">
-                                    {/* ...existing loading and empty states... */}
-
-                                    {/* Site list with brand colors */}
-                                    <div className="space-y-2 max-h-[400px] overflow-y-auto pr-1">
-                                        {blockedSites
-                                            .filter(site => site.domain.toLowerCase().includes(searchQuery.toLowerCase()))
-                                            .map((site) => {
-                                                // Find stats for this site
-                                                const siteStat = siteStats?.find((s: { domain: string }) => s.domain === site.domain) || {
-                                                    todayCount: 0,
-                                                    maxDailyVisits: site.max_daily_visits || 3
-                                                };
-                                                const todayVisits = siteStat.todayCount || 0;
-                                                const maxVisits = site.max_daily_visits || 3;
-
-                                                // Calculate usage percentage for progress bar
-                                                const usagePercent = Math.min(100, (todayVisits / maxVisits) * 100);
-
-                                                // Get brand colors
-                                                const brandColor = getSiteBrandColor(site.domain);
-                                                const siteName = site.domain.replace(/^(https?:\/\/)?(www\.)?/, '').split('.')[0];
-                                                const isGradient = brandColor.bg.startsWith('bg-');
-
-                                                return (
-                                                    <div
-                                                        key={site.id}
-                                                        className="border rounded-lg overflow-hidden shadow-sm bg-white dark:bg-neutral-800 border-neutral-200 dark:border-neutral-700 hover:shadow-md transition-shadow"
-                                                    >
-                                                        {/* Usage progress indicator */}
-                                                        <div className="h-1.5 w-full bg-neutral-100 dark:bg-neutral-700">
-                                                            <div
-                                                                className={`h-full transition-all duration-300 ${todayVisits === 0 ? "bg-emerald-500" :
-                                                                    todayVisits >= maxVisits ? "bg-rose-500" :
-                                                                        todayVisits > maxVisits * 0.5 ? "bg-amber-500" : "bg-blue-500"
-                                                                    }`}
-                                                                style={{ width: `${usagePercent}%` }}
-                                                            />
-                                                        </div>
-
-                                                        <div className="p-3">
-                                                            <div className="flex items-center justify-between">
-                                                                {/* Domain and stats */}
-                                                                <div className="flex-grow min-w-0">
-                                                                    <div className="flex items-center">
-                                                                        {/* Brand-colored icon background */}
-                                                                        <div
-                                                                            className={`flex items-center justify-center h-9 w-9 rounded-md mr-2.5 ${isGradient ? brandColor.bg : ''}`}
-                                                                            style={!isGradient ? { backgroundColor: brandColor.bg, color: brandColor.text } : {}}
-                                                                        >
-                                                                            <SocialIcon
-                                                                                network={siteName}
-                                                                                style={{ height: 24, width: 24 }}
-                                                                                fgColor={isGradient ? "white" : brandColor.text}
-                                                                                bgColor="transparent"
-                                                                            />
-                                                                        </div>
-                                                                        <div>
-                                                                            <span className="font-medium text-sm truncate block">{site.domain}</span>
-                                                                            {/* Visually enhanced stats badge */}
-                                                                            <div className="flex items-center mt-1 text-xs">
-                                                                                <div className="flex items-center px-1.5 py-0.5 rounded-full bg-opacity-10 border"
-                                                                                    style={{
-                                                                                        backgroundColor: `${todayVisits === 0 ? 'rgba(16, 185, 129, 0.1)' :
-                                                                                            todayVisits >= maxVisits ? 'rgba(239, 68, 68, 0.1)' :
-                                                                                                'rgba(245, 158, 11, 0.1)'}`,
-                                                                                        borderColor: `${todayVisits === 0 ? 'rgba(16, 185, 129, 0.2)' :
-                                                                                            todayVisits >= maxVisits ? 'rgba(239, 68, 68, 0.2)' :
-                                                                                                'rgba(245, 158, 11, 0.2)'}`
-                                                                                    }}
-                                                                                >
-                                                                                    <span className={`font-medium ${todayVisits === 0 ? 'text-emerald-600 dark:text-emerald-400' :
-                                                                                        todayVisits >= maxVisits ? 'text-rose-600 dark:text-rose-400' :
-                                                                                            'text-amber-600 dark:text-amber-400'
-                                                                                        }`}>{todayVisits}</span>
-                                                                                    <span className="mx-1 opacity-50">/</span>
-                                                                                    <span className="opacity-70">{maxVisits}</span>
-                                                                                    <span className="ml-1 opacity-70">visits</span>
-                                                                                </div>
-
-                                                                                {todayVisits === 0 && (
-                                                                                    <span className="text-emerald-600 dark:text-emerald-400 flex items-center ml-2">
-                                                                                        <Trophy className="h-3 w-3 mr-1" /> Perfect!
-                                                                                    </span>
-                                                                                )}
-                                                                            </div>
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-
-                                                                {/* Controls */}
-                                                                <div className="flex items-center space-x-2">
-                                                                    {/* Improved limit controls */}
-                                                                    <div className="flex items-center rounded-full h-7 border shadow-sm bg-white dark:bg-neutral-800 overflow-hidden">
-                                                                        <Button
-                                                                            variant="ghost"
-                                                                            size="icon"
-                                                                            className="h-7 w-7 rounded-full text-neutral-600 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-700"
-                                                                            onClick={() => handleUpdateLimit(site.id, maxVisits, false)}
-                                                                            title="Decrease limit"
-                                                                        >
-                                                                            <MinusCircle className="h-3.5 w-3.5" />
-                                                                        </Button>
-
-                                                                        <div className="px-1.5">
-                                                                            <span className="text-xs font-medium">{maxVisits}</span>
-                                                                        </div>
-
-                                                                        <Button
-                                                                            variant="ghost"
-                                                                            size="icon"
-                                                                            className="h-7 w-7 rounded-full text-neutral-600 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-700"
-                                                                            onClick={() => handleUpdateLimit(site.id, maxVisits, true)}
-                                                                            title="Increase limit"
-                                                                        >
-                                                                            <PlusCircle className="h-3.5 w-3.5" />
-                                                                        </Button>
-                                                                    </div>
-
-                                                                    {/* Delete button */}
-                                                                    <Button
-                                                                        variant="ghost"
-                                                                        size="icon"
-                                                                        onClick={() => handleRemoveSite(site.id)}
-                                                                        className="h-7 w-7 rounded-full text-rose-500 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-900/20"
-                                                                        title="Remove site"
-                                                                    >
-                                                                        <Trash2 className="h-3.5 w-3.5" />
-                                                                    </Button>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                );
-                                            })}
-                                    </div>
-                                </TabsContent>
-
-                                {/* Add new sites tab */}
-                                <TabsContent value="add" className="space-y-5">
-                                    {/* Quick add popular sites */}
-                                    {availablePopularSites.length > 0 && (
-                                        <div>
-                                            <h4 className="text-sm font-medium mb-3">Quick add popular sites:</h4>
-                                            <div className="flex flex-wrap gap-2">
-                                                {availablePopularSites.map((site) => (
-                                                    <Button
-                                                        key={site.domain}
-                                                        variant="outline"
-                                                        size="sm"
-                                                        onClick={() => handleQuickAdd(site)}
-                                                        disabled={loading}
-                                                        className="bg-white dark:bg-neutral-800"
-                                                    >
-                                                        {site.name}
-                                                    </Button>
-                                                ))}
-                                            </div>
-                                        </div>
-                                    )}
-
-                                    {/* Manual domain add form */}
-                                    <form onSubmit={handleAddDomain} className="space-y-1">
-                                        <div className="flex items-center space-x-2">
-                                            <div className="flex-1">
-                                                <Input
-                                                    placeholder="example.com"
-                                                    value={newDomain}
-                                                    onChange={(e) => {
-                                                        setNewDomain(e.target.value);
-                                                        setDomainError('');
-                                                    }}
-                                                    className={domainError ? "border-red-500" : ""}
-                                                />
-                                            </div>
-                                            <Button
-                                                type="submit"
-                                                disabled={loading}
-                                                className="bg-gradient-to-r from-indigo-500 to-blue-600 hover:from-indigo-600 hover:to-blue-700"
-                                            >
-                                                {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Add Site"}
-                                            </Button>
-                                        </div>
-                                        {domainError && (
-                                            <p className="text-xs text-red-500">{domainError}</p>
-                                        )}
-                                    </form>
-                                </TabsContent>
-                            </Tabs>
-                        </div>
-
-                        {/* Footer */}
-                        <div className="p-4 sm:p-6 border-t dark:border-neutral-800">
-                            <Button
-                                variant="outline"
-                                onClick={() => onOpenChange(false)}
-                                className="w-full"
-                            >
-                                Close
-                            </Button>
-                        </div>
+                                    <TabsContent value="add" className="space-y-5 mt-0 focus-visible:outline-none focus-visible:ring-0">
+                                        <AddNewSiteForm
+                                            popularSites={popularSites}
+                                            availablePopularSites={availablePopularSites}
+                                            loading={loading}
+                                            newDomain={newDomain}
+                                            setNewDomain={setNewDomain}
+                                            domainError={domainError}
+                                            setDomainError={setDomainError}
+                                            newSiteWeekdayLimits={newSiteWeekdayLimits}
+                                            toggleNewSiteDay={toggleNewSiteDay}
+                                            setNewSiteTimeLimit={setNewSiteTimeLimit}
+                                            applyToAllDays={applyToAllDays}
+                                            handleAddDomain={handleAddDomain}
+                                            handleQuickAdd={handleQuickAdd}
+                                        />
+                                    </TabsContent>
+                                </div>
+                            </ScrollArea>
+                        </Tabs>
                     </div>
                 </div>
             </DialogContent>

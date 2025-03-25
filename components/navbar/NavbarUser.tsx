@@ -102,7 +102,7 @@ export default function NavbarUser({ user, userDetails, condensed, className }: 
                     </DropdownMenuItem>
                 </DropdownMenuContent>
             </DropdownMenu>
-            <span className="text-xs font-extralight mt-0.5 sm:hidden text-neutral-500 dark:text-neutral-400">
+            <span className="text-xs font-medium mt-0.5 sm:hidden text-neutral-500 dark:text-neutral-400">
                 Profile
             </span>
         </div>

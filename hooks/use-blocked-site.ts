@@ -43,8 +43,8 @@ export function useBlockedSite({ user }: UserIdParam) {
     }
   }, [user]);
 
-  // Add a new domain to block with default max_daily_visits
-  const addBlockedSite = useCallback(async (domain: string, maxDailyVisits = 3) => {
+  // Add a new domain to block with default limits
+  const addBlockedSite = useCallback(async (domain: string, maxDailyVisits = 3, daySettings = {}) => {
     if (!user) return null;
 
     try {
@@ -68,13 +68,14 @@ export function useBlockedSite({ user }: UserIdParam) {
         return existingData as BlockedSite;
       }
       
-      // Add new blocked site
+      // Add new blocked site with time limits
       const { data, error } = await supabase
         .from('blocked_sites')
         .insert({
           user_id: user.id,
           domain: normalizedDomain,
-          max_daily_visits: maxDailyVisits
+          max_daily_visits: maxDailyVisits,
+          ...daySettings
         })
         .select()
         .single();
@@ -115,14 +116,114 @@ export function useBlockedSite({ user }: UserIdParam) {
         )
       );
       
-      toast.success('Daily limit updated');
+      toast.success('Visit limit updated');
       return true;
     } catch (err) {
       console.error('Error updating max daily visits:', err);
-      toast.error('Failed to update daily limit');
+      toast.error('Failed to update visit limit');
       return false;
     } finally {
       setLoading(false);
+    }
+  }, [user]);
+
+  // Update day-specific time limit for a site
+  const updateDayTimeLimit = useCallback(async (id: number, day: string, enabled: boolean, minutes: number) => {
+    if (!user) return false;
+
+    try {
+      setLoading(true);
+      
+      const updateData = {
+        [`${day}_enabled`]: enabled,
+        [`${day}_time_limit_minutes`]: minutes
+      };
+      
+      const { error } = await supabase
+        .from('blocked_sites')
+        .update(updateData)
+        .eq('id', id)
+        .eq('user_id', user.id);
+      
+      if (error) throw error;
+      
+      // Update local state
+      setBlockedSites(prev => 
+        prev.map(site => 
+          site.id === id ? { ...site, ...updateData } : site
+        )
+      );
+      
+      toast.success(`${day.charAt(0).toUpperCase() + day.slice(1)} limit updated`);
+      return true;
+    } catch (err) {
+      console.error('Error updating day time limit:', err);
+      toast.error('Failed to update time limit');
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  }, [user]);
+
+  // Start a session when accessing a blocked site
+  const startSession = useCallback(async (domain: string, blockedSiteId: number, bypassed = false) => {
+    if (!user) return null;
+
+    try {
+      const { data, error } = await supabase
+        .from('blocked_site_attempts')
+        .insert({
+          user_id: user.id,
+          domain: domain,
+          blocked_site_id: blockedSiteId,
+          bypassed: bypassed,
+          session_start: new Date().toISOString()
+        })
+        .select()
+        .single();
+      
+      if (error) throw error;
+      
+      return data as BlockedSiteAttempt;
+    } catch (err) {
+      console.error('Error starting site session:', err);
+      return null;
+    }
+  }, [user]);
+  
+  // End a session and record duration
+  const endSession = useCallback(async (attemptId: number) => {
+    if (!user) return false;
+
+    try {
+      // Get the current session
+      const { data: session } = await supabase
+        .from('blocked_site_attempts')
+        .select('session_start')
+        .eq('id', attemptId)
+        .single();
+        
+      if (!session) return false;
+      
+      const sessionStart = new Date(session.session_start);
+      const sessionEnd = new Date();
+      const durationSeconds = Math.round((sessionEnd.getTime() - sessionStart.getTime()) / 1000);
+      
+      // Update the session with end time and duration
+      const { error } = await supabase
+        .from('blocked_site_attempts')
+        .update({
+          session_end: sessionEnd.toISOString(),
+          duration_seconds: durationSeconds
+        })
+        .eq('id', attemptId);
+      
+      if (error) throw error;
+      
+      return true;
+    } catch (err) {
+      console.error('Error ending site session:', err);
+      return false;
     }
   }, [user]);
 
@@ -137,7 +238,7 @@ export function useBlockedSite({ user }: UserIdParam) {
         .from('blocked_sites')
         .delete()
         .eq('id', id)
-        .eq('user_id', user.id); // Ensure users can only delete their own blocked sites
+        .eq('user_id', user.id);
       
       if (error) throw error;
       
@@ -155,28 +256,8 @@ export function useBlockedSite({ user }: UserIdParam) {
 
   // Record an access attempt to a blocked site
   const recordAttempt = useCallback(async (domain: string, blockedSiteId: number, bypassed = false) => {
-    if (!user) return null;
-
-    try {
-      const { data, error } = await supabase
-        .from('blocked_site_attempts')
-        .insert({
-          user_id: user.id,
-          domain: domain,
-          blocked_site_id: blockedSiteId,
-          bypassed: bypassed
-        })
-        .select()
-        .single();
-      
-      if (error) throw error;
-      
-      return data as BlockedSiteAttempt;
-    } catch (err) {
-      console.error('Error recording access attempt:', err);
-      return null;
-    }
-  }, [user, blockedSites]);
+    return startSession(domain, blockedSiteId, bypassed);
+  }, [startSession]);
 
   // Get bypass attempts for a specified number of days
   const getBypassAttempts = useCallback(async (days = 7) => {
@@ -231,12 +312,15 @@ export function useBlockedSite({ user }: UserIdParam) {
     }
   }, [user, recordAttempt]);
 
-  // Get statistics for blocked sites (number of attempts)
+  // Get statistics for blocked sites (visits and time)
   const getBlockedSiteStats = useCallback(async () => {
     if (!user) return [];
 
     try {
       setLoading(true);
+      
+      // Get today's date in YYYY-MM-DD format
+      const today = new Date().toISOString().split('T')[0];
       
       // Get all attempts
       const { data: attemptsData, error } = await supabase
@@ -245,9 +329,11 @@ export function useBlockedSite({ user }: UserIdParam) {
           domain,
           blocked_site_id,
           created_at,
-          bypassed
+          bypassed,
+          duration_seconds
         `)
         .eq('user_id', user.id)
+        .gte('created_at', `${today}T00:00:00`)
         .order('created_at', { ascending: false });
       
       if (error) throw error;
@@ -263,13 +349,21 @@ export function useBlockedSite({ user }: UserIdParam) {
           // Get the site for this domain
           const site = sites.find(s => s.domain === attempt.domain);
           
+          // Get today's day name (lowercase)
+          const today = new Date().toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
+          const dayKey = today as keyof Pick<BlockedSite, 
+            'monday_enabled' | 'tuesday_enabled' | 'wednesday_enabled' | 
+            'thursday_enabled' | 'friday_enabled' | 'saturday_enabled' | 'sunday_enabled'>;
+          
           acc[attempt.domain] = {
             domain: attempt.domain,
             count: 0,
             todayCount: 0,
+            todayTimeSeconds: 0,
             bypassedCount: 0,
             lastAttempt: null,
-            maxDailyVisits: site?.max_daily_visits || 3
+            maxDailyVisits: site?.max_daily_visits || 3,
+            maxDailyTimeSeconds: site ? site[`${dayKey}_time_limit_minutes`] * 60 : 300
           };
         }
         
@@ -279,10 +373,11 @@ export function useBlockedSite({ user }: UserIdParam) {
         // Increment bypassed count if the attempt was bypassed
         if (attempt.bypassed) {
           acc[attempt.domain].bypassedCount++;
+          acc[attempt.domain].todayCount++;
           
-          // Check if bypass attempt is from today
-          if (isToday(new Date(attempt.created_at))) {
-            acc[attempt.domain].todayCount++;
+          // Add duration if available
+          if (attempt.duration_seconds) {
+            acc[attempt.domain].todayTimeSeconds += attempt.duration_seconds;
           }
         }
         
@@ -294,20 +389,6 @@ export function useBlockedSite({ user }: UserIdParam) {
         
         return acc;
       }, {});
-      
-      // Calculate streak for each domain
-      for (const domain of Object.keys(statsMap)) {
-        // For simplicity, we're giving a "streak" if today's visits are within limits
-        const site = sites.find(s => s.domain === domain);
-        if (site) {
-          const todayCount = statsMap[domain].todayCount;
-          const maxVisits = site.max_daily_visits || 3;
-          
-          // If they haven't exceeded the limit today, they're on a streak
-          statsMap[domain].streakCount = todayCount <= maxVisits ? 1 : 0;
-          // For a real app, you'd track this over days in the database
-        }
-      }
       
       return Object.values(statsMap);
     } catch (err) {
@@ -340,7 +421,7 @@ export function useBlockedSite({ user }: UserIdParam) {
     }
   }, [user]);
 
-  // Fix the getFocusData function to be properly memoized and remove console log
+  // Get focus data for different time ranges with proper scoring
   const getFocusData = useCallback(async (
     timeRange: 'week' | 'month' | 'year' = 'week',
     isPreviousPeriod: boolean = false
@@ -460,8 +541,6 @@ export function useBlockedSite({ user }: UserIdParam) {
         .reverse()
         .find(data => data.hasData)?.focusScore ?? null;
   
-      // For consistency in naming, return currentScore for both periods
-      // The caller will know if this is previous or current based on their request
       return { 
         focusData,
         currentScore: periodScore
@@ -473,17 +552,18 @@ export function useBlockedSite({ user }: UserIdParam) {
         currentScore: null 
       };
     }
-  }, [user, supabase]); // Dependencies remain the same
+  }, [user]);
 
-  // Make sure this calculation is correct and not being overridden elsewhere
+  // Calculate focus score based on attempts and bypasses
   const calculateFocusScore = (attempts: number, bypasses: number): number => {
-    // Each attempt reduces score by 2 points, each bypass by 5 points
+    // Each attempt reduces score by 1 point, each bypass by 2 points
     const penalty = (attempts * 1) + (bypasses * 2);
     const score = 100 - penalty;
     // Ensure score is between 0 and 100
     return Math.max(0, Math.min(100, score));
   };
 
+  // Get count of blocked sites
   const getBlockedSitesCount = useCallback(async () => {
     if (!user) return 0;
 
@@ -501,8 +581,13 @@ export function useBlockedSite({ user }: UserIdParam) {
       console.error('Error getting blocked sites count:', err);
       return 0;
     }
-  }, [user, supabase]);
+  }, [user]);
 
+  // Format time for display
+  const formatTime = (minutes: number): string => {
+    if (minutes < 60) return `${minutes}m`;
+    return `${Math.floor(minutes / 60)}h ${minutes % 60}m`;
+  };
 
   return {
     blockedSites,
@@ -513,11 +598,17 @@ export function useBlockedSite({ user }: UserIdParam) {
     addBlockedSite,
     removeBlockedSite,
     checkIfBlocked,
+    recordAttempt,
     getBlockedSiteStats,
     getRecentAttempts,
-    getBypassAttempts, // Added new function
+    getBypassAttempts,
     updateMaxDailyVisits,
+    updateDayTimeLimit,
+    startSession,
+    endSession,
     getFocusData,
-    getBlockedSitesCount
+    formatTime,
+    getBlockedSitesCount,
+    calculateFocusScore
   };
 }

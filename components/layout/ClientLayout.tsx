@@ -14,6 +14,8 @@ import { TimerProvider } from '@/contexts/TimerProvider';
 import Footer from '../footer/Footer';
 import { useTimerUI } from '@/contexts/TimerUIProvider';
 import { FullScreenTimer } from '../timer/FullScreenTimer';
+import { Sidebar } from '../sidebar/Sidebar';
+import { useTimer } from '@/contexts/TimerProvider';
 
 // Define props interface for InnerLayout component
 interface InnerLayoutProps {
@@ -39,38 +41,38 @@ function InnerLayout({ children, user, userDetails, isMobile }: InnerLayoutProps
   return (
     <>
       <Toaster />
-      <main className='mx-auto h-screen bg-neutral-50 dark:bg-neutral-900 flex flex-col'>
+      <main className='mx-auto h-screen bg-neutral-50 dark:bg-neutral-900 flex'>
         <Analytics />
         <MoodTrackingModal user={user} />
 
-        {/* Conditionally render Navbar/Footer based on screen size */}
-        {!isMobile ? (
-          // Desktop layout (original)
-          <Navbar user={user} userDetails={userDetails} />
-        ) : (
-          // Mobile layout (Footer at top, only when visible)
-          <div className="footer-container order-first">
-            <Footer position="top" />
-          </div>
+        {/* Desktop Sidebar (hidden on mobile) */}
+        {!isMobile && (
+          <Sidebar user={user} userDetails={userDetails} />
         )}
 
-        {/* Content area - conditionally apply top margin and adjust height */}
-        <div className={`flex flex-col w-full ${isTopFooterVisible ? 'mt-16' : 'mt-0'} sm:mt-0 pb-4 ${contentHeight} flex-grow overflow-y-auto overflow-x-hidden`}>
-          <div className="space-y-6 max-w-screen-lg mx-auto px-1 w-full">
-            {children}
+        {/* Main content container */}
+        <div className='flex flex-col w-full'>
+          {/* Mobile layout (Footer at top, only when visible) */}
+          {isMobile && isTopFooterVisible && (
+            <div className="footer-container order-first">
+              <Footer position="top" />
+            </div>
+          )}
+
+          {/* Content area - conditionally apply top margin and adjust height */}
+          <div className={`flex flex-col w-full ${isTopFooterVisible ? 'mt-16' : 'mt-0'} sm:mt-0 pb-4 ${isMobile ? contentHeight : 'h-screen'} flex-grow overflow-y-auto overflow-x-hidden`}>
+            <div className="space-y-6 max-w-screen-lg mx-auto px-1 sm:px-4 w-full pt-6">
+              {children}
+            </div>
           </div>
+
+          {/* Mobile layout (Navbar at bottom) */}
+          {isMobile && (
+            <div className="navbar-container order-last">
+              <Navbar user={user} userDetails={userDetails} position="bottom" />
+            </div>
+          )}
         </div>
-
-        {/* Conditionally render Footer/Navbar based on screen size */}
-        {!isMobile ? (
-          // Desktop layout (original)
-          <Footer position="bottom" />
-        ) : (
-          // Mobile layout (Navbar at bottom)
-          <div className="navbar-container order-last">
-            <Navbar user={user} userDetails={userDetails} position="bottom" />
-          </div>
-        )}
 
         {showFullScreenTimer && <FullScreenTimer />}
       </main>
@@ -114,10 +116,6 @@ export default function ClientLayout({ user, userDetails, children }: ClientLayo
     </UserContext.Provider>
   );
 }
-
-// Don't forget to import useTimer for the inner component
-import { useTimer } from '@/contexts/TimerProvider';
-import { ScrollArea } from '../ui/scroll-area';
 
 interface ClientLayoutProps {
   children: React.ReactNode;

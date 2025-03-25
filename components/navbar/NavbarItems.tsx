@@ -1,9 +1,9 @@
 "use client"
 
-import { Coffee, HomeIcon, Notebook, Timer, TreePalm } from "lucide-react"
+import { HomeIcon, Notebook, Timer, TreePalm } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { usePathname, useRouter } from "next/navigation"
-import { useState, useEffect } from "react" // Added useEffect
+import { useState } from "react" // Added useEffect
 import { FocusSelector } from "@/components/timer/FocusSelector"
 import { Dialog } from "@/components/ui/dialog"
 import { useTimer } from "@/contexts/TimerProvider"

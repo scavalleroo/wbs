@@ -374,7 +374,7 @@ export function ManageDistractionsDialog({
                     <div className="bg-white dark:bg-neutral-900 rounded-lg overflow-hidden flex flex-col max-h-[90vh]">
                         <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'current' | 'add')}>
                             {/* Fixed Header */}
-                            <DialogHeader className="p-0 sticky top-0 z-10">
+                            <DialogHeader className="p-0 sticky top-0">
                                 <div className="bg-gradient-to-r from-indigo-500 via-blue-500 to-indigo-500 p-6 text-white">
                                     <DialogTitle className="text-2xl font-bold mb-1 flex items-center">
                                         <Ban className="mr-2 h-6 w-6" />

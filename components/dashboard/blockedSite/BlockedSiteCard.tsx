@@ -176,6 +176,16 @@ function UsageProgressBar({ visitsPercent, timePercent, todayVisits, maxVisits, 
 }
 
 function UsageStatsBadges({ todayVisits, maxVisits, todayTimeMinutes, todayLimit }: any) {
+
+    const formatTime = (minutes: number): string => {
+        if (minutes < 60) {
+            return `${minutes}m`;
+        }
+        const hours = Math.floor(minutes / 60);
+        const mins = minutes % 60;
+        return mins > 0 ? `${hours}h ${mins}m` : `${hours}h`;
+    };
+
     return (
         <>
             {/* Visits badge */}
@@ -226,9 +236,9 @@ function UsageStatsBadges({ todayVisits, maxVisits, todayTimeMinutes, todayLimit
                                 <span className={`font-medium ${todayTimeMinutes === 0 ? 'text-emerald-600 dark:text-emerald-400' :
                                     todayTimeMinutes >= todayLimit.minutes ? 'text-rose-600 dark:text-rose-400' :
                                         'text-blue-600 dark:text-blue-400'
-                                    }`}>{todayTimeMinutes}m</span>
+                                    }`}>{formatTime(todayTimeMinutes)}</span>
                                 <span className="mx-1 opacity-50">/</span>
-                                <span className="opacity-70">{todayLimit.minutes}m</span>
+                                <span className="opacity-70">{formatTime(todayLimit.minutes)}</span>
                             </div>
                         </TooltipTrigger>
                         <TooltipContent>

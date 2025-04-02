@@ -120,9 +120,15 @@ export function FullScreenTimer() {
     )?.active_users || 0;
 
     const formatTime = (seconds: number) => {
-        const mins = Math.floor(seconds / 60);
+        const hours = Math.floor(seconds / 3600);
+        const mins = Math.floor((seconds % 3600) / 60);
         const secs = seconds % 60;
-        return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+
+        if (hours > 0) {
+            return `${hours}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+        } else {
+            return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+        }
     };
 
     const getActivityIcon = (activityType: string) => {
@@ -250,7 +256,7 @@ export function FullScreenTimer() {
                         {flowMode && timeElapsed > 0 && (
                             <div className="text-center">
                                 <span className="bg-gradient-to-r from-blue-500 via-indigo-500 to-blue-500 bg-clip-text text-transparent font-medium text-sm">
-                                    {Math.floor(timeElapsed / 60)} minutes focused
+                                    In focus mode for {formatTime(timeElapsed)}
                                 </span>
                             </div>
                         )}

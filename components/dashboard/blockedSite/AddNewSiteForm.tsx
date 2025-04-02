@@ -162,7 +162,11 @@ export function AddNewSiteForm({
             <Button
                 type="submit"
                 disabled={loading || !newDomain.trim()}
-                className="w-full bg-gradient-to-r from-indigo-500 to-blue-600 hover:from-indigo-600 hover:to-blue-700 mt-2"
+                className="w-full text-white mt-2"
+                style={{
+                    background: 'linear-gradient(90deg, #3B82F6, #4338CA)',
+                    borderColor: 'transparent'
+                }}
             >
                 {loading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
                 Add Site
@@ -209,106 +213,148 @@ function DayTimeLimitSettings({ newSiteWeekdayLimits, toggleNewSiteDay, setNewSi
         updateTime(hours, mins);
     };
 
-    const updateHour = (hour: number) => {
-        updateTime(hour, selectedMinute);
+    // Increment/decrement handlers
+    const incrementHour = () => {
+        updateTime(Math.min(2, selectedHour + 1), selectedMinute);
     };
 
-    const updateMinute = (minute: number) => {
-        updateTime(selectedHour, minute);
+    const decrementHour = () => {
+        updateTime(Math.max(0, selectedHour - 1), selectedMinute);
+    };
+
+    const incrementMinute = () => {
+        const currentIndex = minutes.indexOf(selectedMinute);
+        if (currentIndex < minutes.length - 1) {
+            updateTime(selectedHour, minutes[currentIndex + 1]);
+        } else if (selectedHour < 2) {
+            updateTime(selectedHour + 1, minutes[0]);
+        }
+    };
+
+    const decrementMinute = () => {
+        const currentIndex = minutes.indexOf(selectedMinute);
+        if (currentIndex > 0) {
+            updateTime(selectedHour, minutes[currentIndex - 1]);
+        } else if (selectedHour > 0) {
+            updateTime(selectedHour - 1, minutes[minutes.length - 1]);
+        }
     };
 
     return (
         <div className="flex flex-col items-center bg-neutral-50 dark:bg-neutral-900/50 p-2 rounded-md">
-            {/* Compact Time Picker */}
-            <div className="flex items-center justify-center space-x-1 mb-2">
-                <div className="flex items-center justify-center bg-neutral-100 dark:bg-neutral-800 rounded-lg p-2 shadow-inner">
+            {/* Improved Time Picker - matching SiteTimeControls */}
+            <div className="flex items-center justify-center space-x-1 mb-2 w-full max-w-[280px]">
+                <div className="flex items-center justify-center bg-neutral-100 dark:bg-neutral-800 rounded-lg p-2 shadow-inner w-full">
                     {/* Hour Control */}
                     <div className="flex flex-col items-center">
                         {/* Up arrow */}
                         <button
                             type="button"
-                            onClick={() => updateHour(Math.min(2, selectedHour + 1))}
+                            onClick={incrementHour}
                             className="text-neutral-500 hover:text-blue-600 dark:text-neutral-400 dark:hover:text-blue-400 p-1 focus:outline-none"
                             disabled={selectedHour >= 2}
                             aria-label="Increase hours"
                         >
-                            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor" viewBox="0 0 16 16">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
                                 <path fillRule="evenodd" d="M8 15a.5.5 0 0 0 .5-.5V2.707l3.146 3.147a.5.5 0 0 0 .708-.708l-4-4a.5.5 0 0 0-.708 0l-4 4a.5.5 0 1 0 .708.708L7.5 2.707V14.5a.5.5 0 0 0 .5.5z" />
                             </svg>
                         </button>
 
-                        {/* Hours Display */}
-                        <div className="relative w-10 h-8 flex items-center justify-center overflow-hidden">
-                            <span className="text-lg font-bold">{selectedHour}</span>
+                        {/* Hours Display - using the better wheel display */}
+                        <div className="relative w-12 sm:w-16 h-14 flex items-center justify-center overflow-hidden">
+                            <div className="wheel-display flex flex-col justify-center items-center h-full">
+                                {hours.map(hour => (
+                                    <div
+                                        key={hour}
+                                        className={`absolute inset-0 flex items-center justify-center transition-all duration-200 ${selectedHour === hour
+                                            ? 'opacity-100 transform-none font-bold text-xl text-blue-600 dark:text-blue-400'
+                                            : selectedHour === hour - 1
+                                                ? 'opacity-60 -translate-y-7 scale-90 text-neutral-600 dark:text-neutral-400'
+                                                : selectedHour === hour + 1
+                                                    ? 'opacity-60 translate-y-7 scale-90 text-neutral-600 dark:text-neutral-400'
+                                                    : 'opacity-0 text-neutral-400'
+                                            }`}
+                                        onClick={() => updateTime(hour, selectedMinute)}
+                                    >
+                                        {hour}
+                                    </div>
+                                ))}
+                            </div>
                         </div>
 
                         {/* Down arrow */}
                         <button
                             type="button"
-                            onClick={() => updateHour(Math.max(0, selectedHour - 1))}
+                            onClick={decrementHour}
                             className="text-neutral-500 hover:text-blue-600 dark:text-neutral-400 dark:hover:text-blue-400 p-1 focus:outline-none"
                             disabled={selectedHour <= 0}
                             aria-label="Decrease hours"
                         >
-                            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor" viewBox="0 0 16 16">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
                                 <path fillRule="evenodd" d="M8 1a.5.5 0 0 1 .5.5v11.793l3.146-3.147a.5.5 0 0 1 .708.708l-4 4a.5.5 0 0 1-.708 0l-4-4a.5.5 0 0 1 .708-.708L7.5 13.293V1.5A.5.5 0 0 1 8 1z" />
                             </svg>
                         </button>
                     </div>
 
-                    <div className="text-sm font-medium mx-1 text-neutral-800 dark:text-neutral-200">h</div>
+                    <div className="text-lg font-medium mx-1 sm:mx-2 text-neutral-800 dark:text-neutral-200">h</div>
 
-                    {/* Minutes Control */}
+                    {/* Minutes Control - using the better wheel display */}
                     <div className="flex flex-col items-center">
                         {/* Up arrow */}
                         <button
                             type="button"
-                            onClick={() => {
-                                const currentIndex = minutes.indexOf(selectedMinute);
-                                if (currentIndex < minutes.length - 1) {
-                                    updateMinute(minutes[currentIndex + 1]);
-                                } else if (selectedHour < 2) {
-                                    updateHour(selectedHour + 1);
-                                    updateMinute(minutes[0]);
-                                }
-                            }}
+                            onClick={incrementMinute}
                             className="text-neutral-500 hover:text-blue-600 dark:text-neutral-400 dark:hover:text-blue-400 p-1 focus:outline-none"
                             disabled={selectedHour >= 2 && minutes.indexOf(selectedMinute) === minutes.length - 1}
                             aria-label="Increase minutes"
                         >
-                            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor" viewBox="0 0 16 16">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
                                 <path fillRule="evenodd" d="M8 15a.5.5 0 0 0 .5-.5V2.707l3.146 3.147a.5.5 0 0 0 .708-.708l-4-4a.5.5 0 0 0-.708 0l-4 4a.5.5 0 1 0 .708.708L7.5 2.707V14.5a.5.5 0 0 0 .5.5z" />
                             </svg>
                         </button>
 
-                        {/* Minutes Display */}
-                        <div className="relative w-10 h-8 flex items-center justify-center overflow-hidden">
-                            <span className="text-lg font-bold">{selectedMinute.toString().padStart(2, '0')}</span>
+                        {/* Minutes Display - wheel style */}
+                        <div className="relative w-16 h-14 flex items-center justify-center overflow-hidden">
+                            <div className="wheel-display flex flex-col justify-center items-center h-full">
+                                {minutes.map(minute => {
+                                    const currentIndex = minutes.indexOf(selectedMinute);
+                                    const minuteIndex = minutes.indexOf(minute);
+
+                                    return (
+                                        <div
+                                            key={minute}
+                                            className={`absolute inset-0 flex items-center justify-center transition-all duration-200 ${selectedMinute === minute
+                                                ? 'opacity-100 transform-none font-bold text-xl text-blue-600 dark:text-blue-400'
+                                                : currentIndex === minuteIndex - 1
+                                                    ? 'opacity-60 -translate-y-7 scale-90 text-neutral-600 dark:text-neutral-400'
+                                                    : currentIndex === minuteIndex + 1
+                                                        ? 'opacity-60 translate-y-7 scale-90 text-neutral-600 dark:text-neutral-400'
+                                                        : 'opacity-0 text-neutral-400'
+                                                }`}
+                                            onClick={() => updateTime(selectedHour, minute)}
+                                        >
+                                            {minute.toString().padStart(2, '0')}
+                                        </div>
+                                    );
+                                })}
+                            </div>
                         </div>
 
                         {/* Down arrow */}
                         <button
                             type="button"
-                            onClick={() => {
-                                const currentIndex = minutes.indexOf(selectedMinute);
-                                if (currentIndex > 0) {
-                                    updateMinute(minutes[currentIndex - 1]);
-                                } else if (selectedHour > 0) {
-                                    updateHour(selectedHour - 1);
-                                    updateMinute(minutes[minutes.length - 1]);
-                                }
-                            }}
+                            onClick={decrementMinute}
                             className="text-neutral-500 hover:text-blue-600 dark:text-neutral-400 dark:hover:text-blue-400 p-1 focus:outline-none"
                             disabled={selectedHour <= 0 && selectedMinute <= 0}
                             aria-label="Decrease minutes"
                         >
-                            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor" viewBox="0 0 16 16">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
                                 <path fillRule="evenodd" d="M8 1a.5.5 0 0 1 .5.5v11.793l3.146-3.147a.5.5 0 0 1 .708.708l-4 4a.5.5 0 0 1-.708 0l-4-4a.5.5 0 0 1 .708-.708L7.5 13.293V1.5A.5.5 0 0 1 8 1z" />
                             </svg>
                         </button>
                     </div>
 
-                    <div className="text-sm font-medium mx-1 text-neutral-800 dark:text-neutral-200">m</div>
+                    <div className="text-lg font-medium mx-1 sm:mx-2 text-neutral-800 dark:text-neutral-200">m</div>
                 </div>
             </div>
 

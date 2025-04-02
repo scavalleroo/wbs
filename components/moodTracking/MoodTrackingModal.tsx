@@ -210,100 +210,106 @@ const MoodTrackingModal = ({
 
     return (
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
-            <DialogContent className="sm:max-w-md w-[92vw] max-w-full p-4 sm:p-6 overflow-hidden bg-neutral-100 dark:bg-neutral-800 border-neutral-200 dark:border-neutral-700 rounded-xl">
-                <DialogHeader className="mb-2 sm:mb-4">
-                    <DialogTitle className="text-lg sm:text-xl font-bold text-center">
-                        {dateLabel || "Daily Wellness Check"}
-                    </DialogTitle>
-                </DialogHeader>
+            <DialogContent className="sm:max-w-md p-0 border-0 bg-transparent max-h-[90vh] overflow-hidden">
+                <div className="bg-gradient-to-br from-indigo-500 to-blue-600 rounded-xl p-1 shadow-xl">
+                    <div className="bg-white dark:bg-neutral-900 rounded-lg p-0 overflow-y-auto max-h-[80vh] [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+                        <DialogHeader className="p-0">
+                            <div className="bg-gradient-to-r from-indigo-500 via-blue-500 to-indigo-500 p-6 text-white">
+                                <DialogTitle className="text-2xl font-bold mb-1 text-center">
+                                    {dateLabel || "Daily Wellness Check"}
+                                </DialogTitle>
+                            </div>
+                        </DialogHeader>
 
-                <div className="relative">
-                    <AnimatePresence mode="wait">
-                        {!showNotes ? (
-                            <motion.div
-                                key={`step-${currentStep}`}
-                                initial={{ opacity: 0, x: 20 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                exit={{ opacity: 0, x: -20 }}
-                                transition={{ duration: 0.2 }}
-                            >
-                                <MoodScale
-                                    question={steps[currentStep].question}
-                                    onSelect={handleRatingSelect}
-                                    onSkip={handleSkipStep}
-                                />
-                            </motion.div>
-                        ) : (
-                            <motion.div
-                                key="notes"
-                                initial={{ opacity: 0, y: 20 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ duration: 0.3 }}
-                                className="grid gap-3 py-4"
-                            >
-                                <Label htmlFor="mood-description" className="text-sm font-medium">
-                                    {isToday
-                                        ? "Any additional notes about today? (optional)"
-                                        : isYesterday
-                                            ? "Any additional notes about yesterday? (optional)"
-                                            : `Any additional notes about ${format(trackingDate, 'MMM d')}? (optional)`}
-                                </Label>
-                                <Textarea
-                                    id="mood-description"
-                                    placeholder={isToday
-                                        ? "Share anything else about your day..."
-                                        : "Share anything else about this day..."}
-                                    value={description}
-                                    onChange={(e) => setDescription(e.target.value)}
-                                    rows={3}
-                                    className="resize-vertical bg-neutral-50 dark:bg-neutral-700 border-neutral-200 dark:border-neutral-600 rounded-lg"
-                                />
-                                <div className="flex flex-col-reverse gap-3 pt-4 sm:flex-row sm:justify-between">
-                                    <Button
-                                        variant="outline"
-                                        onClick={() => setShowNotes(false)}
-                                        className="w-full sm:w-auto bg-neutral-50 dark:bg-neutral-700 border-neutral-200 dark:border-neutral-600 hover:bg-neutral-200 dark:hover:bg-neutral-600 rounded-lg"
+                        <div className="p-6">
+                            <AnimatePresence mode="wait">
+                                {!showNotes ? (
+                                    <motion.div
+                                        key={`step-${currentStep}`}
+                                        initial={{ opacity: 0, x: 20 }}
+                                        animate={{ opacity: 1, x: 0 }}
+                                        exit={{ opacity: 0, x: -20 }}
+                                        transition={{ duration: 0.2 }}
                                     >
-                                        Back
-                                    </Button>
-                                    <Button
-                                        onClick={handleSubmit}
-                                        disabled={isSubmitting}
-                                        className="w-full sm:w-auto bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-lg"
+                                        <MoodScale
+                                            question={steps[currentStep].question}
+                                            onSelect={handleRatingSelect}
+                                            onSkip={handleSkipStep}
+                                        />
+                                    </motion.div>
+                                ) : (
+                                    <motion.div
+                                        key="notes"
+                                        initial={{ opacity: 0, y: 20 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        transition={{ duration: 0.3 }}
+                                        className="grid gap-3 py-4"
                                     >
-                                        {isSubmitting ? 'Submitting...' : 'Submit'}
-                                    </Button>
-                                </div>
-                            </motion.div>
-                        )}
-                    </AnimatePresence>
-                </div>
-
-                {!showNotes && (
-                    <DialogFooter className="flex justify-between pt-2">
-                        <div className="flex space-x-1 items-center">
-                            {steps.map((_, idx) => (
-                                <div
-                                    key={idx}
-                                    className={`h-1.5 rounded-full ${idx === currentStep
-                                        ? 'w-5 bg-blue-500'
-                                        : idx < currentStep
-                                            ? 'w-3 bg-blue-300'
-                                            : 'w-3 bg-neutral-300 dark:bg-neutral-600'
-                                        }`}
-                                />
-                            ))}
+                                        <Label htmlFor="mood-description" className="text-sm font-medium">
+                                            {isToday
+                                                ? "Any additional notes about today? (optional)"
+                                                : isYesterday
+                                                    ? "Any additional notes about yesterday? (optional)"
+                                                    : `Any additional notes about ${format(trackingDate, 'MMM d')}? (optional)`}
+                                        </Label>
+                                        <Textarea
+                                            id="mood-description"
+                                            placeholder={isToday
+                                                ? "Share anything else about your day..."
+                                                : "Share anything else about this day..."}
+                                            value={description}
+                                            onChange={(e) => setDescription(e.target.value)}
+                                            rows={3}
+                                            className="resize-vertical bg-neutral-50 dark:bg-neutral-700 border-neutral-200 dark:border-neutral-600 rounded-lg"
+                                        />
+                                        <div className="flex flex-col-reverse gap-3 pt-4 sm:flex-row sm:justify-between">
+                                            <Button
+                                                variant="outline"
+                                                onClick={() => setShowNotes(false)}
+                                                className="w-full sm:w-auto bg-neutral-50 dark:bg-neutral-700 border-neutral-200 dark:border-neutral-600 hover:bg-neutral-200 dark:hover:bg-neutral-600 rounded-lg"
+                                            >
+                                                Back
+                                            </Button>
+                                            <Button
+                                                onClick={handleSubmit}
+                                                disabled={isSubmitting}
+                                                className="w-full sm:w-auto bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-lg"
+                                            >
+                                                {isSubmitting ? 'Submitting...' : 'Submit'}
+                                            </Button>
+                                        </div>
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
                         </div>
-                        <Button
-                            variant="ghost"
-                            onClick={handleSkipAll}
-                            disabled={isSubmitting}
-                            className="text-xs text-neutral-500 hover:text-neutral-800 dark:hover:text-neutral-300"
-                        >
-                            Skip all
-                        </Button>
-                    </DialogFooter>
-                )}
+
+                        {!showNotes && (
+                            <DialogFooter className="flex justify-between pt-2">
+                                <div className="flex space-x-1 items-center">
+                                    {steps.map((_, idx) => (
+                                        <div
+                                            key={idx}
+                                            className={`h-1.5 rounded-full ${idx === currentStep
+                                                ? 'w-5 bg-blue-500'
+                                                : idx < currentStep
+                                                    ? 'w-3 bg-blue-300'
+                                                    : 'w-3 bg-neutral-300 dark:bg-neutral-600'
+                                                }`}
+                                        />
+                                    ))}
+                                </div>
+                                <Button
+                                    variant="ghost"
+                                    onClick={handleSkipAll}
+                                    disabled={isSubmitting}
+                                    className="text-xs text-neutral-500 hover:text-neutral-800 dark:hover:text-neutral-300"
+                                >
+                                    Skip all
+                                </Button>
+                            </DialogFooter>
+                        )}
+                    </div>
+                </div>
             </DialogContent>
         </Dialog>
     );

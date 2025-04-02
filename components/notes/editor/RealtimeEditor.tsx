@@ -128,6 +128,8 @@ export const RealtimeEditor: React.FC<RealtimeEditorProps> = ({
           })
           .eq('id', rowId);
 
+        console.log(`Updated ${tableName} with ID ${rowId}:`, debouncedContent);
+
         if (error) {
           console.error(`Error updating ${tableName}:`, error);
         } else {
@@ -401,8 +403,8 @@ export const RealtimeEditor: React.FC<RealtimeEditorProps> = ({
             </EditorCommand>
 
             <GenerativeMenuSwitch open={openAI} onOpenChange={setOpenAI}>
-              <Separator orientation="vertical" />
-              <EventSelector open={openEvent} onOpenChange={setOpenEvent} />
+              {/* <Separator orientation="vertical" />
+              <EventSelector open={openEvent} onOpenChange={setOpenEvent} /> */}
               <Separator orientation="vertical" />
               <NodeSelector open={openNode} onOpenChange={setOpenNode} />
               <Separator orientation="vertical" />

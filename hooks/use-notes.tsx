@@ -3,7 +3,7 @@ import { JSONContent } from "novel";
 import { toast } from 'sonner';
 import { DailyNote, ProjectNote } from '@/lib/project';
 import { UserIdParam } from '@/types/types';
-import { defaultEditorContent, firstLoginEditorContent } from '@/utils/constants';
+import { defaultEditorContent, dailyNewNote } from '@/utils/constants';
 import { createClient } from '@/utils/supabase/client';
 
 export function useNotes({ user }: UserIdParam) {
@@ -72,9 +72,15 @@ export function useNotes({ user }: UserIdParam) {
             return null;
         }
 
+        // Reset state immediately when changing dates to prevent stale content
+        setDailyNote(null);
+        previousContentRef.current = null;
+
         try {
             setLoading(true);
             const formattedDate = formatDate(date);
+
+            console.log(`Fetching notes for date: ${formattedDate} and user: ${user.id}`);
 
             // Try to fetch the existing note for this date
             const { data, error } = await supabase
@@ -82,30 +88,58 @@ export function useNotes({ user }: UserIdParam) {
                 .select('*')
                 .eq('user_id', user.id)
                 .eq('date', formattedDate)
-                .single();
+                .maybeSingle();
 
-            if (error && error.code === 'PGRST116') {
-                // No existing note, create a new one
-                await supabase
+            console.log("Fetch result:", { data, error });
+
+            if (error) {
+                console.error("Error fetching note:", error);
+                throw error;
+            }
+
+            // If data exists, return it
+            if (data) {
+                console.log("Found existing note, setting state", data);
+                setDailyNote(data as DailyNote);
+                previousContentRef.current = JSON.parse(JSON.stringify(data.content));
+                return data.content;
+            } else {
+                // No existing note, create a new one with the template
+                console.log("Creating new note with template");
+
+                // Create a deep clone of the dailyNewNote to avoid reference issues
+                const noteTemplate = JSON.parse(JSON.stringify(dailyNewNote));
+
+                const { data: newNote, error: insertError } = await supabase
                     .from('user_daily_notes')
                     .insert({
                         user_id: user.id,
                         date: formattedDate,
-                        content: firstLoginEditorContent,
+                        content: noteTemplate,
                         created_at: new Date().toISOString()
-                    });
-            } else if (data) {
-                setDailyNote(data as DailyNote);
+                    })
+                    .select()
+                    .single();
+
+                if (insertError) {
+                    console.error("Error creating new note:", insertError);
+                    throw insertError;
+                }
+
+                console.log("New note created successfully:", newNote);
+                setDailyNote(newNote as DailyNote);
+                previousContentRef.current = noteTemplate;
+                return noteTemplate;
             }
 
-            previousContentRef.current = data?.content || defaultEditorContent;
-            setError(null);
-            return data?.content || defaultEditorContent;
         } catch (err) {
             console.error('Error fetching or creating notes:', err);
             setError('Failed to load notes');
             toast.error('Failed to load notes');
-            return null;
+
+            // Return a fresh copy of dailyNewNote as fallback
+            const fallbackTemplate = JSON.parse(JSON.stringify(dailyNewNote));
+            return fallbackTemplate;
         } finally {
             setLoading(false);
         }

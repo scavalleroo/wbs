@@ -1,15 +1,11 @@
 "use client";
 
 import React, { useEffect, useState } from 'react';
-import { RealtimeEditor } from './RealtimeEditor';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { RealtimeEditor } from './editor/RealtimeEditor';
 import { User } from '@supabase/supabase-js';
-import { Button } from '@/components/ui/button';
-import { ChevronLeft, ChevronRight, Calendar, Book } from 'lucide-react';
 import { useNotes } from '@/hooks/use-notes';
 import { JSONContent } from 'novel';
 import { ProjectNote } from '@/lib/project';
-import CreateProjectDialog from '../create-project-dialog';
 import { Card } from '@/components/ui/card';
 
 interface NotesPageComponentProps {
@@ -64,6 +60,7 @@ export const NotesPageComponent: React.FC<NotesPageComponentProps> = ({
   // When dailyNote changes, update contentEditor
   useEffect(() => {
     if (dailyNote) {
+      console.log("Daily note updated:", dailyNote);
       setContentEditor(dailyNote.content as JSONContent);
     }
   }, [dailyNote]);
@@ -177,7 +174,7 @@ export const NotesPageComponent: React.FC<NotesPageComponentProps> = ({
   return (
     <div className="w-full h-full py-2">
       <div className="max-w-screen-lg mx-auto w-full h-full">
-        <Card className="h-full shadow-md bg-neutral-100 dark:bg-neutral-800 overflow-hidden">
+        <Card className="rounded-lg bg-transparent text-card-foreground h-full overflow-auto border-none">
           {activeTab === 'daily' && dailyNote && !loading ? (
             <RealtimeEditor
               key={`daily-${dailyNote.id}`}

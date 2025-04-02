@@ -3,12 +3,13 @@ import { User } from '@supabase/supabase-js';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { Button } from "@/components/ui/button";
-import { Target, Chrome, Settings, Download, Brain } from "lucide-react";
+import { Settings, Download, Brain } from "lucide-react";
 import { useBlockedSite } from '@/hooks/use-blocked-site';
 import { DailyFocusData } from '@/types/report.types';
 import { ManageDistractionsDialog } from './ManageDistractionsDialog';
-import { getScoreTier, ScoreScaleLegend } from '@/components/ui/score';
+import { getScoreTier } from '@/components/ui/score';
 import TimeRangeSelector from './TimeRangeSelector';
+import { format } from 'date-fns';
 
 interface DigitalWellbeingHistoryProps {
     user: User | null | undefined;
@@ -28,6 +29,15 @@ const DigitalWellbeingHistory = ({
     const [blockedSitesCount, setBlockedSitesCount] = useState(0);
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const { getFocusData, getBlockedSitesCount } = useBlockedSite({ user });
+    const [extensionUrl, setExtensionUrl] = useState("");
+
+    // Add this effect to safely set the URL client-side only
+    useEffect(() => {
+        // Only set the URL after component mounts (client-side)
+        if (typeof window !== 'undefined') {
+            setExtensionUrl(`https://chrome.google.com/webstore/detail/${process.env.NEXT_PUBLIC_CHROME_EXTENSION_ID || process.env.CHROME_EXTENSION_ID}`);
+        }
+    }, []);
 
     // Update time range when external prop changes
     useEffect(() => {
@@ -49,7 +59,25 @@ const DigitalWellbeingHistory = ({
                 const { focusData: data, currentScore: score } = await getFocusData(
                     timeRange === 'all' ? undefined : timeRange
                 );
-                setFocusData(data);
+
+                // Enhance the data with weekday information
+                const enhancedData = data.map(day => {
+                    // Parse the date to extract weekday
+                    const date = new Date(day.date);
+                    const weekdayShort = format(date, 'EEE'); // Mon, Tue, Wed, etc.
+                    const formattedDayOfMonth = format(date, 'MMM dd'); // Jan 01, Feb 02, etc.
+
+                    return {
+                        ...day,
+                        weekday: weekdayShort,
+                        // Use weekday for week view, date for other views
+                        xAxisLabel: timeRange === 'week' ? weekdayShort : day.formattedDate,
+                        // Combined date for tooltip
+                        fullDateLabel: `${weekdayShort}, ${formattedDayOfMonth}`
+                    };
+                });
+
+                setFocusData(enhancedData);
                 setCurrentScore(score);
 
                 // Get the count of blocked sites
@@ -72,37 +100,46 @@ const DigitalWellbeingHistory = ({
         };
     }, [timeRange, user, getFocusData, getBlockedSitesCount]);
 
+    const transformedFocusData = React.useMemo(() => {
+        return focusData.map(day => ({
+            ...day,
+            // If hasData is false, set the score to 100, otherwise keep the original score
+            focusScore: day.hasData ? day.focusScore : 100
+        }));
+    }, [focusData]);
+
     // Custom tooltip for the chart
     const CustomTooltip = ({ active, payload }: any) => {
         if (active && payload && payload.length) {
-            const data = payload[0].payload as DailyFocusData;
+            const data = payload[0].payload as DailyFocusData & { fullDateLabel?: string };
 
-            // If no data for this day, show simple tooltip
+            // If no data for this day, show simple tooltip with perfect score
             if (!data.hasData) {
                 return (
                     <div className="bg-white dark:bg-neutral-800 p-3 border border-neutral-200 dark:border-neutral-700 shadow-lg rounded-md">
-                        <p className="text-sm font-medium">{data.formattedDate}</p>
-                        <p className="text-sm text-neutral-500">No data available</p>
+                        <p className="text-sm font-medium">{data.fullDateLabel || data.formattedDate}</p>
+                        <p className="text-sm text-neutral-500">Perfect score (no distractions)</p>
+                        <p className="text-sm font-bold text-blue-500">Digital wellbeing: 100 <span className="text-xs font-normal">(Superior)</span></p>
                     </div>
                 );
             }
 
-            // For days with data, show detailed information
+            // For days with data, show detailed information (keep existing code)
             const { tier, color } = data.focusScore !== null ?
                 getScoreTier(data.focusScore) :
                 { tier: "No data", color: "#6B7280" };
 
             return (
                 <div className="bg-white dark:bg-neutral-800 p-3 border border-neutral-200 dark:border-neutral-700 shadow-lg rounded-md max-w-[260px]">
-                    <p className="text-sm font-medium mb-1">{data.formattedDate}</p>
+                    <p className="text-sm font-medium mb-1">{data.fullDateLabel || data.formattedDate}</p>
 
                     {/* Focus score using the consistent color from getScoreTier */}
                     <p className="text-sm font-bold" style={{ color }}>
-                        Focus Score: {data.focusScore} <span className="text-xs font-normal">({tier})</span>
+                        Digital wellbeing: {data.focusScore} <span className="text-xs font-normal">({tier})</span>
                     </p>
 
                     {/* Details by domain */}
-                    {data.attemptDetails.length > 0 && (
+                    {data.attemptDetails && data.attemptDetails.length > 0 && (
                         <div className="mt-2 border-t border-neutral-200 dark:border-neutral-700 pt-1">
                             <p className="text-xs text-neutral-500 font-medium">Attempted sites:</p>
                             <ul className="text-xs text-neutral-600 dark:text-neutral-300">
@@ -128,12 +165,29 @@ const DigitalWellbeingHistory = ({
     const renderDot = (props: any) => {
         const { cx, cy, payload, index } = props;
 
-        // Don't render dots for future dates or days without data
-        if (payload.isFutureDate || !payload.hasData || payload.focusScore === null) {
+        // Don't render dots for future dates
+        if (payload.isFutureDate) {
             return <g key={`dot-empty-${index}`} />;
         }
 
-        // Get color based on score tier
+        // For days without data, render a different dot to indicate perfect score
+        if (!payload.hasData) {
+            return (
+                <g key={`dot-perfect-${index}`}>
+                    <circle
+                        cx={cx}
+                        cy={cy}
+                        r={4}
+                        fill="#3B82F6" // Blue for perfect score
+                        stroke="#FFFFFF"
+                        strokeWidth={1}
+                        strokeDasharray="2 1" // Optional: add dashed border to indicate it's an assumed value
+                    />
+                </g>
+            );
+        }
+
+        // Get color based on score tier (keep existing code for days with data)
         const { color } = getScoreTier(payload.focusScore);
 
         const baseRadius = 4;
@@ -177,7 +231,25 @@ const DigitalWellbeingHistory = ({
             const { focusData: data, currentScore: score } = await getFocusData(
                 timeRange === 'all' ? undefined : timeRange
             );
-            setFocusData(data);
+
+            // Enhance the data with weekday information
+            const enhancedData = data.map(day => {
+                // Parse the date to extract weekday
+                const date = new Date(day.date);
+                const weekdayShort = format(date, 'EEE'); // Mon, Tue, Wed, etc.
+                const formattedDayOfMonth = format(date, 'MMM dd'); // Jan 01, Feb 02, etc.
+
+                return {
+                    ...day,
+                    weekday: weekdayShort,
+                    // Use weekday for week view, date for other views
+                    xAxisLabel: timeRange === 'week' ? weekdayShort : day.formattedDate,
+                    // Combined date for tooltip
+                    fullDateLabel: `${weekdayShort}, ${formattedDayOfMonth}`
+                };
+            });
+
+            setFocusData(enhancedData);
             setCurrentScore(score);
 
             // Get the count of blocked sites
@@ -218,14 +290,13 @@ const DigitalWellbeingHistory = ({
                                     Focus is tracked using our Chrome extension that helps limit distractions from social networks and other distracting websites. Install the extension to start building better digital habits and improve your focus score.
                                 </p>
                                 <div className="flex flex-col sm:flex-row gap-3 justify-center pt-4">
-                                    <a href="https://chrome.google.com/webstore/detail/your-extension-id" target="_blank" rel="noopener noreferrer">
-                                        <Button
-                                            className="w-full sm:w-auto bg-white hover:bg-white/90 text-indigo-900 shadow-md hover:shadow-lg transition-all duration-200 border-0"
-                                        >
-                                            <Download className="mr-2 h-4 w-4" />
-                                            Get Chrome Extension
-                                        </Button>
-                                    </a>
+                                    <Button
+                                        className="w-full sm:w-auto bg-white hover:bg-white/90 text-indigo-900 shadow-md hover:shadow-lg transition-all duration-200 border-0"
+                                        onClick={() => extensionUrl && window.open(extensionUrl, '_blank')}
+                                    >
+                                        <Download className="mr-2 h-4 w-4" />
+                                        Get Chrome Extension
+                                    </Button>
                                     <Button
                                         variant="outline"
                                         onClick={() => setIsDialogOpen(true)}
@@ -241,12 +312,12 @@ const DigitalWellbeingHistory = ({
                             <div className="w-full h-64 bg-white/5 rounded-xl p-3">
                                 <ResponsiveContainer width="100%" height="100%">
                                     <LineChart
-                                        data={focusData}
+                                        data={transformedFocusData} // Use the transformed data instead
                                         margin={{ top: 5, right: 5, left: 5, bottom: 15 }}
                                     >
                                         <CartesianGrid strokeDasharray="3 3" opacity={0.1} stroke="rgba(255,255,255,0.2)" />
                                         <XAxis
-                                            dataKey="formattedDate"
+                                            dataKey="xAxisLabel" // Use xAxisLabel instead of formattedDate
                                             tick={{ fontSize: 12, fill: "rgba(255,255,255,0.8)" }}
                                             tickMargin={10}
                                             stroke="rgba(255,255,255,0.3)"
@@ -270,43 +341,11 @@ const DigitalWellbeingHistory = ({
                                                 strokeWidth: 2,
                                             }}
                                             isAnimationActive={false}
-                                            connectNulls={false}
+                                            connectNulls={true} // Change to true since we now have values for all days
                                         />
                                     </LineChart>
                                 </ResponsiveContainer>
                             </div>
-
-                            {/* Score Range Legend using the consistent colors from getScoreTier */}
-                            {/* <div className="flex flex-wrap items-center justify-center mt-4 gap-4 text-xs">
-                                <div className="flex items-center">
-                                    <span className="inline-block w-3 h-3 mr-1 rounded-full" style={{ backgroundColor: "#3B82F6" }}></span>
-                                    <span className="text-white">Superior (96-100)</span>
-                                </div>
-                                <div className="flex items-center">
-                                    <span className="inline-block w-3 h-3 mr-1 rounded-full" style={{ backgroundColor: "#22C55E" }}></span>
-                                    <span className="text-white">Excellent (81-95)</span>
-                                </div>
-                                <div className="flex items-center">
-                                    <span className="inline-block w-3 h-3 mr-1 rounded-full" style={{ backgroundColor: "#84CC16" }}></span>
-                                    <span className="text-white">Good (61-80)</span>
-                                </div>
-                                <div className="flex items-center">
-                                    <span className="inline-block w-3 h-3 mr-1 rounded-full" style={{ backgroundColor: "#EAB308" }}></span>
-                                    <span className="text-white">Fair (41-60)</span>
-                                </div>
-                                <div className="flex items-center">
-                                    <span className="inline-block w-3 h-3 mr-1 rounded-full" style={{ backgroundColor: "#F97316" }}></span>
-                                    <span className="text-white">Poor (21-40)</span>
-                                </div>
-                                <div className="flex items-center">
-                                    <span className="inline-block w-3 h-3 mr-1 rounded-full" style={{ backgroundColor: "#EF4444" }}></span>
-                                    <span className="text-white">Very Poor (0-20)</span>
-                                </div>
-                            </div> */}
-
-                            {/* <div className='pt-4'>
-                                <ScoreScaleLegend />
-                            </div> */}
 
                             {/* Manage distractions button for when data exists */}
                             <div className="flex justify-center mt-6">

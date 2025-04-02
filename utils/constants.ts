@@ -22,28 +22,84 @@ export const defaultEditorContent: JSONContent = {
     ]
 };
 
-export const firstLoginEditorContent: JSONContent = {
-    type: 'doc',
-    content: [
-        {
-            type: 'paragraph',
-            content: [
-                {
-                    type: 'text',
-                    text: 'Must Do:'
-                }
-            ]
-        },
-        {
-            type: 'paragraph',
-            content: [
-                {
-                    type: 'text',
-                    text: 'Could Do:'
-                }
-            ]
-        }
-    ]
+export const dailyNewNote: JSONContent = {
+  type: "doc",
+  content: [
+      {
+          type: "heading",
+          attrs: {
+              level: 3
+          },
+          content: [
+              {
+                  type: "text",
+                  text: "🎯 "
+              },
+              {
+                  type: "text",
+                  marks: [
+                      {
+                          type: "bold"
+                      }
+                  ],
+                  text: "Must Do"
+              }
+          ]
+      },
+      {
+          type: "taskList",
+          content: [
+              {
+                  type: "taskItem",
+                  attrs: {
+                      checked: false
+                  },
+                  content: [
+                      {
+                          type: "paragraph"
+                      }
+                  ]
+              }
+          ]
+      },
+      {
+          type: "heading",
+          attrs: {
+              level: 3
+          },
+          content: [
+              {
+                  type: "text",
+                  text: "✨ "
+              },
+              {
+                  type: "text",
+                  marks: [
+                      {
+                          type: "bold"
+                      }
+                  ],
+                  text: "Could Do"
+              }
+          ]
+      },
+      {
+          type: "taskList",
+          content: [
+              {
+                  type: "taskItem",
+                  attrs: {
+                      checked: false
+                  },
+                  content: [
+                      {
+                          type: "paragraph"
+                      }
+                  ]
+              }
+          ]
+      }
+  ]
 };
 
 // Shared color scheme for all wellness reports

@@ -1,6 +1,6 @@
 import { getUser } from '@/utils/supabase/queries';
 import { createClient } from '@/utils/supabase/server';
-import { NotesPageComponent } from '@/components/notes/editor/NotesPageComponent';
+import { NotesPageComponent } from '@/components/notes/NotesPageComponent';
 
 export const metadata = {
     title: 'Notes | Weko',

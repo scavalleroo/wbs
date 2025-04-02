@@ -34,7 +34,7 @@ const AISelectorCommands = ({ onSelect }: AISelectorCommandsProps) => {
 
   return (
     <>
-      <CommandGroup heading="Edit or review selection">
+      <CommandGroup heading="Edit or review selection" className="text-zinc-700 dark:text-zinc-300">
         {options.map((option) => (
           <CommandItem
             onSelect={(value) => {
@@ -42,17 +42,17 @@ const AISelectorCommands = ({ onSelect }: AISelectorCommandsProps) => {
               const text = editor!.storage.markdown.serializer.serialize(slice.content);
               onSelect(text, value);
             }}
-            className="flex gap-2 px-4"
+            className="flex gap-2 px-4 text-zinc-800 dark:text-zinc-200 hover:bg-purple-200 dark:hover:bg-purple-900 group"
             key={option.value}
             value={option.value}
           >
-            <option.icon className="h-4 w-4 text-purple-500" />
+            <option.icon className="h-4 w-4 text-purple-700 dark:text-purple-400 group-hover:text-purple-900 dark:group-hover:text-white" />
             {option.label}
           </CommandItem>
         ))}
       </CommandGroup>
-      <CommandSeparator />
-      <CommandGroup heading="Use AI to do more">
+      <CommandSeparator className="bg-zinc-200 dark:bg-zinc-700" />
+      <CommandGroup heading="Use AI to do more" className="text-zinc-700 dark:text-zinc-300">
         <CommandItem
           onSelect={() => {
             const pos = editor!.state.selection.from;
@@ -60,9 +60,9 @@ const AISelectorCommands = ({ onSelect }: AISelectorCommandsProps) => {
             onSelect(text, "continue");
           }}
           value="continue"
-          className="gap-2 px-4"
+          className="gap-2 px-4 text-zinc-800 dark:text-zinc-200 hover:bg-purple-200 dark:hover:bg-purple-900 group"
         >
-          <StepForward className="h-4 w-4 text-purple-500" />
+          <StepForward className="h-4 w-4 text-purple-700 dark:text-purple-400 group-hover:text-purple-900 dark:group-hover:text-white" />
           Continue writing
         </CommandItem>
       </CommandGroup>

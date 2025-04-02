@@ -14,7 +14,7 @@ const AICompletionCommands = ({
     <>
       <CommandGroup>
         <CommandItem
-          className="gap-2 px-4"
+          className="gap-2 px-4 text-zinc-800 dark:text-zinc-200 hover:bg-purple-200 dark:hover:bg-purple-900 group"
           value="replace"
           onSelect={() => {
             const selection = editor!.view.state.selection;
@@ -32,11 +32,11 @@ const AICompletionCommands = ({
               .run();
           }}
         >
-          <Check className="h-4 w-4 text-muted-foreground" />
+          <Check className="h-4 w-4 text-purple-600 dark:text-purple-400 group-hover:text-purple-800 dark:group-hover:text-white" />
           Replace selection
         </CommandItem>
         <CommandItem
-          className="gap-2 px-4"
+          className="gap-2 px-4 text-zinc-800 dark:text-zinc-200 hover:bg-purple-200 dark:hover:bg-purple-900 group"
           value="insert"
           onSelect={() => {
             const selection = editor!.view.state.selection;
@@ -47,15 +47,19 @@ const AICompletionCommands = ({
               .run();
           }}
         >
-          <TextQuote className="h-4 w-4 text-muted-foreground" />
+          <TextQuote className="h-4 w-4 text-purple-600 dark:text-purple-400 group-hover:text-purple-800 dark:group-hover:text-white" />
           Insert below
         </CommandItem>
       </CommandGroup>
-      <CommandSeparator />
+      <CommandSeparator className="bg-zinc-200 dark:bg-zinc-700" />
 
       <CommandGroup>
-        <CommandItem onSelect={onDiscard} value="thrash" className="gap-2 px-4">
-          <TrashIcon className="h-4 w-4 text-muted-foreground" />
+        <CommandItem
+          onSelect={onDiscard}
+          value="thrash"
+          className="gap-2 px-4 text-zinc-800 dark:text-zinc-200 hover:bg-purple-200 dark:hover:bg-purple-900 group"
+        >
+          <TrashIcon className="h-4 w-4 text-purple-600 dark:text-purple-400 group-hover:text-purple-800 dark:group-hover:text-white" />
           Discard
         </CommandItem>
       </CommandGroup>

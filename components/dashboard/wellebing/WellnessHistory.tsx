@@ -56,12 +56,12 @@ const WellnessHistory = ({
     const [selectedMetrics, setSelectedMetrics] = useState<string[]>(['wellbeing']);
 
     const metricColors = {
-        wellbeing: 'rgba(255, 255, 255, 0.9)', // Main line in white
-        mood: '#F59E0B',      // Amber-500
-        sleep: '#8B5CF6',     // Purple-500
-        nutrition: '#10B981', // Emerald-500
-        exercise: '#60A5FA',  // Blue-400
-        social: '#EC4899'     // Pink-500
+        wellbeing: 'rgba(255, 255, 255, 0.95)', // Main line in white
+        mood: 'rgba(251, 191, 36, 0.9)',     // Amber-400
+        sleep: 'rgba(167, 139, 250, 0.9)',    // Purple-400
+        nutrition: 'rgba(52, 211, 153, 0.9)', // Emerald-400
+        exercise: 'rgba(96, 165, 250, 0.9)',  // Blue-400
+        social: 'rgba(236, 72, 153, 0.9)'     // Pink-500
     };
 
     const metricLabels = {
@@ -181,6 +181,13 @@ const WellnessHistory = ({
                     item => item.tracked_date === dateStr
                 );
 
+                // Add weekday for weekly views
+                const weekdayShort = format(date, 'EEE'); // Mon, Tue, Wed, etc.
+                const formattedDayOfMonth = format(date, 'MMM dd'); // Jan 01, Feb 02, etc.
+
+                // Determine what to show on the X-axis based on time range
+                const xAxisLabel = timeRange === 'week' ? weekdayShort : formattedDayOfMonth;
+
                 // Check if we have any data for this day
                 const hasData = !!dayData;
                 const hasMoodEntry = !!dayData;
@@ -211,7 +218,10 @@ const WellnessHistory = ({
 
                 return {
                     date: dateStr,
-                    formattedDate: format(date, 'MMM dd'),
+                    formattedDate: formattedDayOfMonth,
+                    weekday: weekdayShort,
+                    xAxisLabel, // This will be used for the x-axis
+                    fullDateLabel: `${weekdayShort}, ${formattedDayOfMonth}`, // For tooltip
                     wellbeingScore,
                     displayScore: wellbeingScore, // Keep null values instead of converting to 0
                     mood: normalizeRating(dayData?.mood_rating),
@@ -245,7 +255,7 @@ const WellnessHistory = ({
         };
 
         loadWellbeingData();
-    }, [timeRange, getMoodHistory, showMoodModal]); // Re-run when modal is closed
+    }, [timeRange, getMoodHistory, showMoodModal]);
 
     const handleDataPointClick = (data: any) => {
         // Allow clicking on any past date (whether it has data or not)
@@ -364,7 +374,7 @@ const WellnessHistory = ({
             if (score === null && !data.hasMoodEntry) {
                 return (
                     <div className="bg-white dark:bg-neutral-800 p-2 border border-neutral-200 dark:border-neutral-700 shadow rounded-md">
-                        <p className="text-sm font-medium">{data.formattedDate}</p>
+                        <p className="text-sm font-medium">{data.fullDateLabel}</p> {/* Use the full date label */}
                         <p className="text-sm text-neutral-500">No data available</p>
                         <p className="text-xs text-neutral-500 mt-1">Click to add</p>
                     </div>
@@ -378,7 +388,7 @@ const WellnessHistory = ({
 
             return (
                 <div className="bg-white dark:bg-neutral-800 p-2 border border-neutral-200 dark:border-neutral-700 shadow rounded-md max-w-[260px]">
-                    <p className="text-sm font-medium mb-1">{data.formattedDate}</p>
+                    <p className="text-sm font-medium mb-1">{data.fullDateLabel}</p> {/* Use the full date label */}
 
                     {/* Overall score */}
                     {selectedMetrics.includes('wellbeing') && (
@@ -443,22 +453,32 @@ const WellnessHistory = ({
     const renderMetricToggle = (metric: string) => {
         const isSelected = selectedMetrics.includes(metric);
         const metricKey = metric as keyof typeof metricColors;
+
         return (
             <Toggle
                 key={metric}
                 pressed={isSelected}
                 onPressedChange={() => toggleMetric(metric)}
-                className={`${isSelected ? 'bg-white/20' : 'bg-white/5'} border rounded-full px-3 py-1 text-white`}
+                className={`
+                    border transition-all duration-200 rounded-md p-2 h-auto
+                    ${isSelected
+                        // Match TabsTrigger active state exactly
+                        ? 'bg-white/20 !border-white/20 text-white data-[state=on]:bg-white/20 data-[state=on]:text-white'
+                        // Match TabsTrigger inactive state
+                        : 'bg-transparent border-white/20 text-white/70 hover:bg-white/15 hover:text-white/90'
+                    }
+                `}
                 style={{
-                    borderColor: isSelected ? metricColors[metricKey] : 'rgba(255, 255, 255, 0.1)'
+                    // Force override any theme default colors
+                    backgroundColor: isSelected ? 'rgba(255, 255, 255, 0.2)' : 'transparent'
                 }}
             >
                 <div className="flex items-center gap-1.5">
                     <span
-                        className="w-2 h-2 rounded-full"
+                        className={`w-2.5 h-2.5 rounded-full ${isSelected ? 'opacity-100' : 'opacity-70'}`}
                         style={{ backgroundColor: metricColors[metricKey] }}
                     ></span>
-                    <span className="text-xs font-medium text-white">
+                    <span className="text-xs font-medium">
                         {metricLabels[metricKey]}
                     </span>
                 </div>
@@ -480,7 +500,7 @@ const WellnessHistory = ({
                     </div>
                 </CardHeader>
 
-                <div className="flex flex-wrap gap-2 mt-2 mb-4 px-4">
+                <div className="flex flex-wrap gap-2 mt-2 mb-4 px-6">
                     {renderMetricToggle('wellbeing')}
                     {renderMetricToggle('mood')}
                     {renderMetricToggle('sleep')}
@@ -499,7 +519,7 @@ const WellnessHistory = ({
                             >
                                 <CartesianGrid strokeDasharray="3 3" opacity={0.1} stroke="rgba(255,255,255,0.2)" />
                                 <XAxis
-                                    dataKey="formattedDate"
+                                    dataKey="xAxisLabel"
                                     tick={{ fontSize: 12, fill: "rgba(255,255,255,0.8)" }}
                                     tickMargin={10}
                                     stroke="rgba(255,255,255,0.3)"

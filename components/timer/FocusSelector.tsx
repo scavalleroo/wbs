@@ -4,7 +4,7 @@ import { Button } from '../ui/button';
 import { Slider } from '../ui/slider';
 import { Input } from '../ui/input';
 import { SocialIcon } from 'react-social-icons';
-import { DialogContent, DialogTitle } from '../ui/dialog';
+import { DialogContent, DialogHeader, DialogTitle } from '../ui/dialog';
 
 const ACTIVITIES = [
     { id: 'study', name: 'Study', emoji: '📚' },
@@ -60,15 +60,16 @@ export function FocusSelector({ onStart }: FocusSelectorProps) {
 
     return (
         <DialogContent className="sm:max-w-xl md:max-w-2xl p-0 border-0 bg-transparent max-h-[90vh] overflow-hidden">
-            <div className="bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl p-1 shadow-xl">
+            <div className="bg-gradient-to-br from-indigo-500 to-blue-600 rounded-xl p-1 shadow-xl">
                 <div className="bg-white dark:bg-neutral-900 rounded-lg p-0 overflow-y-auto max-h-[80vh] [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
-                    <DialogTitle>
-                        <div className="bg-gradient-to-r from-blue-500 via-indigo-500 to-blue-500 p-6 text-white">
-                            <h2 className="text-2xl font-bold mb-1">Set up your focus session</h2>
+                    <DialogHeader className="p-0">
+                        <div className="bg-gradient-to-r from-indigo-500 via-blue-500 to-indigo-500 p-6 text-white">
+                            <DialogTitle className="text-2xl font-bold mb-1">Set up your focus session</DialogTitle>
                             <p className="opacity-80">Customize your perfect environment</p>
                         </div>
-                    </DialogTitle>
+                    </DialogHeader>
 
+                    {/* Content area remains mostly the same */}
                     <div className="overflow-hidden">
                         <div className="p-6 space-y-6">
                             {/* Activity Selection */}

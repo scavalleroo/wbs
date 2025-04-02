@@ -4,17 +4,15 @@
     line-height: 1.4;
 }
 
-@media screen and (max-width: 640px) {
-    ul[data-type="taskList"] li>label input[type="checkbox"] {
-        top: 0px !important;
-        margin-right: 0.0rem !important;
-        /* Adjust from 5px to 2px for better alignment with reduced line height */
-    }
+ul[data-type="taskList"] li>label input[type="checkbox"] {
+    top: 0px !important;
+    margin-right: 0.0rem !important;
+    /* Adjust from 5px to 2px for better alignment with reduced line height */
+}
 
-    /* Adjust todo list line height for mobile */
-    ul[data-type="taskList"] li>div>p {
-        line-height: 1.2;
-    }
+/* Adjust todo list line height for mobile */
+ul[data-type="taskList"] li>div>p {
+    line-height: 1.2;
 }
 
 .ProseMirror .is-editor-empty:first-child::before {

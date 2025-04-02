@@ -46,6 +46,16 @@ export const DashboardScore = ({ user, setTimeRange, timeRange }: {
     const { getFocusData, getBlockedSiteStats, getBlockedSitesCount } = useBlockedSite({ user });
     const { recentSessions, fetchRecentSessions } = useFocusSession({ user });
 
+    const [extensionUrl, setExtensionUrl] = useState("");
+
+    // Add this effect to safely set the URL client-side only
+    useEffect(() => {
+        // Only set the URL after component mounts (client-side)
+        if (typeof window !== 'undefined') {
+            setExtensionUrl(`https://chrome.google.com/webstore/detail/${process.env.NEXT_PUBLIC_CHROME_EXTENSION_ID || process.env.CHROME_EXTENSION_ID}`);
+        }
+    }, []);
+
     // Check if it's desktop on mount
     useEffect(() => {
         setIsDesktop(window.innerWidth >= 768);
@@ -333,7 +343,7 @@ export const DashboardScore = ({ user, setTimeRange, timeRange }: {
                 {isDesktop && (
                     <Button
                         variant="outline"
-                        onClick={() => window.open('https://chrome.google.com/webstore/detail/weko-focus/your-extension-id', '_blank')}
+                        onClick={() => extensionUrl && window.open(extensionUrl, '_blank')}
                         className="w-full bg-blue-500/20 border-blue-400/30 text-white hover:bg-blue-500/30 hover:border-blue-400/50 text-xs py-1 h-auto"
                     >
                         <Download className="mr-1 h-3 w-3" />

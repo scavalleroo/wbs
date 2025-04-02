@@ -11,11 +11,12 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { FocusSession } from '@/types/focus-session.types';
 import { toast } from "sonner";
 import TimeRangeSelector from './TimeRangeSelector';
+import { format } from 'date-fns';
 
 interface FocusSessionsHistoryProps {
     user: User | null | undefined;
     compactMode?: boolean;
-    timeRange?: 'week' | 'month' | 'year' | 'all';
+    timeRange?: 'week' | 'month' | 'year';
 }
 
 const FocusSessionsHistory = ({
@@ -122,32 +123,51 @@ const FocusSessionsHistory = ({
 
     // Convert sessions to chart data format
     useEffect(() => {
-        if (recentSessions.length > 0) {
-            // Define interface for the accumulator
-            interface SessionDay {
-                date: string;
-                displayDate: string;
+        if (user) {
+            // Generate array of all dates for the selected time range
+            const generateDateRange = () => {
+                const dates = [];
+                const today = new Date();
+                today.setHours(23, 59, 59, 999); // End of today
+
+                let daysToShow = 7; // Default for 'week'
+                if (timeRange === 'month') daysToShow = 30;
+                else if (timeRange === 'year') daysToShow = 365;
+
+                for (let i = 0; i < daysToShow; i++) {
+                    const date = new Date(today);
+                    date.setDate(date.getDate() - i);
+                    date.setHours(0, 0, 0, 0); // Start of the day
+                    dates.unshift(date); // Add to beginning so dates are in ascending order
+                }
+                return dates;
+            };
+
+            // Create the full date range array
+            const dateRange = generateDateRange();
+
+            // Format a date as YYYY-MM-DD for consistent comparison
+            const formatDateKey = (date: Date) => {
+                return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+            };
+
+            // Create a map of existing session data by date
+            const sessionsByDay: Record<string, {
                 totalDuration: number;
                 completedSessions: number;
                 abandonedSessions: number;
-                sessions: any[]; // Replace with proper session type if available
-            }
+                sessions: FocusSession[];
+            }> = {};
 
-            interface SessionsByDay {
-                [dateKey: string]: SessionDay;
-            }
-
-            // Group by day, but only include sessions > 60 seconds
-            const sessionsByDay = recentSessions
+            // Process valid sessions (> 60 seconds)
+            recentSessions
                 .filter(session => session.actual_duration >= 60)
-                .reduce((acc: SessionsByDay, session) => {
+                .forEach(session => {
                     const date = new Date(session.created_at);
-                    const dateKey = `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`;
+                    const dateKey = formatDateKey(date);
 
-                    if (!acc[dateKey]) {
-                        acc[dateKey] = {
-                            date: dateKey,
-                            displayDate: date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+                    if (!sessionsByDay[dateKey]) {
+                        sessionsByDay[dateKey] = {
                             totalDuration: 0,
                             completedSessions: 0,
                             abandonedSessions: 0,
@@ -155,28 +175,61 @@ const FocusSessionsHistory = ({
                         };
                     }
 
-                    acc[dateKey].totalDuration += session.actual_duration;
+                    sessionsByDay[dateKey].totalDuration += session.actual_duration;
+                    sessionsByDay[dateKey].sessions.push(session);
+
                     if (session.status === 'completed') {
-                        acc[dateKey].completedSessions += 1;
+                        sessionsByDay[dateKey].completedSessions += 1;
                     } else if (session.status === 'abandoned') {
-                        acc[dateKey].abandonedSessions += 1;
+                        sessionsByDay[dateKey].abandonedSessions += 1;
                     }
+                });
 
-                    acc[dateKey].sessions.push(session);
+            // Map the full date range to chart data, using existing session data or zeros
+            const data = dateRange.map(date => {
+                const dateKey = formatDateKey(date);
+                const dayData = sessionsByDay[dateKey] || {
+                    totalDuration: 0,
+                    completedSessions: 0,
+                    abandonedSessions: 0,
+                    sessions: []
+                };
 
-                    return acc;
-                }, {} as SessionsByDay);
+                // Format the display date based on timeRange
+                let displayDate;
 
-            // Convert to array and sort by date
-            const data = Object.values(sessionsByDay).sort((a, b) =>
-                new Date(a.date).getTime() - new Date(b.date).getTime()
-            );
+                // Use 3-letter weekday abbreviation for week view
+                const weekdayShort = format(date, 'EEE'); // Mon, Tue, Wed, etc.
+                const formattedDayOfMonth = format(date, 'MMM dd'); // Jan 01, Feb 02, etc.
+
+                if (timeRange === 'week') {
+                    // For week view, show 3-letter day abbreviation instead of single letters
+                    displayDate = weekdayShort;
+                } else {
+                    // For month/year view, show month/day
+                    displayDate = formattedDayOfMonth;
+                }
+
+                // Create full date label for tooltip combining weekday and date
+                const fullDateLabel = `${weekdayShort}, ${formattedDayOfMonth}`;
+
+                return {
+                    date: dateKey,
+                    fullDate: date, // Keep full date for sorting/filtering if needed
+                    displayDate,
+                    fullDateLabel, // Add the combined format for tooltips
+                    totalDuration: dayData.totalDuration,
+                    completedSessions: dayData.completedSessions,
+                    abandonedSessions: dayData.abandonedSessions,
+                    sessions: dayData.sessions
+                };
+            });
 
             setSessionsData(data);
         } else {
             setSessionsData([]);
         }
-    }, [recentSessions]);
+    }, [recentSessions, timeRange, user]);
 
     // Fetch session data based on time range
     useEffect(() => {
@@ -279,9 +332,12 @@ const FocusSessionsHistory = ({
         if (active && payload && payload.length) {
             const data = payload[0].payload;
 
+            // Use the new fullDateLabel property for consistent display
+            const displayHeader = data.fullDateLabel || data.displayDate;
+
             return (
                 <div className="bg-neutral-100 dark:bg-neutral-800 p-3 border border-neutral-200 dark:border-neutral-700 shadow rounded-md">
-                    <p className="text-sm font-medium mb-1">{data.displayDate}</p>
+                    <p className="text-sm font-medium mb-1">{displayHeader}</p>
                     <p className="text-xs text-neutral-500">Total focus time: <span className="font-medium text-purple-600 dark:text-purple-400">{formatDuration(data.totalDuration)}</span></p>
                     <p className="text-xs text-neutral-500">Completed: <span className="font-medium text-emerald-600 dark:text-emerald-400">{data.completedSessions}</span></p>
                     <p className="text-xs text-neutral-500">Abandoned: <span className="font-medium text-amber-600 dark:text-amber-400">{data.abandonedSessions}</span></p>
@@ -396,9 +452,9 @@ const FocusSessionsHistory = ({
                         Focus sessions history
                     </CardTitle>
                     <TimeRangeSelector
-                        value={timeRange === 'all' ? 'all' : timeRange}
+                        value={timeRange}
                         onChange={(value) => setTimeRange(value)}
-                        allowAll={true}
+                        allowAll={false}
                     />
                 </CardHeader>
                 <CardContent>
@@ -492,7 +548,7 @@ const FocusSessionsHistory = ({
                                 <div className="mt-6">
                                     <h4 className="text-sm font-medium text-white mb-3">Recent Focus Sessions</h4>
                                     <div className="space-y-2">
-                                        {filteredSessions.slice(0, 3).map(session => (
+                                        {filteredSessions.slice(0, 1).map(session => (
                                             <div
                                                 key={session.id}
                                                 className="flex flex-row sm:items-center justify-between bg-white/10 backdrop-blur-sm p-3 rounded-lg shadow-sm gap-2 group"
@@ -573,11 +629,11 @@ const FocusSessionsHistory = ({
             {/* Session History Dialog */}
             <Dialog open={isHistoryDialogOpen} onOpenChange={setIsHistoryDialogOpen}>
                 <DialogContent className="sm:max-w-[500px] p-0 border-0 bg-transparent max-h-[90vh] overflow-hidden">
-                    <div className="bg-gradient-to-br from-purple-500 to-indigo-600 rounded-xl p-1 shadow-xl">
+                    <div className="bg-gradient-to-br from-indigo-500 to-blue-600 rounded-xl p-1 shadow-xl">
                         <div className="bg-white dark:bg-neutral-900 rounded-lg p-0 overflow-y-auto max-h-[80vh] [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
                             {/* Gradient Header */}
                             <DialogHeader className="p-0">
-                                <div className="bg-gradient-to-r from-purple-500 via-indigo-500 to-purple-500 p-6 text-white">
+                                <div className="bg-gradient-to-r from-indigo-500 via-blue-500 to-indigo-500 p-6 text-white">
                                     <DialogTitle className="text-2xl font-bold mb-1">Focus Session History</DialogTitle>
                                     <p className="opacity-80">Track your progress and review past focus sessions</p>
                                 </div>
@@ -626,30 +682,19 @@ const FocusSessionsHistory = ({
                                     </ScrollArea>
                                 )}
                             </div>
-
-                            {/* Footer */}
-                            <div className="p-4 sm:p-6 border-t dark:border-neutral-800">
-                                <Button
-                                    variant="outline"
-                                    onClick={() => setIsHistoryDialogOpen(false)}
-                                    className="w-full"
-                                >
-                                    Close
-                                </Button>
-                            </div>
                         </div>
                     </div>
                 </DialogContent>
             </Dialog>
 
-            {/* Delete Confirmation Dialog */}
+            {/* Update the Delete Confirmation Dialog */}
             <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
                 <DialogContent className="sm:max-w-[425px] p-0 border-0 bg-transparent max-h-[90vh] overflow-hidden">
-                    <div className="bg-gradient-to-br from-purple-500 to-indigo-600 rounded-xl p-1 shadow-xl">
+                    <div className="bg-gradient-to-br from-indigo-500 to-blue-600 rounded-xl p-1 shadow-xl">
                         <div className="bg-white dark:bg-neutral-900 rounded-lg p-0 overflow-y-auto max-h-[80vh] [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
                             {/* Gradient Header */}
                             <DialogHeader className="p-0">
-                                <div className="bg-gradient-to-r from-purple-500 via-indigo-500 to-purple-500 p-6 text-white">
+                                <div className="bg-gradient-to-r from-indigo-500 via-blue-500 to-indigo-500 p-6 text-white">
                                     <DialogTitle className="text-2xl font-bold mb-1 flex items-center gap-2">
                                         <AlertCircle className="h-5 w-5 text-white/90" />
                                         Confirm Deletion

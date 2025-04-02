@@ -30,31 +30,33 @@ body {
     --popover: 0 0% 100%;
     --popover-foreground: 0 0% 3.9%;
 
-    /* Main Theme Colors - Updated to match your palette */
-    --primary: 221 83% 53%;
-    /* blue-500 #3b82f6 */
+    /* Main Theme Colors - Updated to neutral black/white */
+    --primary: 0 0% 9%;
+    /* neutral-900 #171717 */
     --primary-foreground: 0 0% 98%;
+    /* neutral-50 #fafafa */
     --secondary: 0 0% 96%;
-    /* neutral-100 */
+    /* neutral-100 #f5f5f5 */
     --secondary-foreground: 0 0% 9%;
+    /* neutral-900 #171717 */
     --muted: 0 0% 96%;
-    /* neutral-100 */
+    /* neutral-100 #f5f5f5 */
     --muted-foreground: 0 0% 45%;
-    /* neutral-500 */
-    --accent: 224 76% 48%;
-    /* indigo-600 #4f46e5 */
-    --accent-foreground: 0 0% 98%;
+    /* neutral-500 #737373 */
+    --accent: 0 0% 90%;
+    /* neutral-200 #e5e5e5 */
+    --accent-foreground: 0 0% 9%;
+    /* neutral-900 #171717 */
     --destructive: 0 84% 60%;
-    /* red-500 */
     --destructive-foreground: 0 0% 98%;
 
     /* Border and Input Colors */
     --border: 0 0% 90%;
-    /* neutral-200 */
+    /* neutral-200 #e5e5e5 */
     --input: 0 0% 90%;
-    /* neutral-200 */
-    --ring: 221 83% 53%;
-    /* blue-500 #3b82f6 */
+    /* neutral-200 #e5e5e5 */
+    --ring: 0 0% 32%;
+    /* neutral-600 #525252 */
 
     /* Radius */
     --radius: 1rem;
@@ -82,7 +84,12 @@ body {
     --weko-blue: #1CACE6;
     --weko-gradient: linear-gradient(90deg, var(--weko-green), var(--weko-blue));
 
-    /* Specific Colors You Use Frequently */
+    /* App logo gradient colors - preserved but not used as primary */
+    --app-blue: #3B82F6;
+    --app-indigo: #4338CA;
+    --app-gradient: linear-gradient(90deg, var(--app-blue), var(--app-indigo));
+
+    /* Specific Colors You Use Frequently - kept for specific components */
     --blue-500: 221 83% 53%;
     /* #3b82f6 */
     --blue-600: 221 83% 45%;
@@ -119,38 +126,44 @@ body {
     /* #171717 */
 
     /* Gradient Combinations */
-    --gradient-blue-indigo: linear-gradient(90deg, hsl(221 83% 53%), hsl(239 84% 57%));
-    --gradient-indigo-blue: linear-gradient(90deg, hsl(239 84% 67%), hsl(221 83% 45%));
+    --gradient-blue-indigo: linear-gradient(90deg, #3B82F6, #4338CA);
+    --gradient-indigo-blue: linear-gradient(90deg, #6366F1, #2563EB);
   }
 
   .dark {
     /* Base backgrounds and text */
     --background: 0 0% 9%;
-    /* neutral-900 */
+    /* neutral-900 #171717 */
     --foreground: 0 0% 98%;
+    /* neutral-50 #fafafa */
 
     /* Card & Popover */
     --card: 0 0% 15%;
-    /* neutral-800 */
+    /* neutral-800 #262626 */
     --card-foreground: 0 0% 98%;
+    /* neutral-50 #fafafa */
     --popover: 0 0% 15%;
-    /* neutral-800 */
+    /* neutral-800 #262626 */
     --popover-foreground: 0 0% 98%;
+    /* neutral-50 #fafafa */
 
-    /* Main Theme Colors */
-    --primary: 213 94% 65%;
-    /* blue-400 in dark mode, brighter */
+    /* Main Theme Colors - Updated to neutral black/white */
+    --primary: 0 0% 98%;
+    /* neutral-50 #fafafa */
     --primary-foreground: 0 0% 9%;
+    /* neutral-900 #171717 */
     --secondary: 0 0% 15%;
-    /* neutral-800 */
+    /* neutral-800 #262626 */
     --secondary-foreground: 0 0% 98%;
+    /* neutral-50 #fafafa */
     --muted: 0 0% 15%;
-    /* neutral-800 */
+    /* neutral-800 #262626 */
     --muted-foreground: 0 0% 64%;
-    /* neutral-400 */
-    --accent: 226 100% 71%;
-    /* indigo-400 in dark mode */
+    /* neutral-400 #a3a3a3 */
+    --accent: 0 0% 23%;
+    /* neutral-700 #3a3a3a */
     --accent-foreground: 0 0% 98%;
+    /* neutral-50 #fafafa */
     --destructive: 0 62% 31%;
     --destructive-foreground: 0 0% 98%;
 
@@ -159,8 +172,15 @@ body {
     /* slightly lighter than neutral-800 */
     --input: 0 0% 20%;
     /* slightly lighter than neutral-800 */
-    --ring: 213 94% 65%;
-    /* blue-400 */
+    --ring: 0 0% 83%;
+    /* neutral-300 #d4d4d4 */
+
+    /* App logo gradient colors in dark mode */
+    --app-blue: #60A5FA;
+    /* lighter blue for dark mode */
+    --app-indigo: #818CF8;
+    /* lighter indigo for dark mode */
+    --app-gradient: linear-gradient(90deg, var(--app-blue), var(--app-indigo));
 
     /* Chart colors */
     --chart-1: 220 70% 50%;
@@ -187,8 +207,8 @@ body {
     --indigo-600: 239 84% 57%;
 
     /* Gradient Combinations for Dark Mode */
-    --gradient-blue-indigo: linear-gradient(90deg, hsl(213 94% 65%), hsl(239 84% 57%));
-    --gradient-indigo-blue: linear-gradient(90deg, hsl(239 84% 67%), hsl(213 94% 55%));
+    --gradient-blue-indigo: linear-gradient(90deg, #60A5FA, #818CF8);
+    --gradient-indigo-blue: linear-gradient(90deg, #818CF8, #60A5FA);
   }
 }
 
@@ -242,14 +262,17 @@ body {
   background: var(--gradient-indigo-blue);
 }
 
+.bg-app-gradient {
+  background: var(--app-gradient);
+}
+
 .text-gradient {
   background-clip: text;
   -webkit-background-clip: text;
   color: transparent;
 }
 
-/* Add this file to your global CSS or import it where needed */
-
+/* Animation keyframes and other utility classes remain unchanged */
 @keyframes float {
 
   0%,
@@ -284,7 +307,7 @@ body {
   animation: glow 4s ease-in-out infinite;
 }
 
-/* Improved mobile media queries */
+/* Media queries and other styles remain unchanged */
 @media (max-width: 640px) {
   .footer-container {
     padding: 0 8px;
@@ -310,7 +333,8 @@ body {
 }
 
 .touch-wheel:active {
-  background-color: rgba(59, 130, 246, 0.1);
+  background-color: rgba(0, 0, 0, 0.05);
+  /* Changed from blue to neutral */
 }
 
 /* Disable text selection on time picker */

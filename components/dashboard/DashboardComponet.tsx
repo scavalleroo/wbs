@@ -24,7 +24,7 @@ const DashboardComponet = ({ user }: DashboardComponetProps) => {
                     {/* Focus Sessions Report */}
                     <FocusSessionsHistory
                         user={user}
-                        timeRange={timeRange === 'year' ? 'all' : timeRange}
+                        timeRange={timeRange}
                     />
 
                     {/* Focus Score Report */}

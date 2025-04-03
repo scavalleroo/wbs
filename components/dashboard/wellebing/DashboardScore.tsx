@@ -4,8 +4,7 @@ import { useBlockedSite } from "@/hooks/use-blocked-site";
 import useMood from "@/hooks/use-mood";
 import { User } from "@supabase/supabase-js";
 import {
-    Clock, Download, FileEdit, Heart,
-    ShieldAlert, Timer, Flame, ArrowUpCircle, PencilLine, ShieldBan,
+    Download, FileEdit, Timer, ShieldBan,
     Coffee
 } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -15,7 +14,6 @@ import { FocusSelector } from "@/components/timer/FocusSelector";
 import { Dialog } from "@/components/ui/dialog";
 import { useTimer } from "@/contexts/TimerProvider";
 import { ManageDistractionsDialog } from "./ManageDistractionsDialog";
-import { cn } from "@/lib/utils";
 import MoodTrackingModal from "@/components/moodTracking/MoodTrackingModal";
 
 export const DashboardScore = ({ user, setTimeRange, timeRange }: {
@@ -240,133 +238,69 @@ export const DashboardScore = ({ user, setTimeRange, timeRange }: {
         setFocusDialogOpen(false);
     };
 
+    const getGreeting = () => {
+        const hour = new Date().getHours();
+        if (hour < 12) return "Good morning";
+        if (hour < 18) return "Good afternoon";
+        return "Good evening";
+    };
+
+    const getFirstName = (user: User | null | undefined) => {
+        if (!user) return 'Friend';
+
+        // Try to get the full name from user metadata
+        const fullName = user.user_metadata?.full_name;
+        if (fullName) {
+            // Split by space and take just the first part (first name)
+            return fullName.split(' ')[0];
+        }
+
+        // If no full name, try to use the email
+        if (user.email) {
+            return user.email.split('@')[0];
+        }
+
+        // Fallback
+        return 'Friend';
+    };
+
     return (
         <TooltipProvider>
             <div className="flex flex-col px-3 py-4 md:w-80 w-full items-center bg-gradient-to-b from-indigo-800 to-purple-900 rounded-xl shadow-md gap-3 dark:from-indigo-950 dark:to-purple-950 overflow-hidden">
                 {/* Title with streak - fixed spacing */}
                 <div className="flex items-center justify-between w-full text-white gap-2">
-                    <h2 className="text-lg font-bold truncate">Dashbaord</h2>
-                    {streakCount > 0 && (
-                        <Tooltip>
-                            <TooltipTrigger asChild>
-                                <div className="flex items-center bg-amber-500/20 px-2 py-0.5 rounded-full flex-shrink-0">
-                                    <Flame className="h-3.5 w-3.5 text-amber-400 mr-1" />
-                                    <span className="text-xs font-medium text-amber-300">{streakCount}</span>
-                                </div>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                                <p className="text-xs">{streakCount} day streak of wellness tracking!</p>
-                            </TooltipContent>
-                        </Tooltip>
-                    )}
+                    <h2 className="text-lg font-bold flex flex-wrap items-center">
+                        <span className="mr-1">{getGreeting()},</span>
+                        <span className="truncate max-w-[120px] sm:max-w-full">
+                            {getFirstName(user)}
+                        </span>
+                    </h2>
                 </div>
 
-                {/* Metrics section - changed to 2 columns */}
-                <div className="grid grid-cols-2 gap-2 w-full mb-1">
-                    {/* Focus time today */}
-                    <div className="bg-white/10 backdrop-blur-sm p-2 rounded-lg hover:bg-white/15 transition-all duration-200">
-                        <div className="flex items-center mb-1">
-                            <Clock className="h-3.5 w-3.5 text-blue-200 mr-1.5" />
-                            <p className="text-[10px] text-white/70">Focus Time</p>
-                        </div>
-                        <p className="text-white text-sm font-semibold flex items-center">
-                            {isLoading ? '...' : formatDuration(focusTimeToday)}
-                            {focusTimeToday > 7200 && <ArrowUpCircle className="h-3 w-3 text-green-400 ml-1" />}
-                        </p>
-                        <p className="text-[10px] text-white/50 truncate">
-                            {sessionCountToday} {sessionCountToday === 1 ? 'session' : 'sessions'}
-                        </p>
-                    </div>
-
-                    {/* Wellbeing score */}
-                    <div
-                        className={cn(
-                            "bg-white/10 backdrop-blur-sm p-2 rounded-lg transition-all duration-200",
-                            !hasRecentMoodData && "bg-amber-500/20 hover:bg-amber-500/30",
-                            hasRecentMoodData && "hover:bg-white/15"
-                        )}
-                        onClick={() => !hasRecentMoodData && setMoodDialogOpen(true)}
-                        role={!hasRecentMoodData ? "button" : undefined}
-                    >
-                        <div className="flex items-center mb-1">
-                            <Heart className="h-3.5 w-3.5 text-pink-200 mr-1.5" />
-                            <p className="text-[10px] text-white/70">Wellness</p>
-                        </div>
-                        <p className="text-white text-sm font-semibold flex items-center">
-                            {isLoading ? '...' : (
-                                wellnessScore !== null ?
-                                    <>
-                                        {wellnessScore}/100
-                                        <span className="ml-1">{getWellnessEmoji(wellnessScore)}</span>
-                                    </> :
-                                    'Record now'
-                            )}
-                        </p>
-                    </div>
-
-                    {/* Blocked site attempts - moved to full width */}
-                    <div className="col-span-2 bg-white/10 backdrop-blur-sm p-2 rounded-lg hover:bg-white/15 transition-all duration-200">
-                        <div className="flex items-center justify-between">
-                            <div className="flex items-center">
-                                <ShieldAlert className="h-3.5 w-3.5 text-emerald-200 mr-1.5" />
-                                <p className="text-[10px] text-white/70">Distractions Blocked</p>
-                            </div>
-                            <p className="text-white text-sm font-semibold">
-                                {isLoading ? '...' : (
-                                    blockedStats.attempts > 0 ?
-                                        `${blockedStats.attempts - blockedStats.bypasses}/${blockedStats.attempts}` :
-                                        '0'
-                                )}
-                            </p>
-                        </div>
-                        {blockedStats.bypasses > 0 && (
-                            <p className="text-[10px] text-white/50 text-right">
-                                {blockedStats.bypasses} bypassed
-                            </p>
-                        )}
-                    </div>
-                </div>
-
-                {/* Track wellness button if no recent data */}
-                {!hasRecentMoodData && (
-                    <Button
-                        variant="outline"
-                        onClick={() => setMoodDialogOpen(true)}
-                        className="w-full bg-amber-500/20 border-amber-400/30 text-white hover:bg-amber-500/30 hover:border-amber-400/50 text-xs py-1 h-auto"
-                    >
-                        <PencilLine className="mr-1 h-3 w-3" />
-                        Record today's wellness
-                    </Button>
-                )}
-
-                {/* Extension download for desktop only - simplified */}
-                {isDesktop && (
-                    <Button
-                        variant="outline"
-                        onClick={() => extensionUrl && window.open(extensionUrl, '_blank')}
-                        className="w-full bg-blue-500/20 border-blue-400/30 text-white hover:bg-blue-500/30 hover:border-blue-400/50 text-xs py-1 h-auto"
-                    >
-                        <Download className="mr-1 h-3 w-3" />
-                        <div className="flex flex-col items-start">
-                            <span className="truncate">Get Chrome Extension</span>
-                            <span className="text-[10px] text-white/70">Block distracting websites</span>
-                        </div>
-                    </Button>
-                )}
-
-                {/* Four action buttons - responsive layout */}
+                {/* Four action buttons - with text positioned on the right side */}
                 <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-1 gap-2 w-full">
                     {/* Set intention button */}
                     <Button
                         variant="outline"
                         onClick={() => router.push('/notes')}
-                        className="h-40 sm:h-32 md:h-auto bg-[url('/images/intention-bg.jpg')] bg-cover bg-center md:bg-gradient-to-r md:from-blue-600/40 md:to-indigo-600/40 border-white/20 text-white md:hover:bg-gradient-to-r md:hover:from-blue-600/30 md:hover:to-indigo-600/30 md:hover:border-white/30 p-2 md:py-3 md:px-4 justify-end md:justify-start text-xs overflow-hidden relative"
+                        className="relative h-40 sm:h-32 md:h-auto bg-gradient-to-r from-blue-500 to-indigo-600 border-none text-white hover:from-blue-600 hover:to-indigo-700 p-3 md:p-4 text-start text-xs overflow-hidden"
                     >
-                        <div className="z-10 flex items-center justify-center w-full absolute bottom-2 left-0 md:static md:justify-start">
-                            <div className="hidden md:flex bg-white/20 rounded-full p-2 mr-3">
-                                <FileEdit className="h-5 w-5" />
+                        {/* Decorative circles */}
+                        <div className="absolute top-1/2 right-0 -translate-y-1/2 w-32 h-32 md:w-48 md:h-48 rounded-full bg-white/10 -mr-16 z-0"></div>
+                        <div className="absolute top-1/2 right-0 -translate-y-1/2 w-24 h-24 md:w-36 md:h-36 rounded-full bg-white/10 -mr-12 z-0"></div>
+                        <div className="absolute top-1/2 right-0 -translate-y-1/2 w-16 h-16 md:w-24 md:h-24 rounded-full bg-white/10 -mr-8 z-0"></div>
+
+                        {/* Semi-transparent overlay for better text contrast */}
+                        <div className="absolute inset-0 bg-black/30 z-0"></div>
+
+                        <div className="z-10 flex flex-col h-full text-left w-full">
+                            <div className="flex items-center justify-start gap-1.5 mb-1.5">
+                                <div className="flex bg-white/20 rounded-full p-1.5">
+                                    <FileEdit className="h-4 w-4 sm:h-5 sm:w-5" />
+                                </div>
+                                <span className="font-bold text-base sm:text-lg text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.5)]">Intention</span>
                             </div>
-                            <span className="font-medium text-center md:text-left text-white text-shadow-sm">Intention</span>
+                            <p className="text-xs text-white/80 drop-shadow-[0_1px_2px_rgba(0,0,0,0.5)] text-left">Set your daily goals</p>
                         </div>
                     </Button>
 
@@ -374,13 +308,24 @@ export const DashboardScore = ({ user, setTimeRange, timeRange }: {
                     <Button
                         variant="outline"
                         onClick={() => setFocusDialogOpen(true)}
-                        className="h-40 sm:h-32 md:h-auto bg-[url('/images/focus-bg.jpg')] bg-cover bg-center md:bg-gradient-to-r md:from-indigo-600/40 md:to-purple-600/40 border-white/20 text-white md:hover:bg-gradient-to-r md:hover:from-indigo-600/30 md:hover:to-purple-600/30 md:hover:border-white/30 p-2 md:py-3 md:px-4 justify-end md:justify-start text-xs overflow-hidden relative"
+                        className="relative h-40 sm:h-32 md:h-auto bg-gradient-to-r from-indigo-500 to-purple-600 border-none text-white hover:from-indigo-600 hover:to-purple-700 p-3 md:p-4 text-start text-xs overflow-hidden"
                     >
-                        <div className="z-10 flex items-center justify-center w-full absolute bottom-2 left-0 md:static md:justify-start">
-                            <div className="hidden md:flex bg-white/20 rounded-full p-2 mr-3">
-                                <Timer className="h-5 w-5" />
+                        {/* Decorative circles */}
+                        <div className="absolute top-1/2 right-0 -translate-y-1/2 w-32 h-32 md:w-48 md:h-48 rounded-full bg-white/10 -mr-16 z-0"></div>
+                        <div className="absolute top-1/2 right-0 -translate-y-1/2 w-24 h-24 md:w-36 md:h-36 rounded-full bg-white/10 -mr-12 z-0"></div>
+                        <div className="absolute top-1/2 right-0 -translate-y-1/2 w-16 h-16 md:w-24 md:h-24 rounded-full bg-white/10 -mr-8 z-0"></div>
+
+                        {/* Semi-transparent overlay for better text contrast */}
+                        <div className="absolute inset-0 bg-black/30 z-0"></div>
+
+                        <div className="z-10 flex flex-col h-full text-left w-full">
+                            <div className="flex items-center justify-start gap-1.5 mb-1.5">
+                                <div className="flex bg-white/20 rounded-full p-1.5">
+                                    <Timer className="h-4 w-4 sm:h-5 sm:w-5" />
+                                </div>
+                                <span className="font-bold text-base sm:text-lg text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.5)]">Focus</span>
                             </div>
-                            <span className="font-medium text-center md:text-left text-white text-shadow-sm">Focus</span>
+                            <p className="text-xs text-white/80 drop-shadow-[0_1px_2px_rgba(0,0,0,0.5)] text-left">Start a timed session</p>
                         </div>
                     </Button>
 
@@ -388,13 +333,24 @@ export const DashboardScore = ({ user, setTimeRange, timeRange }: {
                     <Button
                         variant="outline"
                         onClick={() => router.push('/break')}
-                        className="h-40 sm:h-32 md:h-auto bg-[url('/images/relax-bg.jpg')] bg-cover bg-center md:bg-gradient-to-r md:from-teal-600/40 md:to-blue-600/40 border-white/20 text-white md:hover:bg-gradient-to-r md:hover:from-teal-600/30 md:hover:to-blue-600/30 md:hover:border-white/30 p-2 md:py-3 md:px-4 justify-end md:justify-start text-xs overflow-hidden relative"
+                        className="relative h-40 sm:h-32 md:h-auto bg-gradient-to-r from-teal-500 to-blue-600 border-none text-white hover:from-teal-600 hover:to-blue-700 p-3 md:p-4 text-start text-xs overflow-hidden"
                     >
-                        <div className="z-10 flex items-center justify-center w-full absolute bottom-2 left-0 md:static md:justify-start">
-                            <div className="hidden md:flex bg-white/20 rounded-full p-2 mr-3">
-                                <Coffee className="h-5 w-5" />
+                        {/* Decorative circles */}
+                        <div className="absolute top-1/2 right-0 -translate-y-1/2 w-32 h-32 md:w-48 md:h-48 rounded-full bg-white/10 -mr-16 z-0"></div>
+                        <div className="absolute top-1/2 right-0 -translate-y-1/2 w-24 h-24 md:w-36 md:h-36 rounded-full bg-white/10 -mr-12 z-0"></div>
+                        <div className="absolute top-1/2 right-0 -translate-y-1/2 w-16 h-16 md:w-24 md:h-24 rounded-full bg-white/10 -mr-8 z-0"></div>
+
+                        {/* Semi-transparent overlay for better text contrast */}
+                        <div className="absolute inset-0 bg-black/30 z-0"></div>
+
+                        <div className="z-10 flex flex-col h-full text-left w-full">
+                            <div className="flex items-center justify-start gap-1.5 mb-1.5">
+                                <div className="flex bg-white/20 rounded-full p-1.5">
+                                    <Coffee className="h-4 w-4 sm:h-5 sm:w-5" />
+                                </div>
+                                <span className="font-bold text-base sm:text-lg text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.5)]">Relax</span>
                             </div>
-                            <span className="font-medium text-center md:text-left text-white text-shadow-sm">Relax</span>
+                            <p className="text-xs text-white/80 drop-shadow-[0_1px_2px_rgba(0,0,0,0.5)] text-left">Take a guided break</p>
                         </div>
                     </Button>
 
@@ -402,21 +358,65 @@ export const DashboardScore = ({ user, setTimeRange, timeRange }: {
                     <Button
                         variant="outline"
                         onClick={() => setDistDialogOpen(true)}
-                        className="h-40 sm:h-32 md:h-auto bg-[url('/images/distractions-bg.jpg')] bg-cover bg-center md:bg-gradient-to-r md:from-purple-600/40 md:to-pink-600/40 border-white/20 text-white md:hover:bg-gradient-to-r md:hover:from-purple-600/30 md:hover:to-pink-600/30 md:hover:border-white/30 p-2 md:py-3 md:px-4 justify-end md:justify-start text-xs overflow-hidden relative"
+                        className="relative h-40 sm:h-32 md:h-auto bg-gradient-to-r from-purple-500 to-pink-600 border-none text-white hover:from-purple-600 hover:to-pink-700 p-3 md:p-4 text-start text-xs overflow-hidden"
                     >
-                        <div className="z-10 flex items-center justify-center w-full absolute bottom-2 left-0 md:static md:justify-start">
-                            <div className="hidden md:flex bg-white/20 rounded-full p-2 mr-3">
-                                <ShieldBan className="h-5 w-5" />
+                        {/* Decorative circles */}
+                        <div className="absolute top-1/2 right-0 -translate-y-1/2 w-32 h-32 md:w-48 md:h-48 rounded-full bg-white/10 -mr-16 z-0"></div>
+                        <div className="absolute top-1/2 right-0 -translate-y-1/2 w-24 h-24 md:w-36 md:h-36 rounded-full bg-white/10 -mr-12 z-0"></div>
+                        <div className="absolute top-1/2 right-0 -translate-y-1/2 w-16 h-16 md:w-24 md:h-24 rounded-full bg-white/10 -mr-8 z-0"></div>
+
+                        {/* Semi-transparent overlay for better text contrast */}
+                        <div className="absolute inset-0 bg-black/30 z-0"></div>
+
+                        <div className="z-10 flex flex-col h-full text-left w-full">
+                            <div className="flex items-center justify-start gap-1.5 mb-1.5">
+                                <div className="flex bg-white/20 rounded-full p-1.5">
+                                    <ShieldBan className="h-4 w-4 sm:h-5 sm:w-5" />
+                                </div>
+                                <span className="font-bold text-base sm:text-lg text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.5)]">Block</span>
                             </div>
-                            <span className="font-medium text-center md:text-left text-white text-shadow-sm">Block</span>
+                            <p className="text-xs text-white/80 drop-shadow-[0_1px_2px_rgba(0,0,0,0.5)] text-left">Manage distractions</p>
                         </div>
                     </Button>
                 </div>
 
-                {/* Leave the dialogs unchanged */}
-                <Dialog open={focusDialogOpen} onOpenChange={setFocusDialogOpen}>
-                    <FocusSelector onStart={handleStartFocus} />
-                </Dialog>
+                {/* Extension download for desktop only - improved styling */}
+                {isDesktop && (
+                    <>
+                        {/* Separator before extension button */}
+                        <div className="w-full h-px bg-white/20 my-2"></div>
+                        <Button
+                            variant="outline"
+                            onClick={() => extensionUrl && window.open(extensionUrl, '_blank')}
+                            className="relative w-full md:h-auto bg-gradient-to-r from-blue-500/80 to-blue-600/80 border-none text-white hover:from-blue-600/90 hover:to-blue-700/90 p-3 md:p-4 text-start text-xs overflow-hidden"
+                        >
+                            {/* Decorative circles */}
+                            <div className="absolute top-1/2 right-0 -translate-y-1/2 w-32 h-32 md:w-48 md:h-48 rounded-full bg-white/10 -mr-16 z-0"></div>
+                            <div className="absolute top-1/2 right-0 -translate-y-1/2 w-24 h-24 md:w-36 md:h-36 rounded-full bg-white/10 -mr-12 z-0"></div>
+                            <div className="absolute top-1/2 right-0 -translate-y-1/2 w-16 h-16 md:w-24 md:h-24 rounded-full bg-white/10 -mr-8 z-0"></div>
+
+                            {/* Semi-transparent overlay for better text contrast */}
+                            <div className="absolute inset-0 bg-black/30 z-0"></div>
+
+                            <div className="z-10 flex flex-col h-full text-left w-full">
+                                <div className="flex items-center justify-start gap-1.5 mb-1.5">
+                                    <div className="flex bg-white/20 rounded-full p-1.5">
+                                        <Download className="h-4 w-4 sm:h-5 sm:w-5" />
+                                    </div>
+                                    <span className="font-bold text-base sm:text-lg text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.5)]">Chrome Extension</span>
+                                </div>
+                                <p className="text-xs text-white/80 drop-shadow-[0_1px_2px_rgba(0,0,0,0.5)] text-left">Block distracting websites</p>
+                            </div>
+                        </Button>
+                    </>
+                )}
+
+                {focusDialogOpen && (
+                    <FocusSelector
+                        onStart={handleStartFocus}
+                        onClose={() => setFocusDialogOpen(false)}
+                    />
+                )}
 
                 <ManageDistractionsDialog
                     user={user}

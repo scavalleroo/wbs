@@ -202,10 +202,12 @@ export function NavbarItems({ className }: NavbarItemsProps) {
                 ))}
             </nav>
 
-            {/* Focus Dialog */}
-            <Dialog open={focusDialogOpen} onOpenChange={setFocusDialogOpen}>
-                <FocusSelector onStart={handleStartFocus} />
-            </Dialog>
+            {focusDialogOpen && (
+                <FocusSelector
+                    onStart={handleStartFocus}
+                    onClose={() => setFocusDialogOpen(false)}
+                />
+            )}
         </>
     )
 }

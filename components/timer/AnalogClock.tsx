@@ -1,20 +1,23 @@
 interface AnalogClockProps {
-    timeRemaining: number; // In flow mode, this is time elapsed
+    timeRemaining: number; // In flow mode, this is time elapsed or current time in seconds
     totalTime: number;
     flowMode?: boolean;
+    isCurrentTime?: boolean;
 }
 
-export function AnalogClock({ timeRemaining, totalTime, flowMode = false }: AnalogClockProps) {
+export function AnalogClock({ timeRemaining, totalTime, flowMode = false, isCurrentTime = false }: AnalogClockProps) {
     const size = 300;
     const center = size / 2;
     const radius = size * 0.4;
     const strokeWidth = 6;
 
-    // Convert seconds to hour and minute for clock hands
+    // For current time display, we need hours too (for 12-hour format)
+    const hours = Math.floor(timeRemaining / 3600) % 12 || 12; // Convert 0 to 12
     const minutes = Math.floor(timeRemaining / 60) % 60;
     const seconds = timeRemaining % 60;
 
-    // Calculate hand angles
+    // Calculate hand angles - for current time, use standard clock direction
+    const hourAngle = (hours + minutes / 60) * 30; // 30 degrees per hour, plus adjustment for minutes
     const minuteAngle = (minutes / 60) * 360;
     const secondAngle = (seconds / 60) * 360;
 
@@ -67,6 +70,19 @@ export function AnalogClock({ timeRemaining, totalTime, flowMode = false }: Anal
                     </linearGradient>
                 </defs>
 
+                {/* Hour hand - only show when displaying current time */}
+                {isCurrentTime && (
+                    <line
+                        x1={center}
+                        y1={center}
+                        x2={center + radius * 0.5 * Math.sin(hourAngle * (Math.PI / 180))}
+                        y2={center - radius * 0.5 * Math.cos(hourAngle * (Math.PI / 180))}
+                        stroke="#1E40AF" // Darker blue for hour hand
+                        strokeWidth={5}
+                        strokeLinecap="round"
+                    />
+                )}
+
                 {/* Minute hand */}
                 <line
                     x1={center}
@@ -106,7 +122,7 @@ export function AnalogClock({ timeRemaining, totalTime, flowMode = false }: Anal
                     className="uppercase font-medium"
                     fill="#4F46E5"
                 >
-                    {flowMode ? "Time Elapsed" : "Time Remaining"}
+                    {isCurrentTime ? "Current Time" : (flowMode ? "Time Elapsed" : "Time Remaining")}
                 </text>
             </svg>
         </div>

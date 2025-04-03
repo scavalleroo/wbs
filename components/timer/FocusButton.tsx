@@ -2,9 +2,7 @@
 
 import { PlayCircle } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
-import { Dialog, DialogContent } from '../ui/dialog';
 import { FocusSelector } from './FocusSelector';
-import { DialogTitle } from '@radix-ui/react-dialog';
 import { useTimer } from '@/contexts/TimerProvider';
 import { useActiveSessions } from '@/hooks/use-active-session';
 import { useTimerUI } from '@/contexts/TimerUIProvider';
@@ -38,7 +36,7 @@ export function FocusButton() {
         volume: number;
         flowMode?: boolean;
     }) => {
-        // First close the selector dialog and mark that we want to show fullscreen
+        // First close the selector and mark that we want to show fullscreen
         pendingFullscreen.current = true;
         setShowFocusSelector(false);
 
@@ -57,13 +55,13 @@ export function FocusButton() {
         });
     };
 
-    // This listens for the dialog to finish closing
+    // This listens for the selector to be closed
     useEffect(() => {
         if (!showFocusSelector && pendingFullscreen.current) {
             // Clear the pending flag
             pendingFullscreen.current = false;
 
-            // Important: Delay showing fullscreen until after dialog animation
+            // Show fullscreen after a short delay
             setTimeout(() => {
                 setShowFullScreenTimer(true);
             }, 100);
@@ -72,11 +70,18 @@ export function FocusButton() {
 
     // Ensure sound state is synced with UI
     useEffect(() => {
-        // If sound was set after dialog close but fullscreen isn't showing
+        // If sound was set after selector close but fullscreen isn't showing
         if (sound !== 'none' && !showFullScreenTimer && !showFocusSelector && !pendingFullscreen.current) {
             setShowFullScreenTimer(true);
         }
     }, [sound, showFullScreenTimer, showFocusSelector, setShowFullScreenTimer]);
+
+    // Handle the close action from the fullscreen selector
+    const handleSelectorClose = () => {
+        if (!pendingFullscreen.current) {
+            setShowFocusSelector(false);
+        }
+    };
 
     return (
         <>
@@ -93,20 +98,13 @@ export function FocusButton() {
                 </div>
             </div>
 
-            {/* Focus selector dialog */}
-            <Dialog
-                open={showFocusSelector}
-                onOpenChange={(open) => {
-                    // Only allow user to close dialog if we're not in transition
-                    if (!open && !pendingFullscreen.current) {
-                        setShowFocusSelector(false);
-                    } else if (open) {
-                        setShowFocusSelector(true);
-                    }
-                }}
-            >
-                <FocusSelector onStart={startFocusSession} />
-            </Dialog>
+            {/* Fullscreen Focus Selector */}
+            {showFocusSelector && (
+                <FocusSelector
+                    onStart={startFocusSession}
+                    onClose={handleSelectorClose}
+                />
+            )}
         </>
     );
 }

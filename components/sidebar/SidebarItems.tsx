@@ -161,10 +161,12 @@ export function SidebarItems({ className }: SidebarItemsProps) {
                 ))}
             </nav>
 
-            {/* Focus Dialog */}
-            <Dialog open={focusDialogOpen} onOpenChange={setFocusDialogOpen}>
-                <FocusSelector onStart={handleStartFocus} />
-            </Dialog>
+            {focusDialogOpen && (
+                <FocusSelector
+                    onStart={handleStartFocus}
+                    onClose={() => setFocusDialogOpen(false)}
+                />
+            )}
         </>
     )
 }

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { CircularProgressbar, buildStyles } from 'react-circular-progressbar';
-import { Calendar, Edit, ShieldBan } from 'lucide-react';
+import { Calendar, Edit, ShieldBan, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import {
@@ -11,7 +11,7 @@ import {
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useBlockedSite } from '@/hooks/use-blocked-site';
 import { DistractionDay, DistractionsCardProps } from '@/types/report.types';
-import { TooltipBarChart, TooltipStackedBar } from './TooltipBarChart';
+import { TooltipStackedBar } from './TooltipBarChart';
 
 export function DistractionsCard({
     todayProgress,
@@ -24,6 +24,12 @@ export function DistractionsCard({
     const [calendarData, setCalendarData] = useState<Map<string, DistractionDay>>(new Map());
     const [calendarLoading, setCalendarLoading] = useState(true);
     const { getDistractionCalendarData } = useBlockedSite({ user });
+    const extensionId = process.env.NEXT_PUBLIC_CHROME_EXTENSION_ID;
+
+    // Handle extension download
+    const handleDownloadExtension = () => {
+        window.open(`https://chrome.google.com/webstore/detail/${extensionId}`, '_blank');
+    };
 
     // Calculate remaining minutes (like a fuel gauge)
     const getRemainingMinutes = () => {
@@ -141,19 +147,10 @@ export function DistractionsCard({
 
         return (
             <div>
-                <div className="font-medium">{format(dayInfo.date, 'MMM d')}:</div>
-                <div>Distraction time: {formatMinutesToHoursMinutes(minutes)}</div>
-                <div>Site visits: {attemptCount} (bypassed: {bypassCount})</div>
+                <div className="font-medium">{format(dayInfo.date, 'MMMM d')}</div>
 
                 {limitMinutes > 0 && (
                     <>
-                        <div className="mt-2 mb-1 font-medium">Time usage:</div>
-                        <TooltipBarChart
-                            value={minutes}
-                            limit={limitMinutes}
-                            formatFn={formatMinutesToHoursMinutes}
-                        />
-
                         {siteDetailsForChart.length > 0 && (
                             <TooltipStackedBar
                                 items={siteDetailsForChart}
@@ -210,96 +207,10 @@ export function DistractionsCard({
             <div className="absolute inset-0 bg-black/30 z-0"></div>
 
             <div className="relative z-10">
-                <div className="flex flex-col-reverse md:flex-row gap-4">
-                    {/* Left Column (Calendar on desktop) */}
-                    <div className="md:w-1/2 bg-white/10 rounded-lg p-3 min-h-[220px] flex flex-col order-2 md:order-1">
-                        <div className="flex justify-between items-center mb-2">
-                            <h3 className="text-sm text-white font-medium flex items-center">
-                                <Calendar className="h-4 w-4 mr-1" />
-                                Last 28 Days Activity
-                            </h3>
-                        </div>
-
-                        {/* Rest of the calendar code remains the same */}
-                        {calendarLoading ? (
-                            <div className="flex-1 flex items-center justify-center">
-                                <div className="text-white/70 text-xs">Loading calendar...</div>
-                            </div>
-                        ) : (
-                            <div className="flex-1 flex flex-col justify-between">
-                                {/* Weekday headers with 3-letter format */}
-                                <div className="grid grid-cols-7 gap-1 mb-1">
-                                    {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day, i) => (
-                                        <div key={i} className="text-center text-[13px] text-white font-medium">
-                                            {day}
-                                        </div>
-                                    ))}
-                                </div>
-
-                                {/* Calendar grid - 7 cols × 4 rows with squares and tooltips */}
-                                <TooltipProvider delayDuration={0}>
-                                    <div className="grid grid-cols-7 grid-rows-4 gap-1 mb-2">
-                                        {generateCalendarDays().map((dayInfo, i) => (
-                                            <Tooltip key={i}>
-                                                <TooltipTrigger asChild>
-                                                    <div className="flex items-center justify-center">
-                                                        <div
-                                                            className={cn(
-                                                                "w-7 h-7",
-                                                                getDistractionColorClass(dayInfo.dayData)
-                                                            )}
-                                                            style={{
-                                                                opacity: dayInfo.dayData?.attemptCount || isSameDay(dayInfo.date, new Date()) ? 1 : 0.2,
-                                                                borderRadius: '3px',
-                                                                position: 'relative'
-                                                            }}
-                                                        >
-                                                            {isSameDay(dayInfo.date, new Date()) && (
-                                                                <div className="absolute inset-0 border border-white rounded-sm"></div>
-                                                            )}
-                                                        </div>
-                                                    </div>
-                                                </TooltipTrigger>
-                                                <TooltipContent
-                                                    side="top"
-                                                    className="bg-black/80 text-white text-xs p-2 max-w-xs"
-                                                >
-                                                    {formatTooltipContent(dayInfo)}
-                                                </TooltipContent>
-                                            </Tooltip>
-                                        ))}
-                                    </div>
-                                </TooltipProvider>
-
-                                <div className="mt-auto">
-                                    {/* Update day labels to show first Monday and last Sunday */}
-                                    <div className="flex justify-between items-center text-[13px] text-white mb-1">
-                                        <div>{format(generateCalendarDays()[0].date, 'MMM d')}</div>
-                                        <div>{format(generateCalendarDays()[27].date, 'MMM d')}</div>
-                                    </div>
-
-                                    {/* Legend with colors explanation */}
-                                    <div className="flex justify-between text-[13px] text-white">
-                                        <div className="flex items-center gap-1">
-                                            <div className="w-4 h-4 bg-gray-200 dark:bg-gray-700 rounded-sm"></div>
-                                            <span>No data</span>
-                                        </div>
-                                        <div className="flex items-center gap-1">
-                                            <div className="w-4 h-4 bg-green-500 rounded-sm"></div>
-                                            <span>Under limit</span>
-                                        </div>
-                                        <div className="flex items-center gap-1">
-                                            <div className="w-4 h-4 bg-red-500 rounded-sm"></div>
-                                            <span>Over limit</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        )}
-                    </div>
-
-                    {/* Right Column (Progress on desktop) */}
-                    <div className="md:w-1/2 flex flex-col order-1 md:order-2">
+                <div className="flex flex-col md:flex-row gap-4">
+                    {/* MOBILE: Progress Circle will be first (top) */}
+                    {/* DESKTOP: Calendar will be first (left) */}
+                    <div className="md:order-2 md:w-1/2 flex flex-col">
                         <h2 className="text-xl text-white font-bold mb-4 flex items-center">
                             <ShieldBan className="mr-2 h-5 w-5" />
                             Distractions Limit
@@ -352,25 +263,117 @@ export function DistractionsCard({
                                             <span className="text-white/70 font-normal ml-1 mr-1">/</span>
                                             {formatMinutesToHoursMinutes(todayProgress.distractionGoalMinutes)}
                                         </span>
-                                        <Button
-                                            onClick={onManageDistractionsClick}
-                                            variant="ghost"
-                                            className="text-white hover:bg-white/10 h-6 px-1 ml-1"
-                                            size="sm"
-                                        >
-                                            <Edit className="h-3 w-3" />
-                                        </Button>
                                     </div>
                                 </div>
 
-                                <Button
-                                    onClick={onManageDistractionsClick}
-                                    variant="outline"
-                                    size="default"
-                                    className="h-9 px-5 bg-white/10 hover:bg-white/20 text-white border-white/30 hover:text-white hover:border-white/50 font-medium transition-all"
-                                >
-                                    {blockedSitesCount > 0 ? 'Manage Blocked Sites' : 'Block Distractions'}
-                                </Button>
+                                <div className="flex flex-col sm:flex-row gap-2 w-full justify-center">
+                                    <Button
+                                        onClick={onManageDistractionsClick}
+                                        variant="outline"
+                                        size="default"
+                                        className="h-9 px-5 bg-white/10 hover:bg-white/20 text-white border-white/30 hover:text-white hover:border-white/50 font-medium transition-all"
+                                    >
+                                        {blockedSitesCount > 0 ? 'Manage Blocked Sites' : 'Block Distractions'}
+                                    </Button>
+
+                                    <Button
+                                        onClick={handleDownloadExtension}
+                                        variant="outline"
+                                        size="default"
+                                        className="h-9 px-5 bg-white/10 hover:bg-white/20 text-white border-white/30 hover:text-white hover:border-white/50 font-medium transition-all"
+                                    >
+                                        <Download className="h-4 w-4 mr-1" />
+                                        Download Extension
+                                    </Button>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* MOBILE: Calendar will be second (bottom) */}
+                    {/* DESKTOP: Calendar will be first (left) */}
+                    <div className="md:order-1 md:w-1/2 bg-white/10 rounded-lg p-3 min-h-[220px] flex flex-col mt-4 md:mt-0">
+                        <div className="flex justify-between items-center mb-2">
+                            <h3 className="text-sm text-white font-medium flex items-center">
+                                <Calendar className="h-4 w-4 mr-1" />
+                                Last 28 Days
+                            </h3>
+                        </div>
+
+                        {/* Rest of the calendar code remains the same */}
+                        {calendarLoading ? (
+                            <div className="flex-1 flex items-center justify-center">
+                                <div className="text-white/70 text-xs">Loading calendar...</div>
+                            </div>
+                        ) : (
+                            <div className="flex-1 flex flex-col justify-between">
+                                {/* Weekday headers with 3-letter format */}
+                                <div className="grid grid-cols-7 gap-1 mb-1">
+                                    {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day, i) => (
+                                        <div key={i} className="text-center text-[13px] text-white font-medium">
+                                            {day}
+                                        </div>
+                                    ))}
+                                </div>
+
+                                {/* Calendar grid - 7 cols × 4 rows with squares and tooltips */}
+                                <TooltipProvider delayDuration={0}>
+                                    <div className="grid grid-cols-7 grid-rows-4 gap-1 mb-2">
+                                        {generateCalendarDays().map((dayInfo, i) => (
+                                            <Tooltip key={i}>
+                                                <TooltipTrigger asChild>
+                                                    <div className="flex items-center justify-center">
+                                                        <div
+                                                            className={cn(
+                                                                "w-7 h-7",
+                                                                getDistractionColorClass(dayInfo.dayData)
+                                                            )}
+                                                            style={{
+                                                                opacity: dayInfo.dayData?.attemptCount || isSameDay(dayInfo.date, new Date()) ? 1 : 0.2,
+                                                                borderRadius: '3px',
+                                                                position: 'relative'
+                                                            }}
+                                                        >
+                                                            {isSameDay(dayInfo.date, new Date()) && (
+                                                                <div className="absolute inset-0 border border-white" style={{ borderRadius: '3px', borderWidth: '2px' }}></div>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                </TooltipTrigger>
+                                                <TooltipContent
+                                                    side="top"
+                                                    className="bg-black/80 text-white text-xs p-2 max-w-xs"
+                                                >
+                                                    {formatTooltipContent(dayInfo)}
+                                                </TooltipContent>
+                                            </Tooltip>
+                                        ))}
+                                    </div>
+                                </TooltipProvider>
+
+                                <div className="mt-auto">
+                                    {/* Update day labels to show first Monday and last Sunday */}
+                                    <div className="flex justify-between items-center text-[13px] text-white mb-1">
+                                        <div>{format(generateCalendarDays()[0].date, 'MMM d')}</div>
+                                        <div>{format(generateCalendarDays()[27].date, 'MMM d')}</div>
+                                    </div>
+
+                                    {/* Legend with colors explanation */}
+                                    <div className="flex justify-between text-[13px] text-white">
+                                        <div className="flex items-center gap-1">
+                                            <div className="w-4 h-4 bg-gray-200 dark:bg-gray-700 rounded-sm"></div>
+                                            <span>No data</span>
+                                        </div>
+                                        <div className="flex items-center gap-1">
+                                            <div className="w-4 h-4 bg-green-500 rounded-sm"></div>
+                                            <span>Under limit</span>
+                                        </div>
+                                        <div className="flex items-center gap-1">
+                                            <div className="w-4 h-4 bg-red-500 rounded-sm"></div>
+                                            <span>Over limit</span>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         )}
                     </div>
@@ -378,6 +381,6 @@ export function DistractionsCard({
             </div>
         </div>
     );
-}
+};
 
 export default DistractionsCard;

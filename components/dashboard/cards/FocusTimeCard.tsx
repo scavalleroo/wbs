@@ -415,7 +415,7 @@ export function FocusTimeCard({
                                                             }}
                                                         >
                                                             {isSameDay(dayInfo.date, new Date()) && (
-                                                                <div className="absolute inset-0 border border-white rounded-sm"></div>
+                                                                <div className="absolute inset-0 border border-white" style={{ borderRadius: '3px', borderWidth: '2px' }}></div>
                                                             )}
                                                         </div>
                                                     </div>

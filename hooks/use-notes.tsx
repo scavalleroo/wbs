@@ -80,8 +80,6 @@ export function useNotes({ user }: UserIdParam) {
             setLoading(true);
             const formattedDate = formatDate(date);
 
-            console.log(`Fetching notes for date: ${formattedDate} and user: ${user.id}`);
-
             // Try to fetch the existing note for this date
             const { data, error } = await supabase
                 .from('user_daily_notes')
@@ -90,8 +88,6 @@ export function useNotes({ user }: UserIdParam) {
                 .eq('date', formattedDate)
                 .maybeSingle();
 
-            console.log("Fetch result:", { data, error });
-
             if (error) {
                 console.error("Error fetching note:", error);
                 throw error;
@@ -99,14 +95,10 @@ export function useNotes({ user }: UserIdParam) {
 
             // If data exists, return it
             if (data) {
-                console.log("Found existing note, setting state", data);
                 setDailyNote(data as DailyNote);
                 previousContentRef.current = JSON.parse(JSON.stringify(data.content));
                 return data.content;
             } else {
-                // No existing note, create a new one with the template
-                console.log("Creating new note with template");
-
                 // Create a deep clone of the dailyNewNote to avoid reference issues
                 const noteTemplate = JSON.parse(JSON.stringify(dailyNewNote));
 
@@ -126,7 +118,6 @@ export function useNotes({ user }: UserIdParam) {
                     throw insertError;
                 }
 
-                console.log("New note created successfully:", newNote);
                 setDailyNote(newNote as DailyNote);
                 previousContentRef.current = noteTemplate;
                 return noteTemplate;

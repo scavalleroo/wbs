@@ -25,6 +25,31 @@ export interface BlockedSite {
   [key: string]: any;
 }
 
+export type DistractionDay = {
+  date: Date;
+  minutes: number;
+  attemptCount: number;
+  bypassCount: number;
+  limitMinutes: number | null;
+  limitRespected: boolean;
+  siteDetails?: {
+      domain: string;
+      attempts: number;
+      timeSpent: number;
+  }[];
+}
+
+export interface DistractionsCardProps {
+    isLoading: boolean;
+    todayProgress: any;
+    blockedSitesCount: number;
+    blockedSitesWithTime: any[];
+    onManageDistractionsClick: () => void;
+    formatMinutesToHoursMinutes: (minutes: number) => string;
+    className?: string;
+    user: any;
+}
+
 export interface BlockedSiteAttempt {
   id: number;
   created_at: string;

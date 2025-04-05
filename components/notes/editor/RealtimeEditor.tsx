@@ -128,8 +128,6 @@ export const RealtimeEditor: React.FC<RealtimeEditorProps> = ({
           })
           .eq('id', rowId);
 
-        console.log(`Updated ${tableName} with ID ${rowId}:`, debouncedContent);
-
         if (error) {
           console.error(`Error updating ${tableName}:`, error);
         } else {

@@ -60,7 +60,6 @@ export const NotesPageComponent: React.FC<NotesPageComponentProps> = ({
   // When dailyNote changes, update contentEditor
   useEffect(() => {
     if (dailyNote) {
-      console.log("Daily note updated:", dailyNote);
       setContentEditor(dailyNote.content as JSONContent);
     }
   }, [dailyNote]);

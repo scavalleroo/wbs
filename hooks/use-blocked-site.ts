@@ -684,88 +684,118 @@ const getDistractionCalendarData = useCallback(async () => {
       .gte('created_at', `${startDateStr}T00:00:00`)
       .lte('created_at', `${endDateStr}T23:59:59`);
 
-    if (error) throw error;
+    if (error) {
+      console.error('Supabase query error:', error);
+      throw error;
+    }
 
-    // Get daily distraction limits from user settings or default
-    const allowedTime = await getTotalAllowedDistractionTime();
-
-    // Create a map to store data by date
+    // Initialize a Map with empty entries for all days
     const daysMap = new Map();
+    const dayRange = eachDayOfInterval({
+      start: startDate,
+      end: today
+    });
+    
+    // Get allowed time limit
+    const allowedTime = await getTotalAllowedDistractionTime();
+    
+    // Create initial empty entries for all days
+    dayRange.forEach(date => {
+      const dateStr = format(date, 'yyyy-MM-dd');
+      daysMap.set(dateStr, {
+        date,
+        minutes: 0,
+        attemptCount: 0,
+        bypassCount: 0,
+        limitMinutes: allowedTime,
+        limitRespected: true,
+        siteDetails: [] // Add site details array
+      });
+    });
 
-    // Group attempts by day
+    // Process attempts if we have any
     if (attempts && attempts.length > 0) {
-      // Debug logging to check if we're getting data
-      console.log(`Found ${attempts.length} blocked site attempts`);
       
-      const attemptsByDay: any = {};
-
-      // Initialize days
-      const dayRange = eachDayOfInterval({
-        start: startDate,
-        end: today
-      });
-
-      dayRange.forEach(date => {
-        const dateStr = format(date, 'yyyy-MM-dd');
-        attemptsByDay[dateStr] = {
-          totalMinutes: 0,
-          attempts: 0,
-          bypasses: 0
-        };
-      });
-
-      // Process each attempt
+      // Group attempts by date and domain
+      const attemptsByDate: any = {};
+      
       attempts.forEach((attempt) => {
         const date = new Date(attempt.created_at);
         const dateStr = format(date, 'yyyy-MM-dd');
-
-        if (!attemptsByDay[dateStr]) {
-          attemptsByDay[dateStr] = {
-            totalMinutes: 0,
+        const domain = attempt.domain;
+        
+        if (!attemptsByDate[dateStr]) {
+          attemptsByDate[dateStr] = {};
+        }
+        
+        if (!attemptsByDate[dateStr][domain]) {
+          attemptsByDate[dateStr][domain] = {
             attempts: 0,
-            bypasses: 0
+            timeSpent: 0
           };
         }
-
-        // Count all attempts
-        attemptsByDay[dateStr].attempts++;
-
-        // Count bypasses and add duration
+        
+        // Count attempt
+        attemptsByDate[dateStr][domain].attempts++;
+        
+        // Add time if bypassed
         if (attempt.bypassed) {
-          attemptsByDay[dateStr].bypasses++;
-
-          // Add duration if available, otherwise estimate
           if (attempt.duration_seconds) {
-            attemptsByDay[dateStr].totalMinutes += attempt.duration_seconds / 60;
+            attemptsByDate[dateStr][domain].timeSpent += Math.round(attempt.duration_seconds / 60);
           } else {
-            // Estimate 5 minutes per bypass if duration not tracked
-            attemptsByDay[dateStr].totalMinutes += 5;
+            // Estimate time if not recorded
+            attemptsByDate[dateStr][domain].timeSpent += 5;
           }
         }
       });
-
-      // Create DistractionDay objects for the map
-      Object.entries(attemptsByDay).forEach(([dateStr, data]: any) => {
-        const date = new Date(dateStr);
-        const minutes = Math.round(data.totalMinutes);
-        const limitRespected = minutes <= allowedTime;
-
-        daysMap.set(dateStr, {
-          date,
-          minutes,
-          attemptCount: data.attempts,
-          bypassCount: data.bypasses,
-          limitMinutes: allowedTime,
-          limitRespected
+      
+      // Process each day and update our map
+      Object.keys(attemptsByDate).forEach(dateStr => {
+        const dayData = daysMap.get(dateStr);
+        if (!dayData) return;
+        
+        const domains = Object.keys(attemptsByDate[dateStr]);
+        const siteDetails = domains.map(domain => ({
+          domain,
+          attempts: attemptsByDate[dateStr][domain].attempts,
+          timeSpent: attemptsByDate[dateStr][domain].timeSpent
+        }));
+        
+        // Update aggregate data
+        let totalMinutes = 0;
+        let totalAttempts = 0;
+        let totalBypasses = 0;
+        
+        siteDetails.forEach(site => {
+          totalMinutes += site.timeSpent;
+          totalAttempts += site.attempts;
+          // We don't have direct bypass data here, but we can estimate
+          // that sites with time spent had bypasses
+          if (site.timeSpent > 0) {
+            totalBypasses++;
+          }
         });
+        
+        // Update day data
+        dayData.minutes = totalMinutes;
+        dayData.attemptCount = totalAttempts;
+        dayData.bypassCount = totalBypasses;
+        dayData.limitRespected = totalMinutes <= dayData.limitMinutes;
+        dayData.siteDetails = siteDetails;
+        
+        daysMap.set(dateStr, dayData);
       });
-    } else {
-      console.log("No blocked site attempts found in database");
+      
+      // Log some sample data for debugging
+      const sampleDays = Array.from(daysMap.entries())
+        .filter(([_, data]) => data.attemptCount > 0)
+        .slice(0, 3);
     }
 
     return daysMap;
   } catch (err) {
-    console.error('Error fetching distraction calendar data:', err);
+    console.error('Error in getDistractionCalendarData:', err);
+    // Return empty map but don't silently fail
     return new Map();
   }
 }, [user, supabase, getTotalAllowedDistractionTime]);

@@ -313,7 +313,7 @@ const DashboardComponet = ({ user }: DashboardComponetProps) => {
                     onResumeFocusClick={() => setShowFullScreenTimer(true)}
                     getTimerStatusText={getTimerStatusText}
                     formatMinutesToHoursMinutes={formatMinutesToHoursMinutes}
-                    user={user} // Add this line
+                    user={user}
                 />
 
                 {/* Distractions Card - Second Row */}
@@ -324,6 +324,7 @@ const DashboardComponet = ({ user }: DashboardComponetProps) => {
                     blockedSitesWithTime={blockedSitesWithTime}
                     onManageDistractionsClick={() => setDistDialogOpen(true)}
                     formatMinutesToHoursMinutes={formatMinutesToHoursMinutes}
+                    user={user}
                 />
 
                 {/* Wellbeing Card - Third Row */}

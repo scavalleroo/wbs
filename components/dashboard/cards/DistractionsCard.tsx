@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { CircularProgressbar, buildStyles } from 'react-circular-progressbar';
-import { ShieldBan, Calendar, Edit } from 'lucide-react';
+import { Calendar, Edit, ShieldBan } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import {
@@ -10,26 +10,8 @@ import {
 } from 'date-fns';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useBlockedSite } from '@/hooks/use-blocked-site';
-
-interface DistractionsCardProps {
-    isLoading: boolean;
-    todayProgress: any;
-    blockedSitesCount: number;
-    blockedSitesWithTime: any[];
-    onManageDistractionsClick: () => void;
-    formatMinutesToHoursMinutes: (minutes: number) => string;
-    className?: string;
-    user: any;
-}
-
-type DistractionDay = {
-    date: Date;
-    minutes: number;
-    attemptCount: number;
-    bypassCount: number;
-    limitMinutes: number | null;
-    limitRespected: boolean;
-}
+import { DistractionDay, DistractionsCardProps } from '@/types/report.types';
+import { TooltipBarChart, TooltipStackedBar } from './TooltipBarChart';
 
 export function DistractionsCard({
     todayProgress,
@@ -64,9 +46,7 @@ export function DistractionsCard({
 
             try {
                 setCalendarLoading(true);
-                console.log("Fetching distraction calendar data...");
                 const data = await getDistractionCalendarData();
-                console.log("Calendar data fetched:", data.size, "days");
                 setCalendarData(data);
             } catch (err) {
                 console.error('Error fetching distraction calendar data:', err);
@@ -77,6 +57,13 @@ export function DistractionsCard({
 
         fetchCalendarData();
     }, [user, getDistractionCalendarData]);
+
+    // Improved empty calendar fallback
+    useEffect(() => {
+        if (!calendarLoading && (!calendarData || calendarData.size === 0)) {
+            setCalendarData(createEmptyCalendar());
+        }
+    }, [calendarLoading, calendarData]);
 
     // Generate color based on distractions and limit
     const getDistractionColorClass = (day: DistractionDay | undefined) => {
@@ -121,27 +108,63 @@ export function DistractionsCard({
 
     const formatTooltipContent = (dayInfo: any) => {
         if (!dayInfo.dayData) {
-            return `${format(dayInfo.date, 'MMM d')}: No data recorded`;
+            return (
+                <div>
+                    <div className="font-medium mb-1">{format(dayInfo.date, 'MMM d')}:</div>
+                    <div>No data recorded</div>
+                </div>
+            );
         }
 
-        const { minutes, attemptCount, bypassCount, limitMinutes, limitRespected } = dayInfo.dayData;
+        const { minutes, attemptCount, bypassCount, limitMinutes, limitRespected, siteDetails } = dayInfo.dayData;
 
-        let content = `${format(dayInfo.date, 'MMM d')}:`;
-
+        // If no activity, show simplified view
         if (attemptCount === 0) {
-            content += " No distractions detected";
-            return content;
+            return (
+                <div>
+                    <div className="font-medium mb-1">{format(dayInfo.date, 'MMM d')}:</div>
+                    <div>No distractions detected</div>
+                </div>
+            );
         }
 
-        content += ` ${formatMinutesToHoursMinutes(minutes)} of distractions`;
-        content += `\nAttempts: ${attemptCount} (${bypassCount} bypassed)`;
+        // Prepare site details for stacked bar chart
+        const siteDetailsForChart = siteDetails && siteDetails.length > 0
+            ? siteDetails
+                .sort((a: any, b: any) => b.timeSpent - a.timeSpent)
+                .map((site: any) => ({
+                    domain: site.domain,
+                    timeSpent: site.timeSpent,
+                    attempts: site.attempts
+                }))
+            : [];
 
-        if (limitMinutes) {
-            content += `\nLimit: ${formatMinutesToHoursMinutes(limitMinutes)}`;
-            content += limitRespected ? ` (✓ Under limit)` : ` (✗ Over limit)`;
-        }
+        return (
+            <div>
+                <div className="font-medium">{format(dayInfo.date, 'MMM d')}:</div>
+                <div>Distraction time: {formatMinutesToHoursMinutes(minutes)}</div>
+                <div>Site visits: {attemptCount} (bypassed: {bypassCount})</div>
 
-        return content;
+                {limitMinutes > 0 && (
+                    <>
+                        <div className="mt-2 mb-1 font-medium">Time usage:</div>
+                        <TooltipBarChart
+                            value={minutes}
+                            limit={limitMinutes}
+                            formatFn={formatMinutesToHoursMinutes}
+                        />
+
+                        {siteDetailsForChart.length > 0 && (
+                            <TooltipStackedBar
+                                items={siteDetailsForChart}
+                                limit={limitMinutes}
+                                formatFn={formatMinutesToHoursMinutes}
+                            />
+                        )}
+                    </>
+                )}
+            </div>
+        );
     };
 
     // Create an empty calendar with default values for when there's no data
@@ -173,14 +196,6 @@ export function DistractionsCard({
         return emptyMap;
     };
 
-    // If calendar is empty after loading, use empty calendar
-    useEffect(() => {
-        if (!calendarLoading && calendarData.size === 0) {
-            console.log("Setting empty calendar data");
-            setCalendarData(createEmptyCalendar());
-        }
-    }, [calendarLoading, calendarData]);
-
     return (
         <div className={cn(
             "relative w-full rounded-2xl p-5 overflow-hidden bg-gradient-to-br from-orange-400 via-red-500 to-pink-600 shadow-[0_0_15px_rgba(239,68,68,0.4)]",
@@ -195,14 +210,7 @@ export function DistractionsCard({
             <div className="absolute inset-0 bg-black/30 z-0"></div>
 
             <div className="relative z-10">
-                <div className="flex justify-between items-center mb-4">
-                    <h2 className="text-xl font-bold flex items-center text-white">
-                        <ShieldBan className="mr-2 h-5 w-5 text-white/90" />
-                        Distractions Limit
-                    </h2>
-                </div>
-
-                <div className="flex flex-col-reverse md:flex-row gap-4 mb-4">
+                <div className="flex flex-col-reverse md:flex-row gap-4">
                     {/* Left Column (Calendar on desktop) */}
                     <div className="md:w-1/2 bg-white/10 rounded-lg p-3 min-h-[220px] flex flex-col order-2 md:order-1">
                         <div className="flex justify-between items-center mb-2">
@@ -212,6 +220,7 @@ export function DistractionsCard({
                             </h3>
                         </div>
 
+                        {/* Rest of the calendar code remains the same */}
                         {calendarLoading ? (
                             <div className="flex-1 flex items-center justify-center">
                                 <div className="text-white/70 text-xs">Loading calendar...</div>
@@ -251,7 +260,10 @@ export function DistractionsCard({
                                                         </div>
                                                     </div>
                                                 </TooltipTrigger>
-                                                <TooltipContent side="top" className="bg-black/80 text-white text-xs p-2 max-w-xs whitespace-pre-line">
+                                                <TooltipContent
+                                                    side="top"
+                                                    className="bg-black/80 text-white text-xs p-2 max-w-xs"
+                                                >
                                                     {formatTooltipContent(dayInfo)}
                                                 </TooltipContent>
                                             </Tooltip>
@@ -288,6 +300,11 @@ export function DistractionsCard({
 
                     {/* Right Column (Progress on desktop) */}
                     <div className="md:w-1/2 flex flex-col order-1 md:order-2">
+                        <h2 className="text-xl text-white font-bold mb-4 flex items-center">
+                            <ShieldBan className="mr-2 h-5 w-5" />
+                            Distractions Limit
+                        </h2>
+
                         {todayProgress && (
                             <div className="flex flex-col items-center justify-center space-y-5">
                                 <div className="w-48 h-48 relative">

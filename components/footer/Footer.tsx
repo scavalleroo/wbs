@@ -70,10 +70,10 @@ export default function Footer({ position = 'bottom' }: FooterProps) {
 
   // Enhanced effect for footer visibility with mobile consideration
   useEffect(() => {
-    // For desktop: always show footer when no session is running
-    // For mobile: only show footer when session is running
+    // Check for active session using more reliable logic
+    const hasActiveSession = (flowMode && timeElapsed > 0) || (!flowMode && timeRemaining > 0 && isRunning);
 
-    if (sound !== 'none') {
+    if (hasActiveSession) {
       // Session running cases
       if (showFullScreenTimer) {
         // If full screen mode is active, don't show footer
@@ -95,7 +95,7 @@ export default function Footer({ position = 'bottom' }: FooterProps) {
 
     // Update prevSound for next comparison
     prevSound.current = sound;
-  }, [sound, showFullScreenTimer, wasManuallyMinimized, isMobile]);
+  }, [isRunning, timeRemaining, timeElapsed, flowMode, showFullScreenTimer, wasManuallyMinimized, isMobile]);
 
   const closeSession = () => {
     endSession();

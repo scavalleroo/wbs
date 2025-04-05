@@ -589,6 +589,187 @@ export function useBlockedSite({ user }: UserIdParam) {
     return `${Math.floor(minutes / 60)}h ${minutes % 60}m`;
   };
 
+  const getBlockedSitesWithTimeAllowance = useCallback(async () => {
+    if (!user) return [];
+    
+    try {
+      const currentDate = new Date();
+      const dayOfWeek = currentDate.getDay();
+      const dayNames = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
+      const today = dayNames[dayOfWeek];
+      const enabledColumn = `${today}_enabled`;
+      const timeColumn = `${today}_time_limit_minutes`;
+      
+      const { data, error } = await supabase
+        .from('blocked_sites')
+        .select(`id, domain, ${enabledColumn}, ${timeColumn}`)
+        .eq('user_id', user.id)
+        .eq(enabledColumn, true) // Only get sites enabled for today
+        .gt(timeColumn, 0);      // Only get sites with time allowance > 0
+      
+      if (error) throw error;
+      
+      return data || [];
+    } catch (err) {
+      console.error('Error loading blocked sites with time allowance:', err);
+      return [];
+    }
+  }, [user, supabase]);
+  
+  // Calculate total allowed distraction time for today from all sites
+  const getTotalAllowedDistractionTime = useCallback(async () => {
+    if (!user) return 30; // Default 30 minutes
+    
+    try {
+      const currentDate = new Date();
+      const dayOfWeek = currentDate.getDay();
+      const dayNames = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
+      const today = dayNames[dayOfWeek];
+      const enabledColumn = `${today}_enabled`;
+      const timeColumn = `${today}_time_limit_minutes`;
+      
+      // Get all blocked sites for the user that are enabled for today
+      const { data: blockedSites, error } = await supabase
+        .from('blocked_sites')
+        .select(`id, domain, ${enabledColumn}, ${timeColumn}`)
+        .eq('user_id', user.id)
+        .eq(enabledColumn, true); // Only get sites enabled for today
+      
+      if (error) throw error;
+      
+      if (!blockedSites || blockedSites.length === 0) {
+        return 30; // Default if no blocked sites
+      }
+      
+      // Calculate total allowed time across all sites for today
+      let totalAllowedMinutes = 0;
+      
+      blockedSites.forEach((site: any) => {
+        // Get the allowed minutes for today
+        const allowedMinutes = site[timeColumn] || 0;
+        totalAllowedMinutes += allowedMinutes;
+      });
+      
+      // Return at least 5 minutes if the total is very low but not zero
+      // If total is 0 (all sites completely blocked), return default minimum
+      return totalAllowedMinutes > 0 ? Math.max(5, totalAllowedMinutes) : 30;
+    } catch (err) {
+      console.error('Error calculating allowed distraction time:', err);
+      return 30; // Default on error
+    }
+  }, [user, supabase]);
+
+  // Add this new function to the useBlockedSite hook
+
+// Ensure this function is properly implemented in your hook
+
+const getDistractionCalendarData = useCallback(async () => {
+  if (!user) return new Map();
+
+  try {
+    // Calculate date range for last 28 days
+    const today = new Date();
+    const startDate = new Date(today);
+    startDate.setDate(today.getDate() - 28);
+
+    // Format dates for DB query
+    const startDateStr = format(startDate, 'yyyy-MM-dd');
+    const endDateStr = format(today, 'yyyy-MM-dd');
+
+    // Get distractions data directly from blocked_site_attempts
+    const { data: attempts, error } = await supabase
+      .from('blocked_site_attempts')
+      .select('*')
+      .eq('user_id', user.id)
+      .gte('created_at', `${startDateStr}T00:00:00`)
+      .lte('created_at', `${endDateStr}T23:59:59`);
+
+    if (error) throw error;
+
+    // Get daily distraction limits from user settings or default
+    const allowedTime = await getTotalAllowedDistractionTime();
+
+    // Create a map to store data by date
+    const daysMap = new Map();
+
+    // Group attempts by day
+    if (attempts && attempts.length > 0) {
+      // Debug logging to check if we're getting data
+      console.log(`Found ${attempts.length} blocked site attempts`);
+      
+      const attemptsByDay: any = {};
+
+      // Initialize days
+      const dayRange = eachDayOfInterval({
+        start: startDate,
+        end: today
+      });
+
+      dayRange.forEach(date => {
+        const dateStr = format(date, 'yyyy-MM-dd');
+        attemptsByDay[dateStr] = {
+          totalMinutes: 0,
+          attempts: 0,
+          bypasses: 0
+        };
+      });
+
+      // Process each attempt
+      attempts.forEach((attempt) => {
+        const date = new Date(attempt.created_at);
+        const dateStr = format(date, 'yyyy-MM-dd');
+
+        if (!attemptsByDay[dateStr]) {
+          attemptsByDay[dateStr] = {
+            totalMinutes: 0,
+            attempts: 0,
+            bypasses: 0
+          };
+        }
+
+        // Count all attempts
+        attemptsByDay[dateStr].attempts++;
+
+        // Count bypasses and add duration
+        if (attempt.bypassed) {
+          attemptsByDay[dateStr].bypasses++;
+
+          // Add duration if available, otherwise estimate
+          if (attempt.duration_seconds) {
+            attemptsByDay[dateStr].totalMinutes += attempt.duration_seconds / 60;
+          } else {
+            // Estimate 5 minutes per bypass if duration not tracked
+            attemptsByDay[dateStr].totalMinutes += 5;
+          }
+        }
+      });
+
+      // Create DistractionDay objects for the map
+      Object.entries(attemptsByDay).forEach(([dateStr, data]: any) => {
+        const date = new Date(dateStr);
+        const minutes = Math.round(data.totalMinutes);
+        const limitRespected = minutes <= allowedTime;
+
+        daysMap.set(dateStr, {
+          date,
+          minutes,
+          attemptCount: data.attempts,
+          bypassCount: data.bypasses,
+          limitMinutes: allowedTime,
+          limitRespected
+        });
+      });
+    } else {
+      console.log("No blocked site attempts found in database");
+    }
+
+    return daysMap;
+  } catch (err) {
+    console.error('Error fetching distraction calendar data:', err);
+    return new Map();
+  }
+}, [user, supabase, getTotalAllowedDistractionTime]);
+
   return {
     blockedSites,
     attempts,
@@ -609,6 +790,9 @@ export function useBlockedSite({ user }: UserIdParam) {
     getFocusData,
     formatTime,
     getBlockedSitesCount,
-    calculateFocusScore
+    calculateFocusScore,
+    getBlockedSitesWithTimeAllowance,
+    getTotalAllowedDistractionTime,
+    getDistractionCalendarData,
   };
 }

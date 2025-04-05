@@ -43,8 +43,7 @@ export function NavbarItems({ className }: NavbarItemsProps) {
     };
 
     // Determine if a timer is active with more robust check
-    // In flow mode, we need to check timeElapsed instead of timeRemaining
-    const isTimerActive = sound !== 'none' && (flowMode ? true : timeRemaining > 0);
+    const isTimerActive = (flowMode && timeElapsed > 0) || (!flowMode && timeRemaining > 0 && isRunning);
 
     // Get the appropriate time value to display
     const displayTime = flowMode ? timeElapsed : timeRemaining;

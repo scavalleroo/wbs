@@ -28,10 +28,12 @@ interface InnerLayoutProps {
 // Create an internal layout component that can safely use the timer hooks
 function InnerLayout({ children, user, userDetails, isMobile }: InnerLayoutProps) {
   const { showFullScreenTimer } = useTimerUI();
-  const { sound } = useTimer();
+  const { sound, isRunning, flowMode, timeElapsed, timeRemaining } = useTimer();
 
   // Now this is safe because we're inside TimerProvider
-  const isTopFooterVisible = isMobile && sound !== 'none' && !showFullScreenTimer;
+  const isTopFooterVisible = isMobile &&
+    ((flowMode && timeElapsed > 0) || (!flowMode && timeRemaining > 0 && isRunning)) &&
+    !showFullScreenTimer;
 
   // Determine height based on session status
   const contentHeight = sound === 'none' && isMobile ?

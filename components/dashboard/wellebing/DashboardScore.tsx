@@ -15,6 +15,7 @@ import { Dialog } from "@/components/ui/dialog";
 import { useTimer } from "@/contexts/TimerProvider";
 import { ManageDistractionsDialog } from "./ManageDistractionsDialog";
 import MoodTrackingModal from "@/components/moodTracking/MoodTrackingModal";
+import { useTimerUI } from "@/contexts/TimerUIProvider";
 
 export const DashboardScore = ({ user, setTimeRange, timeRange }: {
     user: User | null | undefined;
@@ -22,7 +23,14 @@ export const DashboardScore = ({ user, setTimeRange, timeRange }: {
     timeRange: 'week' | 'month' | 'year'
 }) => {
     const router = useRouter();
-    const { initializeSession } = useTimer();
+    const {
+        initializeSession,
+        timeRemaining,
+        timeElapsed,
+        sound,
+        isRunning,
+        flowMode
+    } = useTimer();
     const [wellnessScore, setWellnessScore] = useState<number | null>(null);
     const [focusScore, setFocusScore] = useState<number | null>(null);
     const [focusTimeToday, setFocusTimeToday] = useState<number>(0);
@@ -43,8 +51,10 @@ export const DashboardScore = ({ user, setTimeRange, timeRange }: {
     const { getMoodHistory } = useMood({ user });
     const { getFocusData, getBlockedSiteStats, getBlockedSitesCount } = useBlockedSite({ user });
     const { recentSessions, fetchRecentSessions } = useFocusSession({ user });
-
     const [extensionUrl, setExtensionUrl] = useState("");
+
+    // Add this to get access to showing the full screen timer:
+    const { setShowFullScreenTimer } = useTimerUI();
 
     // Add this effect to safely set the URL client-side only
     useEffect(() => {
@@ -264,6 +274,12 @@ export const DashboardScore = ({ user, setTimeRange, timeRange }: {
         return 'Friend';
     };
 
+    const formatTime = (seconds: number) => {
+        const mins = Math.floor(seconds / 60);
+        const secs = seconds % 60;
+        return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    };
+
     return (
         <TooltipProvider>
             <div className="flex flex-col px-3 py-4 md:w-80 w-full items-center bg-gradient-to-b from-indigo-800 to-purple-900 rounded-xl shadow-md gap-3 dark:from-indigo-950 dark:to-purple-950 overflow-hidden">
@@ -307,7 +323,16 @@ export const DashboardScore = ({ user, setTimeRange, timeRange }: {
                     {/* Start focus session button */}
                     <Button
                         variant="outline"
-                        onClick={() => setFocusDialogOpen(true)}
+                        onClick={() => {
+                            // Check if timer is active - FIXED LOGIC
+                            if ((flowMode && timeElapsed > 0) || (!flowMode && timeRemaining > 0 && isRunning)) {
+                                // If there's already an active session, just show it
+                                setShowFullScreenTimer(true);
+                            } else {
+                                // Otherwise open the dialog to start a new session
+                                setFocusDialogOpen(true);
+                            }
+                        }}
                         className="relative h-40 sm:h-32 md:h-auto bg-gradient-to-r from-indigo-500 to-purple-600 border-none text-white hover:from-indigo-600 hover:to-purple-700 p-3 md:p-4 text-start text-xs overflow-hidden"
                     >
                         {/* Decorative circles */}
@@ -323,9 +348,19 @@ export const DashboardScore = ({ user, setTimeRange, timeRange }: {
                                 <div className="flex bg-white/20 rounded-full p-1.5">
                                     <Timer className="h-4 w-4 sm:h-5 sm:w-5" />
                                 </div>
-                                <span className="font-bold text-base sm:text-lg text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.5)]">Focus</span>
+                                <span className="font-bold text-base sm:text-lg text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.5)]">
+                                    {(flowMode && timeElapsed > 0) || (!flowMode && timeRemaining > 0 && isRunning)
+                                        ? "Resume Focus"
+                                        : "Focus"
+                                    }
+                                </span>
                             </div>
-                            <p className="text-xs text-white/80 drop-shadow-[0_1px_2px_rgba(0,0,0,0.5)] text-left">Start a timed session</p>
+                            <p className="text-xs text-white/80 drop-shadow-[0_1px_2px_rgba(0,0,0,0.5)] text-left">
+                                {(flowMode && timeElapsed > 0) || (!flowMode && timeRemaining > 0 && isRunning)
+                                    ? `${flowMode ? "In progress" : formatTime(timeRemaining) + " left"}`
+                                    : "Start a focus session"
+                                }
+                            </p>
                         </div>
                     </Button>
 

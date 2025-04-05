@@ -48,7 +48,7 @@ export function SidebarItems({ className }: SidebarItemsProps) {
     };
 
     // Determine if a timer is active
-    const isTimerActive = sound !== 'none' && (flowMode ? true : timeRemaining > 0);
+    const isTimerActive = (flowMode && timeElapsed > 0) || (!flowMode && timeRemaining > 0 && isRunning);
 
     // Get the appropriate time value to display
     const displayTime = flowMode ? timeElapsed : timeRemaining;

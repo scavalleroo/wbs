@@ -410,21 +410,16 @@ export function FocusSelector({ onStart, onClose }: FocusSelectorProps) {
                     </div>
 
                     {/* Fixed Footer with Start Button */}
-                    <div className="p-4 sm:p-6 border-t border-neutral-200 dark:border-neutral-800">
-                        <div className="max-w-screen-lg mx-auto">
-                            <Button
-                                className={cn(
-                                    "w-full py-3 sm:py-4 text-base font-medium rounded-full shadow-lg transition-all",
-                                    "bg-gradient-to-r from-orange-500 via-pink-500 to-rose-600 text-white hover:from-orange-600 hover:via-pink-600 hover:to-rose-700 hover:shadow-xl"
-                                )}
-                                onClick={handleStart}
-                            >
-                                <div className="flex items-center justify-center gap-2">
-                                    <PlayCircle className="h-5 w-5" />
-                                    <span>Start Focus Session</span>
-                                </div>
-                            </Button>
-                        </div>
+                    <div className="p-4 sm:p-6 border-t border-neutral-200 dark:border-neutral-800 flex justify-center">
+                        <Button
+                            className={cn(
+                                "px-10 sm:px-16 py-8 sm:py-9 text-xl sm:text-2xl font-medium rounded-full shadow-xl transition-all",
+                                "bg-gradient-to-r from-orange-500 via-pink-500 to-rose-600 text-white hover:from-orange-600 hover:via-pink-600 hover:to-rose-700 hover:shadow-2xl"
+                            )}
+                            onClick={handleStart}
+                        >
+                            Start Focus Session
+                        </Button>
                     </div>
                 </div>
             </div>

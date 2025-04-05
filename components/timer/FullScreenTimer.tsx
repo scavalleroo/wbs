@@ -202,7 +202,6 @@ export function FullScreenTimer() {
         }
     }, [flowMode]);
 
-    // Your existing helper functions remain unchanged...
     const currentActivityUsers = activeSessions.find(
         session => session.activity === activity
     )?.active_users || 0;

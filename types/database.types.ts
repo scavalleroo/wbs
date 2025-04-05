@@ -42,7 +42,10 @@ export type Database = {
           bypassed: boolean
           created_at: string
           domain: string
+          duration_seconds: number | null
           id: number
+          session_end: string | null
+          session_start: string
           user_id: string
         }
         Insert: {
@@ -50,7 +53,10 @@ export type Database = {
           bypassed?: boolean
           created_at?: string
           domain: string
+          duration_seconds?: number | null
           id?: number
+          session_end?: string | null
+          session_start?: string
           user_id: string
         }
         Update: {
@@ -58,7 +64,10 @@ export type Database = {
           bypassed?: boolean
           created_at?: string
           domain?: string
+          duration_seconds?: number | null
           id?: number
+          session_end?: string | null
+          session_start?: string
           user_id?: string
         }
         Relationships: [
@@ -75,29 +84,71 @@ export type Database = {
         Row: {
           created_at: string
           domain: string
+          friday_enabled: boolean
+          friday_time_limit_minutes: number
           id: number
           last_streak_date: string | null
           max_daily_visits: number
+          monday_enabled: boolean
+          monday_time_limit_minutes: number
+          saturday_enabled: boolean
+          saturday_time_limit_minutes: number
           streak_count: number
+          sunday_enabled: boolean
+          sunday_time_limit_minutes: number
+          thursday_enabled: boolean
+          thursday_time_limit_minutes: number
+          tuesday_enabled: boolean
+          tuesday_time_limit_minutes: number
           user_id: string
+          wednesday_enabled: boolean
+          wednesday_time_limit_minutes: number
         }
         Insert: {
           created_at?: string
           domain: string
+          friday_enabled?: boolean
+          friday_time_limit_minutes?: number
           id?: number
           last_streak_date?: string | null
           max_daily_visits?: number
+          monday_enabled?: boolean
+          monday_time_limit_minutes?: number
+          saturday_enabled?: boolean
+          saturday_time_limit_minutes?: number
           streak_count?: number
+          sunday_enabled?: boolean
+          sunday_time_limit_minutes?: number
+          thursday_enabled?: boolean
+          thursday_time_limit_minutes?: number
+          tuesday_enabled?: boolean
+          tuesday_time_limit_minutes?: number
           user_id: string
+          wednesday_enabled?: boolean
+          wednesday_time_limit_minutes?: number
         }
         Update: {
           created_at?: string
           domain?: string
+          friday_enabled?: boolean
+          friday_time_limit_minutes?: number
           id?: number
           last_streak_date?: string | null
           max_daily_visits?: number
+          monday_enabled?: boolean
+          monday_time_limit_minutes?: number
+          saturday_enabled?: boolean
+          saturday_time_limit_minutes?: number
           streak_count?: number
+          sunday_enabled?: boolean
+          sunday_time_limit_minutes?: number
+          thursday_enabled?: boolean
+          thursday_time_limit_minutes?: number
+          tuesday_enabled?: boolean
+          tuesday_time_limit_minutes?: number
           user_id?: string
+          wednesday_enabled?: boolean
+          wednesday_time_limit_minutes?: number
         }
         Relationships: []
       }
@@ -143,27 +194,6 @@ export type Database = {
         }
         Relationships: []
       }
-      followers: {
-        Row: {
-          created_at: string | null
-          followed_id: string | null
-          follower_id: string | null
-          id: string
-        }
-        Insert: {
-          created_at?: string | null
-          followed_id?: string | null
-          follower_id?: string | null
-          id?: string
-        }
-        Update: {
-          created_at?: string | null
-          followed_id?: string | null
-          follower_id?: string | null
-          id?: string
-        }
-        Relationships: []
-      }
       mood_tracking: {
         Row: {
           created_at: string | null
@@ -206,36 +236,6 @@ export type Database = {
           tracked_date?: string
           updated_at?: string | null
           user_id?: string
-        }
-        Relationships: []
-      }
-      notifications: {
-        Row: {
-          created_at: string | null
-          id: string
-          is_read: boolean | null
-          read: boolean
-          recipient_id: string | null
-          sender_id: string | null
-          type: string
-        }
-        Insert: {
-          created_at?: string | null
-          id?: string
-          is_read?: boolean | null
-          read?: boolean
-          recipient_id?: string | null
-          sender_id?: string | null
-          type: string
-        }
-        Update: {
-          created_at?: string | null
-          id?: string
-          is_read?: boolean | null
-          read?: boolean
-          recipient_id?: string | null
-          sender_id?: string | null
-          type?: string
         }
         Relationships: []
       }
@@ -290,75 +290,6 @@ export type Database = {
           title?: string
           updated_at?: string | null
           user_id?: string | null
-        }
-        Relationships: []
-      }
-      user_stats: {
-        Row: {
-          break_time: number | null
-          created_at: string
-          date: string
-          goal_time: number | null
-          idle_time: number | null
-          updated_at: string | null
-          user_id: string
-        }
-        Insert: {
-          break_time?: number | null
-          created_at?: string
-          date: string
-          goal_time?: number | null
-          idle_time?: number | null
-          updated_at?: string | null
-          user_id: string
-        }
-        Update: {
-          break_time?: number | null
-          created_at?: string
-          date?: string
-          goal_time?: number | null
-          idle_time?: number | null
-          updated_at?: string | null
-          user_id?: string
-        }
-        Relationships: []
-      }
-      users_preferences: {
-        Row: {
-          created_at: string
-          devices: string[] | null
-          goal_break: number | null
-          goal_focus: number | null
-          goal_idle: number | null
-          spotify_access_token: string | null
-          spotify_refresh_token: string | null
-          tracking: boolean | null
-          user_id: string
-          visible: boolean | null
-        }
-        Insert: {
-          created_at?: string
-          devices?: string[] | null
-          goal_break?: number | null
-          goal_focus?: number | null
-          goal_idle?: number | null
-          spotify_access_token?: string | null
-          spotify_refresh_token?: string | null
-          tracking?: boolean | null
-          user_id: string
-          visible?: boolean | null
-        }
-        Update: {
-          created_at?: string
-          devices?: string[] | null
-          goal_break?: number | null
-          goal_focus?: number | null
-          goal_idle?: number | null
-          spotify_access_token?: string | null
-          spotify_refresh_token?: string | null
-          tracking?: boolean | null
-          user_id?: string
-          visible?: boolean | null
         }
         Relationships: []
       }

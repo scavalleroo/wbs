@@ -334,6 +334,7 @@ const DashboardComponet = ({ user }: DashboardComponetProps) => {
                     hasRecentMoodData={hasRecentMoodData}
                     getWellnessEmoji={getWellnessEmoji}
                     onTrackMoodClick={() => setMoodDialogOpen(true)}
+                    user={user}
                 />
             </div>
 

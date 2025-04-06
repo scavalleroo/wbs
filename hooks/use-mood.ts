@@ -1,7 +1,7 @@
 import { Mood, WellnessRatings } from '@/types/mood.types';
 import { UserIdParam } from '@/types/types';
 import { createClient } from '@/utils/supabase/client';
-import { endOfDay, format, parseISO, startOfDay } from 'date-fns';
+import { format, parseISO } from 'date-fns';
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { toast } from 'sonner';
 
@@ -275,6 +275,74 @@ const useMood = ({ user }: UserIdParam) => {
         }
     }, [user?.id, fetchMood]);
 
+    const getMoodCalendarData = useCallback(async () => {
+        if (!user?.id) return new Map();
+        
+        try {
+            // Get data for the last 30 days
+            const today = new Date();
+            const startDate = new Date();
+            startDate.setDate(today.getDate() - 30);
+            
+            const formattedStartDate = format(startDate, 'yyyy-MM-dd');
+            const formattedEndDate = format(today, 'yyyy-MM-dd');
+            
+            const { data, error } = await supabase
+                .from('mood_tracking')
+                .select('*')
+                .eq('user_id', user.id)
+                .gte('tracked_date', formattedStartDate)
+                .lte('tracked_date', formattedEndDate)
+                .order('tracked_date', { ascending: true });
+            
+            if (error) throw error;
+            
+            const calendarMap = new Map();
+            
+            // Initialize the map with empty data for all days
+            for (let i = 0; i <= 30; i++) {
+                const date = new Date(startDate);
+                date.setDate(startDate.getDate() + i);
+                const dateString = format(date, 'yyyy-MM-dd');
+                calendarMap.set(dateString, {
+                    date,
+                    mood_rating: null,
+                    sleep_rating: null,
+                    nutrition_rating: null,
+                    exercise_rating: null,
+                    social_rating: null,
+                    description: null
+                });
+            }
+            
+            // Fill in the actual data
+            if (data && data.length > 0) {
+                data.forEach(entry => {
+                    const dateString = entry.tracked_date;
+                    
+                    if (calendarMap.has(dateString)) {
+                        calendarMap.set(dateString, {
+                            date: new Date(dateString),
+                            mood_rating: entry.mood_rating,
+                            sleep_rating: entry.sleep_rating,
+                            nutrition_rating: entry.nutrition_rating,
+                            exercise_rating: entry.exercise_rating,
+                            social_rating: entry.social_rating,
+                            description: entry.description
+                        });
+                    }
+                });
+            }
+            
+            return calendarMap;
+        } catch (err) {
+            console.error('Error fetching mood calendar data:', err);
+            setError(err instanceof Error ? err.message : String(err));
+            toast.error('Failed to load wellbeing history');
+            return new Map();
+        }
+    }, [user?.id]);
+
     return { 
         mood, 
         loading, 
@@ -283,7 +351,8 @@ const useMood = ({ user }: UserIdParam) => {
         submitWellness,
         skipWellness, 
         hasWellnessForToday,
-        getMoodHistory
+        getMoodHistory,
+        getMoodCalendarData,
     };
 };
 

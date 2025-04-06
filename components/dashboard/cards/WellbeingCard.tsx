@@ -520,7 +520,7 @@ export function WellbeingCard({
 
     return (
         <div className={cn(
-            "relative w-full rounded-2xl p-6 overflow-hidden bg-gradient-to-br from-purple-400 via-fuchsia-500 to-pink-600 shadow-[0_0_15px_rgba(192,38,211,0.4)]",
+            "relative w-full rounded-2xl p-6 sm:p-6 p-4 overflow-hidden bg-gradient-to-br from-purple-400 via-fuchsia-500 to-pink-600 shadow-[0_0_15px_rgba(192,38,211,0.4)]",
             className
         )}>
             {/* Decorative circles */}
@@ -535,17 +535,17 @@ export function WellbeingCard({
                 <div className="flex flex-col md:flex-row gap-4 h-full">
                     {/* Left side: Wellness Score & Metrics */}
                     <div className="md:w-1/2 flex flex-col h-full">
-                        <div className="mb-5">
-                            <h2 className="text-2xl font-bold mb-1 flex items-center text-white">
-                                <Heart className="mr-2 h-6 w-6 text-white/90" />
-                                Today's Wellbeing
+                        <div className="mb-3 sm:mb-5">
+                            <h2 className="text-xl sm:text-2xl font-bold mb-1 flex items-center text-white">
+                                <Heart className="mr-2 h-5 w-5 sm:h-6 sm:w-6 text-white/90" />
+                                Wellbeing
                             </h2>
                         </div>
 
                         <div className="flex-grow flex flex-col">
-                            <div className="flex items-center justify-center mb-6">
+                            <div className="flex items-center justify-center mb-4 sm:mb-6">
                                 {hasRecentMoodData && wellnessScore !== null ? (
-                                    <div className="w-48 h-48 relative">
+                                    <div className="w-36 h-36 sm:w-48 sm:h-48 relative">
                                         <CircularProgressbar
                                             value={wellnessScore}
                                             maxValue={100}
@@ -563,28 +563,33 @@ export function WellbeingCard({
                                             })}
                                         />
                                         <div className="absolute inset-0 flex flex-col items-center justify-center">
-                                            <div className="text-4xl mb-1">{getWellnessEmoji(wellnessScore)}</div>
-                                            <div className="text-xl text-white font-bold">{wellnessScore}/100</div>
+                                            <div className="text-3xl sm:text-4xl mb-1">{getWellnessEmoji(wellnessScore)}</div>
+                                            <div className="text-lg sm:text-xl text-white font-bold">{wellnessScore}/100</div>
                                         </div>
                                     </div>
                                 ) : (
-                                    <div className="w-48 h-48 flex items-center justify-center">
-                                        <div className="text-4xl">{getWellnessEmoji(null)}</div>
+                                    <div className="w-36 h-36 sm:w-48 sm:h-48 flex items-center justify-center">
+                                        <div className="text-3xl sm:text-4xl">{getWellnessEmoji(null)}</div>
                                     </div>
                                 )}
                             </div>
 
                             {hasRecentMoodData && (
-                                <div className="flex flex-wrap gap-2 mb-4 justify-center">
-                                    {getWellbeingMetrics().map((metric, index) => (
-                                        <div key={index} className="bg-white/10 rounded-lg p-2 min-w-[62px] flex-1 flex flex-col items-center text-center">
-                                            <span className="text-white/80 text-xs">{metric.name}</span>
-                                            <span className="text-white font-medium text-sm mt-1">
-                                                {metric.value}
-                                                <span className="text-xs text-white/70">/5</span>
-                                            </span>
-                                        </div>
-                                    ))}
+                                <div className="flex mb-3 sm:mb-4 justify-center overflow-x-auto pb-1 sm:pb-2 -mx-2 px-2">
+                                    <div className="flex flex-nowrap gap-0.5 sm:gap-2 min-w-min w-full">
+                                        {getWellbeingMetrics().map((metric, index) => (
+                                            <div
+                                                key={index}
+                                                className="bg-white/10 rounded-lg p-1 sm:p-2 flex-1 min-w-[58px] sm:w-[62px] flex flex-col items-center text-center"
+                                            >
+                                                <span className="text-white/80 text-[10px] sm:text-xs whitespace-nowrap">{metric.name}</span>
+                                                <span className="text-white font-medium text-xs sm:text-sm mt-0.5 sm:mt-1">
+                                                    {metric.value}
+                                                    <span className="text-[9px] sm:text-xs text-white/70">/5</span>
+                                                </span>
+                                            </div>
+                                        ))}
+                                    </div>
                                 </div>
                             )}
 
@@ -592,34 +597,34 @@ export function WellbeingCard({
 
                             <Button
                                 onClick={onTrackMoodClick}
-                                className="w-full py-6 text-lg bg-white hover:bg-white/90 text-purple-600 flex items-center justify-center gap-2 shadow-lg font-medium mt-4"
+                                className="w-full py-4 sm:py-6 text-base sm:text-lg bg-white hover:bg-white/90 text-purple-600 flex items-center justify-center gap-2 shadow-lg font-medium mt-3 sm:mt-4"
                             >
-                                <Heart className="h-5 w-5" />
+                                <Heart className="h-4 w-4 sm:h-5 sm:w-5" />
                                 {hasRecentMoodData ? 'Update' : 'Check In'}
                             </Button>
                         </div>
                     </div>
 
                     {/* Right side: Calendar */}
-                    <div className="md:w-1/2 bg-white/10 rounded-lg p-3 flex flex-col mt-4 md:mt-0">
+                    <div className="md:w-1/2 bg-white/10 rounded-lg p-2 sm:p-3 flex flex-col mt-3 sm:mt-4 md:mt-0">
                         {/* 7-day trend chart */}
-                        <h3 className="text-sm text-white font-medium mb-2 flex items-center">
-                            <svg className="w-3.5 h-3.5 mr-1" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <h3 className="text-xs sm:text-sm text-white font-medium mb-1 sm:mb-2 flex items-center px-1">
+                            <svg className="w-3 h-3 sm:w-3.5 sm:h-3.5 mr-1" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                                 <path d="M21 7L13 15L9 11L3 17" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                                 <path d="M21 13V7H15" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                             </svg>
                             7-Day Wellbeing Trend
                         </h3>
-                        <div className="w-full relative p-2 h-[160px]">
+                        <div className="w-full relative p-1 sm:p-2 h-[140px] sm:h-[160px]">
                             {renderSevenDayTrend()}
                         </div>
 
                         {/* Divider */}
-                        <div className="border-t border-white/20 mb-4"></div>
+                        <div className="border-t border-white/20 mb-2 sm:mb-4"></div>
 
-                        <div className="flex justify-between items-center mb-2">
-                            <h3 className="text-sm text-white font-medium flex items-center">
-                                <Calendar className="h-4 w-4 mr-1" />
+                        <div className="flex justify-between items-center mb-1 sm:mb-2 px-1">
+                            <h3 className="text-xs sm:text-sm text-white font-medium flex items-center">
+                                <Calendar className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
                                 Last 28 Days
                             </h3>
                         </div>
@@ -632,24 +637,25 @@ export function WellbeingCard({
                         ) : (
                             <div className="flex-1 flex flex-col justify-between">
                                 {/* Weekday headers */}
-                                <div className="grid grid-cols-7 gap-1 mb-1">
+                                <div className="grid grid-cols-7 gap-[2px] sm:gap-1 mb-[2px] sm:mb-1">
                                     {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day, i) => (
-                                        <div key={i} className="text-center text-[13px] text-white font-medium">
-                                            {day}
+                                        <div key={i} className="text-center text-[11px] sm:text-[13px] text-white font-medium">
+                                            <span className="hidden sm:inline">{day}</span>
+                                            <span className="sm:hidden">{day.charAt(0)}</span>
                                         </div>
                                     ))}
                                 </div>
 
                                 {/* Calendar grid */}
                                 <TooltipProvider delayDuration={0}>
-                                    <div className="grid grid-cols-7 grid-rows-4 gap-1 mb-4">
+                                    <div className="grid grid-cols-7 grid-rows-4 gap-[2px] sm:gap-1 mb-2 sm:mb-4">
                                         {generateCalendarDays().map((dayInfo, i) => (
                                             <Tooltip2 key={i}>
                                                 <TooltipTrigger asChild>
                                                     <div className="flex items-center justify-center">
                                                         <div
                                                             className={cn(
-                                                                "w-7 h-7",
+                                                                "w-6 h-6 sm:w-7 sm:h-7",
                                                                 getWellbeingColorClass(dayInfo.dayData)
                                                             )}
                                                             style={{
@@ -660,7 +666,7 @@ export function WellbeingCard({
                                                         >
                                                             {/* Note indicator dot */}
                                                             {dayInfo.dayData?.description && (
-                                                                <div className="absolute top-0.5 right-0.5 w-1.5 h-1.5 bg-white rounded-full"></div>
+                                                                <div className="absolute top-0.5 right-0.5 w-1 h-1 sm:w-1.5 sm:h-1.5 bg-white rounded-full"></div>
                                                             )}
 
                                                             {/* Today indicator */}
@@ -683,42 +689,10 @@ export function WellbeingCard({
 
                                 <div className="">
                                     {/* Date range labels */}
-                                    <div className="flex justify-between items-center text-[13px] text-white mb-1">
+                                    <div className="flex justify-between items-center text-[10px] sm:text-[13px] text-white mb-1 px-1">
                                         <div>{format(generateCalendarDays()[0].date, 'MMM d')}</div>
                                         <div>{format(generateCalendarDays()[27].date, 'MMM d')}</div>
                                     </div>
-
-                                    {/* Legend */}
-                                    {/* <div className="grid grid-cols-4 gap-1 text-[11px] text-white">
-                                        <div className="flex items-center gap-1">
-                                            <div className="w-3 h-3 bg-gray-200 dark:bg-gray-700 rounded-sm"></div>
-                                            <span>No data</span>
-                                        </div>
-                                        <div className="flex items-center gap-1">
-                                            <div className="w-3 h-3 bg-blue-500 rounded-sm"></div>
-                                            <span>Superior</span>
-                                        </div>
-                                        <div className="flex items-center gap-1">
-                                            <div className="w-3 h-3 bg-emerald-600 rounded-sm"></div>
-                                            <span>Excellent</span>
-                                        </div>
-                                        <div className="flex items-center gap-1">
-                                            <div className="w-3 h-3 bg-green-500 rounded-sm"></div>
-                                            <span>Good</span>
-                                        </div>
-                                        <div className="flex items-center gap-1">
-                                            <div className="w-3 h-3 bg-yellow-500 rounded-sm"></div>
-                                            <span>Fair</span>
-                                        </div>
-                                        <div className="flex items-center gap-1">
-                                            <div className="w-3 h-3 bg-orange-500 rounded-sm"></div>
-                                            <span>Poor</span>
-                                        </div>
-                                        <div className="flex items-center gap-1">
-                                            <div className="w-3 h-3 bg-red-500 rounded-sm"></div>
-                                            <span>Very poor</span>
-                                        </div>
-                                    </div> */}
                                 </div>
                             </div>
                         )}

@@ -250,10 +250,106 @@ export function FocusTimeCard({
     // Get the appropriate time value to display (same logic as SidebarItems)
     const displayTime = flowMode ? timeElapsed : timeRemaining;
 
+    const CalendarTooltipContent = ({ dayInfo }: { dayInfo: any }) => {
+        const { date, dayData } = dayInfo;
+        const formattedDate = format(date, 'MMMM d, yyyy');
+
+        if (!dayData || !dayData.minutes) {
+            return (
+                <div className="bg-black/80 text-white text-xs p-3 rounded-md shadow-md min-w-[200px]">
+                    <div className="font-medium mb-2">{formattedDate}</div>
+                    <div className="italic text-white/70">No focus time recorded</div>
+                </div>
+            );
+        }
+
+        const { minutes, goalMinutes, goalMet } = dayData;
+        const formattedMinutes = formatMinutesToHoursMinutes(minutes);
+        const formattedGoal = goalMinutes ? formatMinutesToHoursMinutes(goalMinutes) : null;
+
+        // Calculate progress percentage
+        const progressPercentage = goalMinutes
+            ? Math.min(100, (minutes / goalMinutes) * 100)
+            : 100;
+
+        // Determine color based on progress
+        const getProgressColor = () => {
+            if (goalMet) return '#10B981'; // green-500
+            if (goalMinutes && minutes >= goalMinutes * 0.6) return '#34D399'; // green-400
+            if (goalMinutes && minutes >= goalMinutes * 0.3) return '#6EE7B7'; // green-300
+            return '#A7F3D0'; // green-200
+        };
+
+        // Determine if we should show the goal marker
+        const showGoalMarker = goalMinutes && minutes > goalMinutes;
+
+        return (
+            <div className="bg-black/80 text-white text-xs p-3 rounded-md shadow-md min-w-[200px]">
+                <div className="font-medium mb-2">{formattedDate}</div>
+
+                <div className="mb-2">
+                    <div className="flex justify-between mb-1">
+                        <span>Focus Time</span>
+                        <span className="font-medium">
+                            {formattedMinutes}
+                            {formattedGoal && <span className="text-white/70 ml-1">/ {formattedGoal}</span>}
+                        </span>
+                    </div>
+                    <div className="h-1.5 w-full bg-gray-700/50 rounded-full overflow-hidden">
+                        <div
+                            className="h-full rounded-full relative"
+                            style={{
+                                width: `${progressPercentage}%`,
+                                backgroundColor: getProgressColor()
+                            }}
+                        >
+                            {/* Circle indicator */}
+                            <div
+                                className="absolute w-2.5 h-2.5 bg-white rounded-full shadow-sm border border-gray-500"
+                                style={{
+                                    right: '0px',
+                                    top: '50%',
+                                    transform: 'translate(50%, -50%)'
+                                }}
+                            />
+
+                            {/* Goal marker line - only shown when goal is exceeded */}
+                            {showGoalMarker && (
+                                <div
+                                    className="absolute h-3 w-0.5 bg-white border border-gray-500"
+                                    style={{
+                                        left: `${(goalMinutes / minutes) * 100}%`,
+                                        top: '50%',
+                                        transform: 'translateY(-50%)'
+                                    }}
+                                />
+                            )}
+                        </div>
+                    </div>
+                </div>
+
+                {goalMet && (
+                    <div className="text-green-400 text-xs mt-1 flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                        </svg>
+                        Daily goal completed
+                    </div>
+                )}
+
+                {showGoalMarker && (
+                    <div className="text-xs mt-1 text-white/70">
+                        You exceeded your goal by {formatMinutesToHoursMinutes(minutes - goalMinutes)}
+                    </div>
+                )}
+            </div>
+        );
+    };
+
 
     return (
         <div className={cn(
-            "relative w-full rounded-2xl p-5 overflow-hidden bg-gradient-to-br from-blue-400 via-indigo-500 to-purple-600 shadow-[0_0_15px_rgba(79,70,229,0.4)]",
+            "relative w-full rounded-2xl p-4 sm:p-5 overflow-hidden bg-gradient-to-br from-blue-400 via-indigo-500 to-purple-600 shadow-[0_0_15px_rgba(79,70,229,0.4)]",
             className
         )}>
             {/* Decorative circles */}
@@ -265,19 +361,19 @@ export function FocusTimeCard({
             <div className="absolute inset-0 bg-black/30 z-0"></div>
 
             <div className="relative z-10">
-                <div className="flex flex-col md:flex-row gap-4 mb-4">
+                <div className="flex flex-col md:flex-row gap-3 sm:gap-4 mb-2 sm:mb-4">
                     {/* Left Column: Title, Button and Progress */}
                     <div className="md:w-1/2 flex flex-col">
-                        <div className="flex justify-between items-center mb-4">
-                            <h2 className="text-xl font-bold flex items-center text-white">
-                                <Clock className="mr-2 h-5 w-5 text-white/90" />
+                        <div className="flex justify-between items-center mb-2 sm:mb-4">
+                            <h2 className="text-lg sm:text-xl font-bold flex items-center text-white">
+                                <Clock className="mr-2 h-4 w-4 sm:h-5 sm:w-5 text-white/90" />
                                 Today's Focus
                             </h2>
                         </div>
 
-                        <div className="flex flex-col items-center justify-center space-y-5">
+                        <div className="flex flex-col items-center justify-center space-y-3 sm:space-y-5">
                             {todayProgress && (
-                                <div className="w-48 h-48 relative">
+                                <div className="w-36 h-36 sm:w-48 sm:h-48 relative">
                                     {/* Clickable Progress Circle */}
                                     <button
                                         onClick={isTimerActive ? onResumeFocusClick : onStartFocusClick}
@@ -305,7 +401,7 @@ export function FocusTimeCard({
 
                                         {/* Center button text */}
                                         <div className="absolute inset-0 flex items-center justify-center">
-                                            <div className="text-white font-medium text-xl opacity-90 group-hover:opacity-100 transition-opacity">
+                                            <div className="text-white font-medium text-base sm:text-xl opacity-90 group-hover:opacity-100 transition-opacity">
                                                 {isTimerActive
                                                     ? formatTime(displayTime)
                                                     : "Start Focus"
@@ -317,22 +413,22 @@ export function FocusTimeCard({
                             )}
 
                             {isEditingFocusGoal ? (
-                                <div className="flex flex-col items-center mt-2 gap-2 text-white">
-                                    <div className="text-sm text-white/90 mb-1">
+                                <div className="flex flex-col items-center mt-1 sm:mt-2 gap-1 sm:gap-2 text-white">
+                                    <div className="text-xs sm:text-sm text-white/90 mb-1">
                                         Today's focus time: <span className="font-medium">{formatMinutesToHoursMinutes(todayProgress?.focusActualMinutes || 0)}</span>
                                     </div>
                                     <div className="flex items-center">
-                                        <div className="flex items-center bg-white/10 rounded-md p-2">
+                                        <div className="flex items-center bg-white/10 rounded-md p-1 sm:p-2">
                                             <Input
                                                 type="text"
-                                                className="w-12 h-8 text-center bg-white/20 border-white/30 text-white text-xs"
+                                                className="w-10 sm:w-12 h-7 sm:h-8 text-center bg-white/20 border-white/30 text-white text-xs"
                                                 value={hoursInput}
                                                 onChange={handleHoursChange}
                                             />
                                             <span className="mx-1 text-xs">h</span>
                                             <Input
                                                 type="text"
-                                                className="w-12 h-8 text-center bg-white/20 border-white/30 text-white text-xs"
+                                                className="w-10 sm:w-12 h-7 sm:h-8 text-center bg-white/20 border-white/30 text-white text-xs"
                                                 value={minutesInput}
                                                 onChange={handleMinutesChange}
                                             />
@@ -341,7 +437,7 @@ export function FocusTimeCard({
                                                 onClick={onSaveGoalClick}
                                                 variant="secondary"
                                                 size="sm"
-                                                className="ml-2 h-8 bg-white/90 text-indigo-700 hover:bg-white border-0 text-xs font-medium"
+                                                className="ml-1 sm:ml-2 h-7 sm:h-8 bg-white/90 text-indigo-700 hover:bg-white border-0 text-xs font-medium"
                                             >
                                                 Save
                                             </Button>
@@ -351,7 +447,7 @@ export function FocusTimeCard({
                             ) : (
                                 <div className="flex items-center">
                                     <div className="flex flex-col items-center">
-                                        <div className="text-sm text-white mb-2 inline-flex items-center">
+                                        <div className="text-xs sm:text-sm text-white mb-1 sm:mb-2 inline-flex items-center">
                                             <span className="font-semibold">
                                                 {formatMinutesToHoursMinutes(todayProgress?.focusActualMinutes || 0)}
                                                 <span className="text-white/70 font-normal ml-1 mr-1">/</span>
@@ -361,8 +457,8 @@ export function FocusTimeCard({
                                         <Button
                                             onClick={onEditGoalClick}
                                             variant="outline"
-                                            size="default"
-                                            className="h-9 px-5 bg-white/10 hover:bg-white/20 text-white border-white/30 hover:text-white hover:border-white/50 font-medium transition-all"
+                                            size="sm"
+                                            className="h-8 sm:h-9 px-3 sm:px-5 bg-white/10 hover:bg-white/20 text-white border-white/30 hover:text-white hover:border-white/50 font-medium transition-all text-xs sm:text-sm"
                                         >
                                             Set Daily Goal
                                         </Button>
@@ -373,10 +469,10 @@ export function FocusTimeCard({
                     </div>
 
                     {/* Right Column: Calendar */}
-                    <div className="md:w-1/2 bg-white/10 rounded-lg p-3 min-h-[220px] flex flex-col">
-                        <div className="flex justify-between items-center mb-2">
-                            <h3 className="text-sm text-white font-medium flex items-center">
-                                <Calendar className="h-4 w-4 mr-1" />
+                    <div className="md:w-1/2 bg-white/10 rounded-lg p-2 sm:p-3 min-h-[220px] flex flex-col mt-2 sm:mt-0">
+                        <div className="flex justify-between items-center mb-1 sm:mb-2">
+                            <h3 className="text-xs sm:text-sm text-white font-medium flex items-center">
+                                <Calendar className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
                                 Last 28 Days
                             </h3>
                         </div>
@@ -387,25 +483,26 @@ export function FocusTimeCard({
                             </div>
                         ) : (
                             <div className="flex-1 flex flex-col justify-between">
-                                {/* Weekday headers with 3-letter format */}
-                                <div className="grid grid-cols-7 gap-1 mb-1">
+                                {/* Weekday headers with 3-letter format for larger screens, 1-letter for mobile */}
+                                <div className="grid grid-cols-7 gap-[2px] sm:gap-1 mb-[2px] sm:mb-1">
                                     {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day, i) => (
-                                        <div key={i} className="text-center text-[13px] text-white font-medium">
-                                            {day}
+                                        <div key={i} className="text-center text-[11px] sm:text-[13px] text-white font-medium">
+                                            <span className="hidden sm:inline">{day}</span>
+                                            <span className="sm:hidden">{day.charAt(0)}</span>
                                         </div>
                                     ))}
                                 </div>
 
                                 {/* Calendar grid - 7 cols × 4 rows with squares and tooltips */}
                                 <TooltipProvider delayDuration={0}>
-                                    <div className="grid grid-cols-7 grid-rows-4 gap-1 mb-2">
+                                    <div className="grid grid-cols-7 grid-rows-4 gap-[2px] sm:gap-1 mb-1 sm:mb-2">
                                         {generateCalendarDays().map((dayInfo, i) => (
                                             <Tooltip key={i}>
                                                 <TooltipTrigger asChild>
                                                     <div className="flex items-center justify-center">
                                                         <div
                                                             className={cn(
-                                                                "w-7 h-7",
+                                                                "w-6 h-6 sm:w-7 sm:h-7",
                                                                 getFocusColorClass(dayInfo.dayData)
                                                             )}
                                                             style={{
@@ -420,8 +517,8 @@ export function FocusTimeCard({
                                                         </div>
                                                     </div>
                                                 </TooltipTrigger>
-                                                <TooltipContent side="top" className="bg-black/80 text-white text-xs p-2 max-w-xs">
-                                                    {formatTooltipContent(dayInfo)}
+                                                <TooltipContent side="top" className="p-0 border-0 bg-transparent shadow-none">
+                                                    <CalendarTooltipContent dayInfo={dayInfo} />
                                                 </TooltipContent>
                                             </Tooltip>
                                         ))}
@@ -430,20 +527,20 @@ export function FocusTimeCard({
 
                                 <div className="mt-auto">
                                     {/* Update day labels to show first Monday and last Sunday */}
-                                    <div className="flex justify-between items-center text-[13px] text-white mb-1">
+                                    <div className="flex justify-between items-center text-[10px] sm:text-[13px] text-white mb-1">
                                         <div>{format(generateCalendarDays()[0].date, 'MMM d')}</div>
                                         <div>{format(generateCalendarDays()[27].date, 'MMM d')}</div>
                                     </div>
 
-                                    {/* Legend with larger squares to match new size */}
-                                    <div className="flex justify-between text-[13px] text-white">
+                                    {/* Legend with smaller squares on mobile */}
+                                    <div className="flex justify-between text-[10px] sm:text-[13px] text-white">
                                         <div>Less</div>
-                                        <div className="flex items-center gap-1">
-                                            <div className="w-7 h-7 bg-gray-200 dark:bg-gray-700 rounded-sm"></div>
-                                            <div className="w-7 h-7 bg-green-300 rounded-sm"></div>
-                                            <div className="w-7 h-7 bg-green-400 rounded-sm"></div>
-                                            <div className="w-7 h-7 bg-green-500 rounded-sm"></div>
-                                            <div className="w-7 h-7 bg-green-600 rounded-sm"></div>
+                                        <div className="flex items-center gap-[2px] sm:gap-1">
+                                            <div className="w-5 h-5 sm:w-7 sm:h-7 bg-gray-200 dark:bg-gray-700 rounded-sm"></div>
+                                            <div className="w-5 h-5 sm:w-7 sm:h-7 bg-green-300 rounded-sm"></div>
+                                            <div className="w-5 h-5 sm:w-7 sm:h-7 bg-green-400 rounded-sm"></div>
+                                            <div className="w-5 h-5 sm:w-7 sm:h-7 bg-green-500 rounded-sm"></div>
+                                            <div className="w-5 h-5 sm:w-7 sm:h-7 bg-green-600 rounded-sm"></div>
                                         </div>
                                         <div>More</div>
                                     </div>

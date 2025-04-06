@@ -195,7 +195,7 @@ export function DistractionsCard({
 
     return (
         <div className={cn(
-            "relative w-full rounded-2xl p-5 overflow-hidden bg-gradient-to-br from-orange-400 via-red-500 to-pink-600 shadow-[0_0_15px_rgba(239,68,68,0.4)]",
+            "relative w-full rounded-2xl p-4 sm:p-5 overflow-hidden bg-gradient-to-br from-orange-400 via-red-500 to-pink-600 shadow-[0_0_15px_rgba(239,68,68,0.4)]",
             className
         )}>
             {/* Decorative circles */}
@@ -207,18 +207,18 @@ export function DistractionsCard({
             <div className="absolute inset-0 bg-black/30 z-0"></div>
 
             <div className="relative z-10">
-                <div className="flex flex-col md:flex-row gap-4">
+                <div className="flex flex-col md:flex-row gap-3 sm:gap-4">
                     {/* MOBILE: Progress Circle will be first (top) */}
                     {/* DESKTOP: Calendar will be first (left) */}
                     <div className="md:order-2 md:w-1/2 flex flex-col">
-                        <h2 className="text-xl text-white font-bold mb-4 flex items-center">
-                            <ShieldBan className="mr-2 h-5 w-5" />
+                        <h2 className="text-lg sm:text-xl font-bold mb-2 sm:mb-4 flex items-center text-white">
+                            <ShieldBan className="mr-2 h-4 w-4 sm:h-5 sm:w-5 text-white/90" />
                             Distractions Limit
                         </h2>
 
                         {todayProgress && (
-                            <div className="flex flex-col items-center justify-center space-y-5">
-                                <div className="w-48 h-48 relative">
+                            <div className="flex flex-col items-center justify-center space-y-3 sm:space-y-5">
+                                <div className="w-36 h-36 sm:w-48 sm:h-48 relative">
                                     {/* Clickable Progress Circle */}
                                     <button
                                         onClick={onManageDistractionsClick}
@@ -249,7 +249,7 @@ export function DistractionsCard({
 
                                         {/* Center button text */}
                                         <div className="absolute inset-0 flex items-center justify-center">
-                                            <div className="text-white font-medium text-xl opacity-90 group-hover:opacity-100 transition-opacity">
+                                            <div className="text-white font-medium text-base sm:text-xl opacity-90 group-hover:opacity-100 transition-opacity">
                                                 {formatMinutesToHoursMinutes(getRemainingMinutes())}
                                             </div>
                                         </div>
@@ -257,7 +257,7 @@ export function DistractionsCard({
                                 </div>
 
                                 <div className="flex items-center">
-                                    <div className="text-sm text-white inline-flex items-center">
+                                    <div className="text-xs sm:text-sm text-white inline-flex items-center">
                                         <span className="font-semibold">
                                             {formatMinutesToHoursMinutes(todayProgress.distractionActualMinutes)}
                                             <span className="text-white/70 font-normal ml-1 mr-1">/</span>
@@ -270,8 +270,8 @@ export function DistractionsCard({
                                     <Button
                                         onClick={onManageDistractionsClick}
                                         variant="outline"
-                                        size="default"
-                                        className="h-9 px-5 bg-white/10 hover:bg-white/20 text-white border-white/30 hover:text-white hover:border-white/50 font-medium transition-all"
+                                        size="sm"
+                                        className="h-8 sm:h-9 px-3 sm:px-5 bg-white/10 hover:bg-white/20 text-white border-white/30 hover:text-white hover:border-white/50 font-medium transition-all text-xs sm:text-sm"
                                     >
                                         {blockedSitesCount > 0 ? 'Manage Blocked Sites' : 'Block Distractions'}
                                     </Button>
@@ -279,10 +279,10 @@ export function DistractionsCard({
                                     <Button
                                         onClick={handleDownloadExtension}
                                         variant="outline"
-                                        size="default"
-                                        className="h-9 px-5 bg-white/10 hover:bg-white/20 text-white border-white/30 hover:text-white hover:border-white/50 font-medium transition-all"
+                                        size="sm"
+                                        className="h-8 sm:h-9 px-3 sm:px-5 bg-white/10 hover:bg-white/20 text-white border-white/30 hover:text-white hover:border-white/50 font-medium transition-all text-xs sm:text-sm"
                                     >
-                                        <Download className="h-4 w-4 mr-1" />
+                                        <Download className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
                                         Download Extension
                                     </Button>
                                 </div>
@@ -292,10 +292,10 @@ export function DistractionsCard({
 
                     {/* MOBILE: Calendar will be second (bottom) */}
                     {/* DESKTOP: Calendar will be first (left) */}
-                    <div className="md:order-1 md:w-1/2 bg-white/10 rounded-lg p-3 min-h-[220px] flex flex-col mt-4 md:mt-0">
-                        <div className="flex justify-between items-center mb-2">
-                            <h3 className="text-sm text-white font-medium flex items-center">
-                                <Calendar className="h-4 w-4 mr-1" />
+                    <div className="md:order-1 md:w-1/2 bg-white/10 rounded-lg p-2 sm:p-3 min-h-[220px] flex flex-col mt-2 sm:mt-4 md:mt-0">
+                        <div className="flex justify-between items-center mb-1 sm:mb-2">
+                            <h3 className="text-xs sm:text-sm text-white font-medium flex items-center">
+                                <Calendar className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
                                 Last 28 Days
                             </h3>
                         </div>
@@ -307,25 +307,26 @@ export function DistractionsCard({
                             </div>
                         ) : (
                             <div className="flex-1 flex flex-col justify-between">
-                                {/* Weekday headers with 3-letter format */}
-                                <div className="grid grid-cols-7 gap-1 mb-1">
+                                {/* Weekday headers with 3-letter format for larger screens, 1-letter for mobile */}
+                                <div className="grid grid-cols-7 gap-[2px] sm:gap-1 mb-[2px] sm:mb-1">
                                     {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day, i) => (
-                                        <div key={i} className="text-center text-[13px] text-white font-medium">
-                                            {day}
+                                        <div key={i} className="text-center text-[11px] sm:text-[13px] text-white font-medium">
+                                            <span className="hidden sm:inline">{day}</span>
+                                            <span className="sm:hidden">{day.charAt(0)}</span>
                                         </div>
                                     ))}
                                 </div>
 
                                 {/* Calendar grid - 7 cols × 4 rows with squares and tooltips */}
                                 <TooltipProvider delayDuration={0}>
-                                    <div className="grid grid-cols-7 grid-rows-4 gap-1 mb-2">
+                                    <div className="grid grid-cols-7 grid-rows-4 gap-[2px] sm:gap-1 mb-1 sm:mb-2">
                                         {generateCalendarDays().map((dayInfo, i) => (
                                             <Tooltip key={i}>
                                                 <TooltipTrigger asChild>
                                                     <div className="flex items-center justify-center">
                                                         <div
                                                             className={cn(
-                                                                "w-7 h-7",
+                                                                "w-6 h-6 sm:w-7 sm:h-7",
                                                                 getDistractionColorClass(dayInfo.dayData)
                                                             )}
                                                             style={{
@@ -353,23 +354,23 @@ export function DistractionsCard({
 
                                 <div className="mt-auto">
                                     {/* Update day labels to show first Monday and last Sunday */}
-                                    <div className="flex justify-between items-center text-[13px] text-white mb-1">
+                                    <div className="flex justify-between items-center text-[10px] sm:text-[13px] text-white mb-1">
                                         <div>{format(generateCalendarDays()[0].date, 'MMM d')}</div>
                                         <div>{format(generateCalendarDays()[27].date, 'MMM d')}</div>
                                     </div>
 
-                                    {/* Legend with colors explanation */}
-                                    <div className="flex justify-between text-[13px] text-white">
+                                    {/* Legend with colors explanation - more compact on mobile */}
+                                    <div className="flex justify-between text-[10px] sm:text-[13px] text-white">
                                         <div className="flex items-center gap-1">
-                                            <div className="w-4 h-4 bg-gray-200 dark:bg-gray-700 rounded-sm"></div>
+                                            <div className="w-3 h-3 sm:w-4 sm:h-4 bg-gray-200 dark:bg-gray-700 rounded-sm"></div>
                                             <span>No data</span>
                                         </div>
                                         <div className="flex items-center gap-1">
-                                            <div className="w-4 h-4 bg-green-500 rounded-sm"></div>
+                                            <div className="w-3 h-3 sm:w-4 sm:h-4 bg-green-500 rounded-sm"></div>
                                             <span>Under limit</span>
                                         </div>
                                         <div className="flex items-center gap-1">
-                                            <div className="w-4 h-4 bg-red-500 rounded-sm"></div>
+                                            <div className="w-3 h-3 sm:w-4 sm:h-4 bg-red-500 rounded-sm"></div>
                                             <span>Over limit</span>
                                         </div>
                                     </div>

@@ -54,6 +54,8 @@ export function FocusSelector({ onStart, onClose }: FocusSelectorProps) {
     const [isMobile, setIsMobile] = useState(false);
     const [selectedHour, setSelectedHour] = useState(0);
     const [selectedMinute, setSelectedMinute] = useState(25);
+    const [isClosing, setIsClosing] = useState(false);
+
 
     const SOUNDS = showAllSounds ? ALL_SOUNDS : INITIAL_SOUNDS;
 
@@ -82,6 +84,14 @@ export function FocusSelector({ onStart, onClose }: FocusSelectorProps) {
             window.removeEventListener('resize', checkIfMobile);
         };
     }, []);
+
+    const handleClose = () => {
+        setIsClosing(true);
+        // Wait for animation to complete before actually closing
+        setTimeout(() => {
+            onClose();
+        }, 300); // Match this duration with CSS animation duration
+    };
 
     const handleStart = () => {
         onStart({
@@ -130,12 +140,23 @@ export function FocusSelector({ onStart, onClose }: FocusSelectorProps) {
     };
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 overflow-hidden">
-            <div className="fixed inset-0 bg-white dark:bg-neutral-900 flex flex-col h-full w-full">
+        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/50 overflow-hidden">
+            <div
+                className={`fixed inset-x-0 bottom-0 bg-white dark:bg-neutral-900 flex flex-col h-[95vh] w-full rounded-t-2xl
+                  ${isClosing ? 'animate-slide-down' : 'animate-slide-up'}`}
+                style={{
+                    boxShadow: '0 -8px 30px rgba(0, 0, 0, 0.12)',
+                }}
+            >
                 {/* Background gradients */}
-                <div className="absolute inset-0 overflow-hidden pointer-events-none">
+                <div className="absolute inset-0 overflow-hidden pointer-events-none rounded-t-2xl">
                     <div className="absolute top-0 left-0 w-[500px] h-[500px] bg-blue-500/10 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2" />
                     <div className="absolute bottom-0 right-0 w-[500px] h-[500px] bg-indigo-500/10 rounded-full blur-3xl translate-x-1/2 translate-y-1/2" />
+                </div>
+
+                {/* Drag indicator at top of modal */}
+                <div className="relative z-10 w-full flex justify-center pt-2 pb-1">
+                    <div className="w-12 h-1.5 bg-neutral-300 dark:bg-neutral-600 rounded-full"></div>
                 </div>
 
                 {/* Content wrapper - fixed layout with header, scrollable content, and footer */}
@@ -148,7 +169,7 @@ export function FocusSelector({ onStart, onClose }: FocusSelectorProps) {
                         <button
                             type="button"
                             className="p-2.5 sm:p-3 rounded-full bg-neutral-200 dark:bg-white/20 text-neutral-700 dark:text-white hover:bg-red-500 dark:hover:bg-red-500 hover:text-white dark:hover:text-white transition-all flex-shrink-0"
-                            onClick={onClose}
+                            onClick={handleClose}
                         >
                             <X className="size-4.5 sm:size-5" />
                         </button>
@@ -196,10 +217,8 @@ export function FocusSelector({ onStart, onClose }: FocusSelectorProps) {
                                     </button>
                                 </div>
 
-                                {/* Sounds container - scrollable when showing all sounds */}
-                                <div className={cn(
-                                    "space-y-3"
-                                )}>
+                                {/* Sounds container */}
+                                <div className="space-y-3">
                                     {/* Sound options */}
                                     <div className="grid grid-cols-4 gap-2">
                                         {SOUNDS.map((sound) => (
@@ -218,7 +237,7 @@ export function FocusSelector({ onStart, onClose }: FocusSelectorProps) {
                                         ))}
                                     </div>
 
-                                    {/* Volume slider - only show if sound is selected, more compact on desktop */}
+                                    {/* Volume slider */}
                                     {selectedSound !== 'none' && (
                                         <div className={cn(
                                             "flex items-center",
@@ -239,7 +258,7 @@ export function FocusSelector({ onStart, onClose }: FocusSelectorProps) {
                                 </div>
                             </div>
 
-                            {/* Timer Selection - Time wheel only */}
+                            {/* Timer Selection */}
                             <div>
                                 <div className="flex items-center justify-between mb-3">
                                     <h2 className="text-sm font-medium flex items-center">
@@ -409,8 +428,8 @@ export function FocusSelector({ onStart, onClose }: FocusSelectorProps) {
                         </div>
                     </div>
 
-                    {/* Fixed Footer with Start Button */}
-                    <div className="p-4 sm:p-6 border-t border-neutral-200 dark:border-neutral-800 flex justify-center">
+                    {/* Fixed Footer with Start Button - Added extra padding for mobile */}
+                    <div className="p-4 pb-6 sm:p-6 md:pb-6 border-t border-neutral-200 dark:border-neutral-800 flex justify-center">
                         <Button
                             className={cn(
                                 "px-10 sm:px-16 py-8 sm:py-9 text-xl sm:text-2xl font-medium rounded-full shadow-xl transition-all",
@@ -421,6 +440,9 @@ export function FocusSelector({ onStart, onClose }: FocusSelectorProps) {
                             Start Focus Session
                         </Button>
                     </div>
+
+                    {/* Extra bottom space on mobile */}
+                    {isMobile && <div className="h-6"></div>}
                 </div>
             </div>
         </div>

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { Play, Pause } from 'lucide-react';
+import { Play, Pause, Heart, MessageCircle, Share2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface ActivityCardProps {
@@ -12,6 +12,7 @@ interface ActivityCardProps {
     audioSrc: string;
     colorScheme?: 'meditation' | 'focus' | 'energy' | 'breathing' | 'creative' | 'relaxation';
     className?: string;
+    isActive?: boolean;
 }
 
 export function ActivityCard({
@@ -21,11 +22,16 @@ export function ActivityCard({
     views,
     audioSrc,
     colorScheme = 'meditation',
-    className
+    className,
+    isActive = false
 }: ActivityCardProps) {
     const [isPlaying, setIsPlaying] = useState(false);
     const [progress, setProgress] = useState(0);
     const [duration, setDuration] = useState(0);
+    const [likeCount, setLikeCount] = useState(() => Math.floor(Math.random() * 10000) + 1000);
+    const [isLiked, setIsLiked] = useState(false);
+    const [interactionAnimation, setInteractionAnimation] = useState<string | null>(null);
+
     const audioRef = useRef<HTMLAudioElement | null>(null);
     const progressBarRef = useRef<HTMLDivElement | null>(null);
 
@@ -55,6 +61,19 @@ export function ActivityCard({
         };
     }, [audioSrc]);
 
+    // Auto play/pause when card becomes active
+    useEffect(() => {
+        if (isActive && audioRef.current) {
+            if (!isPlaying) {
+                audioRef.current.play().catch(e => console.log("Auto-play prevented:", e));
+                setIsPlaying(true);
+            }
+        } else if (!isActive && audioRef.current && isPlaying) {
+            audioRef.current.pause();
+            setIsPlaying(false);
+        }
+    }, [isActive]);
+
     const updateProgress = () => {
         if (audioRef.current) {
             const value = (audioRef.current.currentTime / audioRef.current.duration) * 100;
@@ -62,7 +81,8 @@ export function ActivityCard({
         }
     };
 
-    const togglePlayPause = () => {
+    const togglePlayPause = (e: React.MouseEvent) => {
+        e.stopPropagation();
         if (audioRef.current) {
             if (isPlaying) {
                 audioRef.current.pause();
@@ -82,6 +102,32 @@ export function ActivityCard({
         }
     };
 
+    const handleLike = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        if (isLiked) {
+            setLikeCount(prev => prev - 1);
+        } else {
+            setLikeCount(prev => prev + 1);
+            setInteractionAnimation('like');
+            setTimeout(() => setInteractionAnimation(null), 1000);
+        }
+        setIsLiked(!isLiked);
+    };
+
+    const handleShare = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        setInteractionAnimation('share');
+        setTimeout(() => setInteractionAnimation(null), 1000);
+        // Actual share functionality would go here
+    };
+
+    const handleComment = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        setInteractionAnimation('comment');
+        setTimeout(() => setInteractionAnimation(null), 1000);
+        // Comment functionality would go here
+    };
+
     // Format seconds to mm:ss
     const formatTime = (seconds: number) => {
         const mins = Math.floor(seconds / 60);
@@ -91,67 +137,142 @@ export function ActivityCard({
 
     // Determine color scheme
     const colorClasses = {
-        meditation: 'from-[#F9F871] via-[#FF864B] to-[#FF2D75] shadow-[0_0_15px_rgba(255,45,117,0.3)]',
-        focus: 'from-[#A0E9FF] via-[#7189FF] to-[#4C4CFF] shadow-[0_0_15px_rgba(76,76,255,0.3)]',
-        energy: 'from-[#FFD166] via-[#FF6B6B] to-[#AC04ED] shadow-[0_0_15px_rgba(172,4,237,0.3)]',
-        breathing: 'from-[#90F9C4] via-[#48C9B0] to-[#007991] shadow-[0_0_15px_rgba(0,121,145,0.3)]',
-        creative: 'from-[#FFCF7B] via-[#FF9671] to-[#D65DB1] shadow-[0_0_15px_rgba(214,93,177,0.3)]',
-        relaxation: 'from-[#B8E1FC] via-[#8BB8E8] to-[#5E6CE2] shadow-[0_0_15px_rgba(94,108,226,0.3)]'
+        meditation: 'from-[#F9F871] via-[#FF864B] to-[#FF2D75]',
+        focus: 'from-[#A0E9FF] via-[#7189FF] to-[#4C4CFF]',
+        energy: 'from-[#FFD166] via-[#FF6B6B] to-[#AC04ED]',
+        breathing: 'from-[#90F9C4] via-[#48C9B0] to-[#007991]',
+        creative: 'from-[#FFCF7B] via-[#FF9671] to-[#D65DB1]',
+        relaxation: 'from-[#B8E1FC] via-[#8BB8E8] to-[#5E6CE2]'
     };
 
     return (
-        <div className={cn(
-            "relative w-full rounded-2xl p-5 md:p-6 overflow-hidden bg-gradient-to-r",
-            colorClasses[colorScheme],
-            className
-        )}>
-            {/* Semi-transparent dark overlay for better text contrast */}
-            <div className="absolute inset-0 bg-black/40 z-0"></div>
+        <div
+            className={cn(
+                "w-full h-full relative bg-gradient-to-br overflow-hidden flex items-center justify-center",
+                colorClasses[colorScheme],
+                className
+            )}
+            onClick={togglePlayPause}
+        >
+            {/* Background elements */}
+            <div className="absolute inset-0 bg-black/30 z-0"></div>
 
-            {/* Decorative circles */}
-            <div className="absolute top-1/2 right-0 -translate-y-1/2 w-64 h-64 md:w-96 md:h-96 rounded-full bg-white/10 -mr-32 z-0"></div>
-            <div className="absolute top-1/2 right-0 -translate-y-1/2 w-48 h-48 md:w-72 md:h-72 rounded-full bg-white/10 -mr-24 z-0"></div>
-            <div className="absolute top-1/2 right-0 -translate-y-1/2 w-32 h-32 md:w-48 md:h-48 rounded-full bg-white/10 -mr-16 z-0"></div>
-
-            <div className="relative z-10 flex flex-col h-full">
-                <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-3 md:mb-4">
-                    <h3 className="text-xl md:text-2xl font-bold text-white">{title}</h3>
-                </div>
-
-                <p className="text-white text-sm md:text-base mb-1 font-medium">{description}</p>
-                <span className="text-white text-xs mb-4 font-medium">{level}</span>
-
-                <div className="mt-auto">
-                    <div className="flex items-center justify-between mb-2">
-                        <span className="text-white text-xs font-medium"></span>
-                        {/* <span className="text-white text-xs font-medium">{views.toLocaleString()} views</span> */}
-                        <div className="flex items-center gap-2">
-                            <span className="text-white text-xs font-medium">
-                                {formatTime(progress * duration / 100)} / {formatTime(duration)}
-                            </span>
-                            <button
-                                onClick={togglePlayPause}
-                                className="h-10 w-10 rounded-full bg-white/30 flex items-center justify-center text-white hover:bg-white/40 transition-colors"
-                                aria-label={isPlaying ? "Pause" : "Play"}
-                            >
-                                {isPlaying ? <Pause className="h-5 w-5" /> : <Play className="h-5 w-5 ml-0.5" />}
-                            </button>
-                        </div>
-                    </div>
-
-                    {/* Progress bar */}
-                    <div
-                        ref={progressBarRef}
-                        className="w-full h-3 bg-black/40 rounded-full cursor-pointer"
-                        onClick={handleProgressChange}
-                    >
+            {/* Animated background */}
+            <div className="absolute inset-0 z-0">
+                <div className="absolute top-0 left-0 w-full h-full opacity-30">
+                    {Array.from({ length: 5 }).map((_, i) => (
                         <div
-                            className="h-full bg-white rounded-full"
-                            style={{ width: `${progress}%` }}
-                        ></div>
-                    </div>
+                            key={i}
+                            className={`absolute rounded-full bg-white/20 animate-pulse`}
+                            style={{
+                                width: `${Math.random() * 300 + 100}px`,
+                                height: `${Math.random() * 300 + 100}px`,
+                                top: `${Math.random() * 100}%`,
+                                left: `${Math.random() * 100}%`,
+                                animationDelay: `${i * 0.7}s`,
+                                animationDuration: `${Math.random() * 5 + 5}s`
+                            }}
+                        />
+                    ))}
                 </div>
             </div>
+
+            {/* Central play/pause button */}
+            <div className={`absolute z-20 transition-opacity duration-500 ${isPlaying ? 'opacity-0' : 'opacity-100'}`}>
+                <div className="w-20 h-20 rounded-full bg-white/25 backdrop-blur-sm flex items-center justify-center">
+                    <Play fill="white" className="w-10 h-10 text-white ml-1" />
+                </div>
+            </div>
+
+            {/* Interaction animations */}
+            {interactionAnimation === 'like' && (
+                <div className="absolute inset-0 z-30 flex items-center justify-center">
+                    <Heart className="w-32 h-32 text-red-500 animate-pop" fill="red" />
+                </div>
+            )}
+
+            {/* Content container */}
+            <div className="absolute bottom-0 left-0 right-0 z-10 p-6 text-white">
+                {/* Title and description */}
+                <h3 className="text-2xl font-bold mb-2">{title}</h3>
+                <p className="text-lg mb-1">{description}</p>
+                <p className="text-sm mb-4">{level} • {views.toLocaleString()} views</p>
+
+                {/* Progress bar */}
+                <div
+                    ref={progressBarRef}
+                    className="w-full h-1 bg-white/30 rounded-full mb-4 cursor-pointer"
+                    onClick={handleProgressChange}
+                >
+                    <div
+                        className="h-full bg-white rounded-full"
+                        style={{ width: `${progress}%` }}
+                    ></div>
+                </div>
+
+                <div className="flex items-center justify-between">
+                    {/* Time indicator */}
+                    <div className="text-sm">
+                        {formatTime(progress * duration / 100)} / {formatTime(duration)}
+                    </div>
+
+                    {/* Play/pause button */}
+                    <button
+                        onClick={togglePlayPause}
+                        className="p-2 rounded-full bg-white/20 backdrop-blur-sm"
+                    >
+                        {isPlaying ? <Pause className="w-5 h-5" /> : <Play className="w-5 h-5 ml-0.5" />}
+                    </button>
+                </div>
+            </div>
+
+            {/* Right side interaction buttons */}
+            <div className="absolute right-4 bottom-20 flex flex-col items-center gap-6 z-20">
+                {/* Like button */}
+                <div className="flex flex-col items-center">
+                    <button
+                        onClick={handleLike}
+                        className="w-12 h-12 rounded-full bg-black/30 flex items-center justify-center mb-1"
+                    >
+                        <Heart className={`w-6 h-6 ${isLiked ? 'text-red-500 fill-red-500' : 'text-white'}`} />
+                    </button>
+                    <span className="text-white text-xs">{likeCount.toLocaleString()}</span>
+                </div>
+
+                {/* Comment button */}
+                <div className="flex flex-col items-center">
+                    <button
+                        onClick={handleComment}
+                        className="w-12 h-12 rounded-full bg-black/30 flex items-center justify-center mb-1"
+                    >
+                        <MessageCircle className="w-6 h-6 text-white" />
+                    </button>
+                    <span className="text-white text-xs">{Math.floor(Math.random() * 500) + 10}</span>
+                </div>
+
+                {/* Share button */}
+                <div className="flex flex-col items-center">
+                    <button
+                        onClick={handleShare}
+                        className="w-12 h-12 rounded-full bg-black/30 flex items-center justify-center mb-1"
+                    >
+                        <Share2 className="w-6 h-6 text-white" />
+                    </button>
+                    <span className="text-white text-xs">Share</span>
+                </div>
+            </div>
+
+            {/* Add Tailwind classes for animations */}
+            <style jsx global>{`
+                @keyframes pop {
+                    0% { transform: scale(0); opacity: 0; }
+                    50% { transform: scale(1.2); opacity: 1; }
+                    100% { transform: scale(1); opacity: 0; }
+                }
+                .animate-pop {
+                    animation: pop 0.8s ease-out forwards;
+                }
+            `}</style>
         </div>
     );
 }

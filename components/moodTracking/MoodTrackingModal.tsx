@@ -55,7 +55,7 @@ const MoodTrackingModal = ({
         {
             id: 'mood',
             question: isToday
-                ? 'How are you feeling? ️'
+                ? 'Feeling Good? ️'
                 : isYesterday
                     ? 'How were you feeling? ️'
                     : `How were you feeling on ${format(trackingDate, 'MMM d')}? ️`,

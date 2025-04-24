@@ -55,46 +55,51 @@ const MoodTrackingModal = ({
         {
             id: 'mood',
             question: isToday
-                ? 'How are you feeling today?'
+                ? 'Feeling Good? ️'
                 : isYesterday
-                    ? 'How were you feeling yesterday?'
-                    : `How were you feeling on ${format(trackingDate, 'MMM d')}?`,
+                    ? 'How were you feeling? ️'
+                    : `How were you feeling on ${format(trackingDate, 'MMM d')}? ️`,
+            emoji: '☀️',
             field: 'mood_rating' as keyof WellnessRatings
         },
         {
             id: 'sleep',
             question: isToday
-                ? 'How well did you sleep?'
+                ? 'Sleep quality? '
                 : isYesterday
-                    ? 'How well did you sleep the night before?'
-                    : `How well did you sleep on ${format(trackingDate, 'MMM d')}?`,
+                    ? 'Sleep quality? '
+                    : `Sleep quality on ${format(trackingDate, 'MMM d')}? `,
+            emoji: '💤',
             field: 'sleep_rating' as keyof WellnessRatings
         },
         {
             id: 'nutrition',
             question: isToday
-                ? 'How healthy are your meals today?'
+                ? 'Meals Quality? '
                 : isYesterday
-                    ? 'How healthy were your meals yesterday?'
-                    : `How healthy were your meals on ${format(trackingDate, 'MMM d')}?`,
+                    ? 'Meals Quality? '
+                    : `Meals Quality on ${format(trackingDate, 'MMM d')}? `,
+            emoji: '🍏',
             field: 'nutrition_rating' as keyof WellnessRatings
         },
         {
             id: 'exercise',
             question: isToday
-                ? 'How active have you been today?'
+                ? 'Physical Activity? '
                 : isYesterday
-                    ? 'How active were you yesterday?'
-                    : `How active were you on ${format(trackingDate, 'MMM d')}?`,
+                    ? 'Physical Activity? '
+                    : `Physical Activity on ${format(trackingDate, 'MMM d')}? `,
+            emoji: '🏃‍♀️',
             field: 'exercise_rating' as keyof WellnessRatings
         },
         {
             id: 'social',
             question: isToday
-                ? 'How\'s your social connection today?'
+                ? 'Social connection? '
                 : isYesterday
-                    ? 'How was your social connection yesterday?'
-                    : `How was your social connection on ${format(trackingDate, 'MMM d')}?`,
+                    ? 'Social connection? '
+                    : `Social connection on ${format(trackingDate, 'MMM d')}? `,
+            emoji: '🤝',
             field: 'social_rating' as keyof WellnessRatings
         }
     ];
@@ -176,6 +181,12 @@ const MoodTrackingModal = ({
         }
     };
 
+    const handleBack = () => {
+        if (currentStep > 0) {
+            setCurrentStep(prev => prev - 1);
+        }
+    };
+
     const handleSubmit = async () => {
         if (!user) return;
 
@@ -210,18 +221,18 @@ const MoodTrackingModal = ({
 
     return (
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
-            <DialogContent className="sm:max-w-md p-0 border-0 bg-transparent max-h-[90vh] overflow-hidden">
+            <DialogContent className="sm:max-w-md p-0 border-0 bg-transparent max-h-[95vh] sm:max-h-[90vh] overflow-hidden">
                 <div className="bg-gradient-to-br from-indigo-500 to-blue-600 rounded-xl p-1 shadow-xl">
-                    <div className="bg-white dark:bg-neutral-900 rounded-lg p-0 overflow-y-auto max-h-[80vh] [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+                    <div className="bg-white dark:bg-neutral-900 rounded-lg p-0 overflow-y-auto max-h-[85vh] sm:max-h-[80vh] [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
                         <DialogHeader className="p-0">
-                            <div className="bg-gradient-to-r from-indigo-500 via-blue-500 to-indigo-500 p-6 text-white">
-                                <DialogTitle className="text-2xl font-bold mb-1 text-center">
+                            <div className="bg-gradient-to-r from-indigo-500 via-blue-500 to-indigo-500 p-4 sm:p-6 text-white">
+                                <DialogTitle className="text-xl sm:text-2xl font-bold mb-1 text-center">
                                     {dateLabel || "Daily Wellness Check"}
                                 </DialogTitle>
                             </div>
                         </DialogHeader>
 
-                        <div className="p-6">
+                        <div className="p-4 sm:p-6">
                             <AnimatePresence mode="wait">
                                 {!showNotes ? (
                                     <motion.div
@@ -231,11 +242,34 @@ const MoodTrackingModal = ({
                                         exit={{ opacity: 0, x: -20 }}
                                         transition={{ duration: 0.2 }}
                                     >
+                                        <div className="text-center mb-6">
+                                            <div className="text-4xl mb-4">{steps[currentStep].emoji}</div>
+                                            <div className="text-lg font-medium text-neutral-800 dark:text-neutral-200">
+                                                {steps[currentStep].question}
+                                            </div>
+                                        </div>
                                         <MoodScale
-                                            question={steps[currentStep].question}
+                                            question=""
                                             onSelect={handleRatingSelect}
-                                            onSkip={handleSkipStep}
                                         />
+                                        <div className="mt-4 flex justify-center gap-2 sm:gap-4">
+                                            {currentStep > 0 && (
+                                                <Button
+                                                    variant="outline"
+                                                    onClick={handleBack}
+                                                    className="bg-neutral-50 dark:bg-neutral-700 border-neutral-200 dark:border-neutral-600 hover:bg-neutral-200 dark:hover:bg-neutral-600 rounded-lg w-24 sm:w-32 text-sm sm:text-base"
+                                                >
+                                                    Back
+                                                </Button>
+                                            )}
+                                            <Button
+                                                variant="outline"
+                                                onClick={handleSkipStep}
+                                                className="bg-neutral-50 dark:bg-neutral-700 border-neutral-200 dark:border-neutral-600 hover:bg-neutral-200 dark:hover:bg-neutral-600 rounded-lg w-24 sm:w-32 text-sm sm:text-base"
+                                            >
+                                                Skip
+                                            </Button>
+                                        </div>
                                     </motion.div>
                                 ) : (
                                     <motion.div
@@ -247,10 +281,10 @@ const MoodTrackingModal = ({
                                     >
                                         <Label htmlFor="mood-description" className="text-sm font-medium">
                                             {isToday
-                                                ? "Any additional notes about today? (optional)"
+                                                ? "Additional notes? (optional)"
                                                 : isYesterday
-                                                    ? "Any additional notes about yesterday? (optional)"
-                                                    : `Any additional notes about ${format(trackingDate, 'MMM d')}? (optional)`}
+                                                    ? "Additional notes? (optional)"
+                                                    : ` Additional notes? (optional)`}
                                         </Label>
                                         <Textarea
                                             id="mood-description"
@@ -262,18 +296,18 @@ const MoodTrackingModal = ({
                                             rows={3}
                                             className="resize-vertical bg-neutral-50 dark:bg-neutral-700 border-neutral-200 dark:border-neutral-600 rounded-lg"
                                         />
-                                        <div className="flex flex-col-reverse gap-3 pt-4 sm:flex-row sm:justify-between">
+                                        <div className="flex flex-col gap-2 sm:gap-3 pt-4 sm:flex-row sm:justify-between">
                                             <Button
                                                 variant="outline"
                                                 onClick={() => setShowNotes(false)}
-                                                className="w-full sm:w-auto bg-neutral-50 dark:bg-neutral-700 border-neutral-200 dark:border-neutral-600 hover:bg-neutral-200 dark:hover:bg-neutral-600 rounded-lg"
+                                                className="w-full sm:w-auto bg-neutral-50 dark:bg-neutral-700 border-neutral-200 dark:border-neutral-600 hover:bg-neutral-200 dark:hover:bg-neutral-600 rounded-lg text-sm sm:text-base"
                                             >
                                                 Back
                                             </Button>
                                             <Button
                                                 onClick={handleSubmit}
                                                 disabled={isSubmitting}
-                                                className="w-full sm:w-auto bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-lg"
+                                                className="w-full sm:w-auto bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-lg text-sm sm:text-base"
                                             >
                                                 {isSubmitting ? 'Submitting...' : 'Submit'}
                                             </Button>
@@ -284,8 +318,8 @@ const MoodTrackingModal = ({
                         </div>
 
                         {!showNotes && (
-                            <DialogFooter className="flex justify-between pt-2">
-                                <div className="flex space-x-1 items-center">
+                            <DialogFooter className="flex justify-between pt-2 px-4 sm:px-6">
+                                <div className="flex space-x-0.5 sm:space-x-1 items-center">
                                     {steps.map((_, idx) => (
                                         <div
                                             key={idx}
@@ -302,7 +336,7 @@ const MoodTrackingModal = ({
                                     variant="ghost"
                                     onClick={handleSkipAll}
                                     disabled={isSubmitting}
-                                    className="text-xs text-neutral-500 hover:text-neutral-800 dark:hover:text-neutral-300"
+                                    className="text-xs sm:text-sm text-neutral-500 hover:text-neutral-800 dark:hover:text-neutral-300"
                                 >
                                     Skip all
                                 </Button>

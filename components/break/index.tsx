@@ -116,6 +116,18 @@ export default function Break(props: Props) {
                         colorScheme={activity.colorScheme}
                         className="h-full"
                         isActive={currentIndex === index}
+                        activityId="unique-activity-id"
+                        likeCount={42}
+                        commentCount={7}
+                        shareUrl="https://Weko.ai/break"
+                        // onLike={async (id) => {
+                        //     // Handle like in your database
+                        //     await updateLikeInDatabase(id);
+                        // }}
+                        // onComment={(id) => {
+                        //     // Open comment modal or handle comments
+                        //     openCommentModal(id);
+                        // }}
                     />
                 </div>
             ))}

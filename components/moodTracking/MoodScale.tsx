@@ -3,10 +3,9 @@ import { useState } from 'react';
 interface MoodScaleProps {
   question: string;
   onSelect: (rating: number) => void;
-  onSkip: () => void;
 }
 
-const MoodScale = ({ question, onSelect, onSkip }: MoodScaleProps) => {
+const MoodScale = ({ question, onSelect }: MoodScaleProps) => {
   const [selectedRating, setSelectedRating] = useState<number | null>(null);
 
   const moods = [
@@ -42,14 +41,6 @@ const MoodScale = ({ question, onSelect, onSkip }: MoodScaleProps) => {
             <span className="text-[9px] sm:text-xs mt-2 whitespace-nowrap">{mood.label}</span>
           </button>
         ))}
-      </div>
-      <div className="flex justify-center pt-2">
-        <button
-          onClick={onSkip}
-          className="text-xs text-neutral-500 hover:text-neutral-800 dark:hover:text-neutral-300"
-        >
-          Skip this question
-        </button>
       </div>
     </div>
   );

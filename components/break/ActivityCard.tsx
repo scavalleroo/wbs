@@ -13,6 +13,12 @@ interface ActivityCardProps {
     colorScheme?: 'meditation' | 'focus' | 'energy' | 'breathing' | 'creative' | 'relaxation';
     className?: string;
     isActive?: boolean;
+    likeCount?: number;
+    commentCount?: number;
+    activityId: string;
+    onLike?: (activityId: string) => Promise<void>;
+    onComment?: (activityId: string) => void;
+    shareUrl: string;
 }
 
 export function ActivityCard({
@@ -23,12 +29,18 @@ export function ActivityCard({
     audioSrc,
     colorScheme = 'meditation',
     className,
-    isActive = false
+    isActive = false,
+    likeCount = 0,
+    commentCount = 0,
+    activityId,
+    onLike,
+    onComment,
+    shareUrl,
 }: ActivityCardProps) {
     const [isPlaying, setIsPlaying] = useState(false);
     const [progress, setProgress] = useState(0);
     const [duration, setDuration] = useState(0);
-    const [likeCount, setLikeCount] = useState(() => Math.floor(Math.random() * 10000) + 1000);
+    const [currentLikes, setCurrentLikes] = useState(likeCount);
     const [isLiked, setIsLiked] = useState(false);
     const [interactionAnimation, setInteractionAnimation] = useState<string | null>(null);
 
@@ -102,30 +114,48 @@ export function ActivityCard({
         }
     };
 
-    const handleLike = (e: React.MouseEvent) => {
+    const handleLike = async (e: React.MouseEvent) => {
         e.stopPropagation();
-        if (isLiked) {
-            setLikeCount(prev => prev - 1);
-        } else {
-            setLikeCount(prev => prev + 1);
-            setInteractionAnimation('like');
-            setTimeout(() => setInteractionAnimation(null), 1000);
+        if (onLike) {
+            try {
+                await onLike(activityId);
+                setCurrentLikes(prev => isLiked ? prev - 1 : prev + 1);
+                setIsLiked(!isLiked);
+                setInteractionAnimation('like');
+                setTimeout(() => setInteractionAnimation(null), 1000);
+            } catch (error) {
+                console.error('Failed to update like:', error);
+            }
         }
-        setIsLiked(!isLiked);
-    };
-
-    const handleShare = (e: React.MouseEvent) => {
-        e.stopPropagation();
-        setInteractionAnimation('share');
-        setTimeout(() => setInteractionAnimation(null), 1000);
-        // Actual share functionality would go here
     };
 
     const handleComment = (e: React.MouseEvent) => {
         e.stopPropagation();
-        setInteractionAnimation('comment');
-        setTimeout(() => setInteractionAnimation(null), 1000);
-        // Comment functionality would go here
+        if (onComment) {
+            onComment(activityId);
+            setInteractionAnimation('comment');
+            setTimeout(() => setInteractionAnimation(null), 1000);
+        }
+    };
+
+    const handleShare = async (e: React.MouseEvent) => {
+        e.stopPropagation();
+        try {
+            if (navigator.share) {
+                await navigator.share({
+                    title: title,
+                    text: description,
+                    url: shareUrl
+                });
+            } else {
+                await navigator.clipboard.writeText(shareUrl);
+                console.log('Link copied to clipboard');
+            }
+            setInteractionAnimation('share');
+            setTimeout(() => setInteractionAnimation(null), 1000);
+        } catch (error) {
+            console.error('Error sharing:', error);
+        }
     };
 
     // Format seconds to mm:ss
@@ -196,7 +226,7 @@ export function ActivityCard({
                 {/* Title and description */}
                 <h3 className="text-2xl font-bold mb-2">{title}</h3>
                 <p className="text-lg mb-1">{description}</p>
-                <p className="text-sm mb-4">{level} • {views.toLocaleString()} views</p>
+                <p className="text-sm mb-4">{level}</p>
 
                 {/* Progress bar */}
                 <div
@@ -228,7 +258,7 @@ export function ActivityCard({
 
             {/* Right side interaction buttons */}
             <div className="absolute right-4 bottom-20 flex flex-col items-center gap-6 z-20">
-                {/* Like button */}
+                {/* Temporarily commented out like button 
                 <div className="flex flex-col items-center">
                     <button
                         onClick={handleLike}
@@ -236,10 +266,11 @@ export function ActivityCard({
                     >
                         <Heart className={`w-6 h-6 ${isLiked ? 'text-red-500 fill-red-500' : 'text-white'}`} />
                     </button>
-                    <span className="text-white text-xs">{likeCount.toLocaleString()}</span>
+                    <span className="text-white text-xs">{currentLikes}</span>
                 </div>
+                */}
 
-                {/* Comment button */}
+                {/* Temporarily commented out comment button 
                 <div className="flex flex-col items-center">
                     <button
                         onClick={handleComment}
@@ -247,10 +278,11 @@ export function ActivityCard({
                     >
                         <MessageCircle className="w-6 h-6 text-white" />
                     </button>
-                    <span className="text-white text-xs">{Math.floor(Math.random() * 500) + 10}</span>
+                    <span className="text-white text-xs">{commentCount}</span>
                 </div>
+                */}
 
-                {/* Share button */}
+                {/* Share button - keeping this active */}
                 <div className="flex flex-col items-center">
                     <button
                         onClick={handleShare}

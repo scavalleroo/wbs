@@ -90,6 +90,11 @@ export default function NavbarUser({ user, userDetails, condensed, className }: 
                         </DropdownMenuItem>
                     </DropdownMenuGroup>
                     <DropdownMenuSeparator />
+                    <DropdownMenuItem className="flex items-center">
+                        <a href="mailto:workbreakspace@gmail.com" className="w-full">
+                            Contact Us
+                        </a>
+                    </DropdownMenuItem>
                     <DropdownMenuItem
                         onClick={() => window.open('/privacy-policy', '_blank')}
                         className="flex items-center"

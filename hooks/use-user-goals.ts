@@ -84,12 +84,14 @@ export const useUserGoals = ({ user }: UserIdParam) => {
         return createdGoal as UserGoal;
       }
     } catch (err) {
+      // console.error('Error getting goal for date:', err); // Keep console log for debugging
       console.error('Error getting goal for date:', err);
+      toast.error('Failed to load daily goal. Please try again.'); // Add user-facing toast
       return null;
     } finally {
       setLoading(false);
     }
-  }, [user]);
+  }, [user, supabase]); // Added supabase dependency
 
   // Get today's goal
   const getTodayGoal = useCallback(async () => {
@@ -145,17 +147,22 @@ export const useUserGoals = ({ user }: UserIdParam) => {
   // Calculate today's progress and check if goals were met
   const getTodayProgress = useCallback(async () => {
     if (!user) return null;
-    
+
     try {
       setLoading(true);
-      
+
       // 1. Get today's goal (create if doesn't exist)
       const goal = await getTodayGoal();
-      if (!goal) throw new Error('Failed to get today\'s goal');
-      
+      // if (!goal) throw new Error('Failed to get today\'s goal'); // Replace throw
+      if (!goal) {
+          console.error("Failed to get or create today's goal in getTodayProgress.");
+          toast.error("Could not load today's goal progress."); // Add user-facing toast
+          return null; // Return null instead of throwing
+      }
+
       // 2. Get distraction goal from blocked sites settings
       const distractionGoalMinutes = await getTotalAllowedDistractionTime();
-      
+
       // 2. Get focus sessions for today
       const today = new Date();
       const todayStart = startOfDay(today).toISOString();
@@ -233,11 +240,12 @@ export const useUserGoals = ({ user }: UserIdParam) => {
       };
     } catch (err) {
       console.error('Error getting today\'s progress:', err);
+      toast.error('Failed to calculate goal progress.'); // Add user-facing toast for other errors
       return null;
     } finally {
       setLoading(false);
     }
-  }, [user, getTodayGoal, getTotalAllowedDistractionTime]);
+  }, [user, getTodayGoal, getTotalAllowedDistractionTime, supabase]); // Added supabase dependency
 
   // Calculate streak of consecutive days meeting both goals
   const calculateStreak = useCallback(async () => {

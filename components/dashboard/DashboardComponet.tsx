@@ -10,17 +10,25 @@ import useMood from '@/hooks/use-mood';
 import { useTimer } from '@/contexts/TimerProvider';
 import { FocusSelector } from '@/components/timer/FocusSelector';
 import { useTimerUI } from '@/contexts/TimerUIProvider';
-import { Trophy } from 'lucide-react';
+import { Trophy, ShieldBan } from 'lucide-react';
 import { ManageDistractionsDialog } from './wellebing/ManageDistractionsDialog';
 import { useRouter } from 'next/navigation';
 import { format, formatDuration, intervalToDuration } from 'date-fns';
 import MoodTrackingModal from "@/components/moodTracking/MoodTrackingModal";
-import FocusTimeCard from './cards/FocusTimeCard';
-import DistractionsCard from './cards/DistractionsCard';
-import WellbeingCard from './cards/WellbeingCard';
+import { OptimizedFocusTimeCard } from './cards/OptimizedFocusTimeCard';
+import { OptimizedDistractionsCard } from './cards/OptimizedDistractionsCard';
+import { OptimizedWellbeingCard } from './cards/OptimizedWellbeingCard';
+import { Button } from '../ui/button';
+import { BlockedSite } from '@/types/report.types';
 
 interface DashboardComponetProps {
     user: User | null | undefined;
+}
+
+interface SiteStat {
+    domain: string;
+    todayCount: number;
+    todayTimeSeconds: number;
 }
 
 const formatMinutesToHoursMinutes = (minutes: number) => {
@@ -33,12 +41,11 @@ const formatMinutesToHoursMinutes = (minutes: number) => {
 };
 
 const DashboardComponet = ({ user }: DashboardComponetProps) => {
-    // Your existing state setup and hooks...
     const router = useRouter();
     const [timeRange, setTimeRange] = useState<'week' | 'month' | 'year'>('week');
     const { todayGoal, loading: goalsLoading, getTodayGoal, updateGoal, getTodayProgress, calculateStreak, goalStreak } = useUserGoals({ user });
     const { recentSessions, fetchRecentSessions } = useFocusSession({ user });
-    const { getBlockedSiteStats, getFocusData, getBlockedSitesCount, getBlockedSitesWithTimeAllowance } = useBlockedSite({ user });
+    const { getBlockedSiteStats, getFocusData, getBlockedSitesCount, fetchBlockedSites, getBlockedSitesWithTimeAllowance } = useBlockedSite({ user });
     const { getMoodHistory } = useMood({ user });
     const [focusDialogOpen, setFocusDialogOpen] = useState(false);
     const [goalDialogOpen, setGoalDialogOpen] = useState(false);
@@ -46,15 +53,15 @@ const DashboardComponet = ({ user }: DashboardComponetProps) => {
     const [moodDialogOpen, setMoodDialogOpen] = useState(false);
     const [todayProgress, setTodayProgress] = useState<any>(null);
     const [isEditingFocusGoal, setIsEditingFocusGoal] = useState(false);
-    const [newFocusGoal, setNewFocusGoal] = useState(120); // Default 2 hours
-    const [newDistractionsGoal, setNewDistractionsGoal] = useState(30); // Default 30 minutes
+    const [newFocusGoal, setNewFocusGoal] = useState(120);
+    const [newDistractionsGoal, setNewDistractionsGoal] = useState(30);
     const [wellnessScore, setWellnessScore] = useState<number | null>(null);
     const [hasRecentMoodData, setHasRecentMoodData] = useState(true);
     const [blockedSitesCount, setBlockedSitesCount] = useState(0);
-    const [blockedSitesWithTime, setBlockedSitesWithTime] = useState<any[]>([]);
+    const [blockedSites, setBlockedSites] = useState<BlockedSite[]>([]);
+    const [siteStats, setSiteStats] = useState<SiteStat[]>([]);
     const [isLoading, setIsLoading] = useState(true);
 
-    // Timer context
     const {
         initializeSession,
         timeRemaining,
@@ -67,14 +74,12 @@ const DashboardComponet = ({ user }: DashboardComponetProps) => {
 
     const { setShowFullScreenTimer } = useTimerUI();
 
-    // Load all data on mount
     useEffect(() => {
         if (user) {
             loadData();
         }
     }, [user]);
 
-    // Reload data when focus sessions change
     useEffect(() => {
         if (todayProgress) {
             getTodayProgress().then(progress => {
@@ -90,7 +95,6 @@ const DashboardComponet = ({ user }: DashboardComponetProps) => {
 
         try {
             setIsLoading(true);
-            // 1. Get today's goal and progress
             const progress = await getTodayProgress();
             if (progress) {
                 setTodayProgress(progress);
@@ -98,19 +102,14 @@ const DashboardComponet = ({ user }: DashboardComponetProps) => {
                 setNewDistractionsGoal(progress.distractionGoalMinutes);
             }
 
-            // 2. Get streak
             await calculateStreak();
-
-            // 3. Get recent sessions
             await fetchRecentSessions(50);
 
-            // 4. Get wellness score
             const today = new Date();
             const startDate = new Date();
             startDate.setDate(today.getDate() - 7);
             const moodHistory = await getMoodHistory(startDate.toISOString(), today.toISOString());
 
-            // Check if user has recent mood data (from last 24 hours)
             const yesterday = new Date();
             yesterday.setDate(yesterday.getDate() - 1);
             const hasRecent = moodHistory.some(entry =>
@@ -123,7 +122,6 @@ const DashboardComponet = ({ user }: DashboardComponetProps) => {
                     new Date(b.tracked_date).getTime() - new Date(a.tracked_date).getTime()
                 );
 
-                // Find first entry with data
                 for (const entry of sortedHistory) {
                     const values = [
                         entry.mood_rating,
@@ -156,13 +154,14 @@ const DashboardComponet = ({ user }: DashboardComponetProps) => {
                 setHasRecentMoodData(false);
             }
 
-            // 5. Get blocked sites count
             const count = await getBlockedSitesCount();
             setBlockedSitesCount(count);
 
-            // 6. Get sites with time allowances
-            const sitesWithTime = await getBlockedSitesWithTimeAllowance();
-            setBlockedSitesWithTime(sitesWithTime);
+            const sites = await fetchBlockedSites();
+            setBlockedSites(sites);
+
+            const stats = await getBlockedSiteStats();
+            setSiteStats(stats as SiteStat[]);
 
         } catch (error) {
             console.error('Error loading dashboard data:', error);
@@ -171,7 +170,6 @@ const DashboardComponet = ({ user }: DashboardComponetProps) => {
         }
     };
 
-    // Handle updating goals
     const handleSaveFocusGoal = async () => {
         if (!todayGoal || !todayProgress) return;
 
@@ -181,7 +179,6 @@ const DashboardComponet = ({ user }: DashboardComponetProps) => {
 
         if (result) {
             setIsEditingFocusGoal(false);
-            // Reload progress
             const progress = await getTodayProgress();
             if (progress) {
                 setTodayProgress(progress);
@@ -189,7 +186,6 @@ const DashboardComponet = ({ user }: DashboardComponetProps) => {
         }
     };
 
-    // Handle focus session start
     const handleStartFocus = (settings: {
         activity: string;
         sound: string;
@@ -208,10 +204,8 @@ const DashboardComponet = ({ user }: DashboardComponetProps) => {
         setFocusDialogOpen(false);
     };
 
-    // Check if timer is active
     const isTimerActive = (flowMode && timeElapsed > 0) || (!flowMode && timeRemaining > 0 && isRunning);
 
-    // Format current timer status for display
     const getTimerStatusText = () => {
         if (!isTimerActive) return "Not active";
 
@@ -236,7 +230,6 @@ const DashboardComponet = ({ user }: DashboardComponetProps) => {
         return '😔';
     };
 
-    // Get time-based greeting based on current hour
     const getTimeBasedGreeting = () => {
         const hour = new Date().getHours();
 
@@ -251,94 +244,124 @@ const DashboardComponet = ({ user }: DashboardComponetProps) => {
         }
     };
 
-    // Helper function to get just the first name
     const getFirstName = (user: User | null | undefined): string => {
         if (!user) return 'there';
 
-        // Try to get name from user metadata
         if (user.user_metadata?.full_name) {
-            // Split full name and return just the first part
             return user.user_metadata.full_name.split(' ')[0];
         }
 
-        // If no full name, try to use email
         if (user.email) {
             return user.email.split('@')[0];
         }
 
-        // Fallback
         return 'there';
     };
 
     return (
-        <div className="space-y-6 py-6">
-            {/* Today's Date and Greeting */}
-            <div className="mb-6 px-4 sm:px-0">
-                <h1 className="text-3xl font-bold mb-1">
-                    {getTimeBasedGreeting()}, {getFirstName(user)}!
-                </h1>
-                <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-4">
-                    <p className="text-lg text-muted-foreground">
-                        {format(new Date(), 'EEEE, MMMM d')}
-                    </p>
+        <div className="space-y-4 py-4">
+            <div className="mb-3 px-4 sm:px-0">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                    <h1 className="text-2xl font-bold">
+                        {getTimeBasedGreeting()}, {getFirstName(user)}!
+                    </h1>
 
                     {goalStreak > 0 && (
-                        <>
-                            <span className="hidden sm:inline text-muted-foreground">•</span>
-                            <p className="text-muted-foreground text-lg">
-                                <span className="flex items-center">
-                                    <Trophy className="h-5 w-5 mr-2 text-yellow-500" />
-                                    {goalStreak} day{goalStreak !== 1 ? 's' : ''} streak!
-                                </span>
-                            </p>
-                        </>
+                        <p className="text-sm font-medium flex items-center bg-amber-100/10 dark:bg-amber-900/20 text-amber-900 dark:text-amber-200 px-3 py-1 rounded-full">
+                            <Trophy className="h-4 w-4 mr-1 text-amber-500" />
+                            {goalStreak} day streak!
+                        </p>
                     )}
                 </div>
+                <p className="text-sm text-muted-foreground">
+                    {format(new Date(), 'EEEE, MMMM d')}
+                </p>
             </div>
 
-            {/* Main Cards */}
-            {/* Cards Layout - Each in its own row */}
-            <div className="space-y-6">
-                {/* Focus Time Card - First Row */}
-                <FocusTimeCard
+            <div className="block md:hidden space-y-4 px-4 sm:px-0">
+                <OptimizedFocusTimeCard
                     isLoading={isLoading}
                     todayProgress={todayProgress}
                     isTimerActive={isTimerActive}
-                    isEditingFocusGoal={isEditingFocusGoal}
-                    newFocusGoal={newFocusGoal}
-                    onNewFocusGoalChange={(value) => setNewFocusGoal(value)}
-                    onEditGoalClick={() => setIsEditingFocusGoal(true)}
-                    onSaveGoalClick={handleSaveFocusGoal}
-                    onStartFocusClick={() => setFocusDialogOpen(true)}
-                    onResumeFocusClick={() => setShowFullScreenTimer(true)}
                     getTimerStatusText={getTimerStatusText}
                     formatMinutesToHoursMinutes={formatMinutesToHoursMinutes}
-                    user={user}
+                    onStartFocusClick={() => setFocusDialogOpen(true)}
+                    onResumeFocusClick={() => setShowFullScreenTimer(true)}
+                    onEditGoal={() => setIsEditingFocusGoal(true)}
+                    onSaveGoal={handleSaveFocusGoal}
+                    isEditingFocusGoal={isEditingFocusGoal}
+                    newFocusGoal={newFocusGoal}
+                    setNewFocusGoal={setNewFocusGoal}
+                    isMobile={true}
                 />
 
-                {/* Distractions Card - Second Row */}
-                <DistractionsCard
-                    isLoading={isLoading}
-                    todayProgress={todayProgress}
-                    blockedSitesCount={blockedSitesCount}
-                    blockedSitesWithTime={blockedSitesWithTime}
-                    onManageDistractionsClick={() => setDistDialogOpen(true)}
-                    formatMinutesToHoursMinutes={formatMinutesToHoursMinutes}
-                    user={user}
-                />
-
-                {/* Wellbeing Card - Third Row */}
-                <WellbeingCard
+                <OptimizedWellbeingCard
                     isLoading={isLoading}
                     wellnessScore={wellnessScore}
                     hasRecentMoodData={hasRecentMoodData}
                     getWellnessEmoji={getWellnessEmoji}
                     onTrackMoodClick={() => setMoodDialogOpen(true)}
-                    user={user}
+                    onRelaxClick={() => router.push('/break')}
+                    isMobile={true}
+                />
+
+                <div className="flex items-center justify-between bg-gradient-to-r from-orange-400 to-red-500 rounded-xl p-3 shadow-sm">
+                    <div className="flex items-center">
+                        <ShieldBan className="h-5 w-5 mr-2 text-white" />
+                        <div className="text-white">
+                            <p className="font-medium text-sm">Distractions</p>
+                            <p className="text-xs text-white/70">{blockedSitesCount} sites blocked</p>
+                        </div>
+                    </div>
+                    <div className="flex gap-2">
+                        <Button
+                            onClick={() => setDistDialogOpen(true)}
+                            size="sm"
+                            className="bg-white/20 hover:bg-white/30 text-white border-none"
+                        >
+                            Manage
+                        </Button>
+                    </div>
+                </div>
+            </div>
+
+            <div className="hidden md:grid md:grid-cols-3 gap-4 px-4 sm:px-0">
+                <OptimizedFocusTimeCard
+                    isLoading={isLoading}
+                    todayProgress={todayProgress}
+                    isTimerActive={isTimerActive}
+                    getTimerStatusText={getTimerStatusText}
+                    formatMinutesToHoursMinutes={formatMinutesToHoursMinutes}
+                    onStartFocusClick={() => setFocusDialogOpen(true)}
+                    onResumeFocusClick={() => setShowFullScreenTimer(true)}
+                    onEditGoal={() => setIsEditingFocusGoal(true)}
+                    onSaveGoal={handleSaveFocusGoal}
+                    isEditingFocusGoal={isEditingFocusGoal}
+                    newFocusGoal={newFocusGoal}
+                    setNewFocusGoal={setNewFocusGoal}
+                    isMobile={false}
+                />
+
+                <OptimizedDistractionsCard
+                    isLoading={isLoading}
+                    blockedSites={blockedSites}
+                    siteStats={siteStats}
+                    blockedSitesCount={blockedSitesCount}
+                    onManageDistractionsClick={() => setDistDialogOpen(true)}
+                    formatMinutesToHoursMinutes={formatMinutesToHoursMinutes}
+                />
+
+                <OptimizedWellbeingCard
+                    isLoading={isLoading}
+                    wellnessScore={wellnessScore}
+                    hasRecentMoodData={hasRecentMoodData}
+                    getWellnessEmoji={getWellnessEmoji}
+                    onTrackMoodClick={() => setMoodDialogOpen(true)}
+                    onRelaxClick={() => router.push('/relax')}
+                    isMobile={false}
                 />
             </div>
 
-            {/* Focus Dialog */}
             {focusDialogOpen && (
                 <FocusSelector
                     onStart={handleStartFocus}
@@ -346,7 +369,6 @@ const DashboardComponet = ({ user }: DashboardComponetProps) => {
                 />
             )}
 
-            {/* Distractions Dialog */}
             <ManageDistractionsDialog
                 user={user}
                 isOpen={distDialogOpen}
@@ -355,7 +377,6 @@ const DashboardComponet = ({ user }: DashboardComponetProps) => {
                 onBlockedSitesUpdated={loadData}
             />
 
-            {/* Mood Dialog */}
             {moodDialogOpen && (
                 <MoodTrackingModal
                     user={user}

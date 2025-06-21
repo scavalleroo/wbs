@@ -1,25 +1,24 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ShieldBan, Download, Clock, Eye, ChevronDown, ChevronUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { BlockedSite } from '@/types/report.types';
+import { useBlockedSite } from '@/hooks/use-blocked-site';
+import { User } from '@supabase/supabase-js';
 
 interface SiteStat {
     domain: string;
-    todayCount: number; // Visits today
-    todayTimeSeconds: number; // Time spent today
-    // Add other potential fields if available from getBlockedSiteStats
+    todayCount: number;
+    todayTimeSeconds: number;
 }
 
 interface OptimizedDistractionsCardProps {
-    isLoading: boolean;
-    blockedSites: BlockedSite[]; // List of all blocked sites with their limits
-    siteStats: SiteStat[]; // Stats for sites visited today
-    blockedSitesCount: number;
+    user: User | null | undefined;
     onManageDistractionsClick: () => void;
     formatMinutesToHoursMinutes: (minutes: number) => string;
+    isMobile?: boolean;
 }
 
 // Helper to get today's day key (e.g., 'monday', 'tuesday')
@@ -29,15 +28,42 @@ const getTodayKey = (): keyof BlockedSite => {
 };
 
 export function OptimizedDistractionsCard({
-    isLoading,
-    blockedSites,
-    siteStats,
-    blockedSitesCount,
+    user,
     onManageDistractionsClick,
-    formatMinutesToHoursMinutes
+    formatMinutesToHoursMinutes,
+    isMobile = false
 }: OptimizedDistractionsCardProps) {
-    const extensionId = process.env.NEXT_PUBLIC_CHROME_EXTENSION_ID;
+    const [isLoading, setIsLoading] = useState(true);
+    const [blockedSites, setBlockedSites] = useState<BlockedSite[]>([]);
+    const [siteStats, setSiteStats] = useState<SiteStat[]>([]);
+    const [blockedSitesCount, setBlockedSitesCount] = useState(0);
     const [isExpanded, setIsExpanded] = useState(false);
+
+    const { getBlockedSiteStats, getBlockedSitesCount, fetchBlockedSites } = useBlockedSite({ user });
+    const extensionId = process.env.NEXT_PUBLIC_CHROME_EXTENSION_ID;
+
+    useEffect(() => {
+        const loadDistractionsData = async () => {
+            if (!user) return;
+            setIsLoading(true);
+            try {
+                const [count, sites, stats] = await Promise.all([
+                    getBlockedSitesCount(),
+                    fetchBlockedSites(),
+                    getBlockedSiteStats()
+                ]);
+                setBlockedSitesCount(count);
+                setBlockedSites(sites);
+                setSiteStats(stats as SiteStat[]);
+            } catch (error) {
+                console.error("Failed to load distractions data", error);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        loadDistractionsData();
+    }, [user, fetchBlockedSites, getBlockedSitesCount, getBlockedSiteStats]);
 
     const handleDownloadExtension = () => {
         window.open(`https://chrome.google.com/webstore/detail/${extensionId}`, '_blank');
@@ -75,8 +101,16 @@ export function OptimizedDistractionsCard({
     const sitesToDisplay = isExpanded ? combinedSiteData : combinedSiteData.slice(0, 4);
     const canExpand = combinedSiteData.length > 4;
 
+    if (isLoading) {
+        return (
+            <div className="rounded-xl p-3 bg-gradient-to-br from-orange-400 via-red-500 to-pink-600 text-white flex items-center justify-center min-h-[240px]">
+                <p>Loading Distractions...</p>
+            </div>
+        );
+    }
+
     return (
-        <div className="rounded-xl p-4 bg-gradient-to-br from-orange-400 via-red-500 to-pink-600 shadow-[0_0_12px_rgba(239,68,68,0.4)] text-white relative overflow-hidden h-full flex flex-col">
+        <div className="rounded-xl p-3 bg-gradient-to-br from-orange-400 via-red-500 to-pink-600 shadow-[0_0_12px_rgba(239,68,68,0.4)] text-white relative overflow-hidden flex flex-col">
             {/* Decorative elements */}
             <div className="absolute -left-8 -bottom-8 w-32 h-32 rounded-full bg-white/10 z-0"></div>
             <div className="absolute -left-16 -bottom-16 w-32 h-32 rounded-full bg-white/10 z-0"></div>
@@ -84,7 +118,7 @@ export function OptimizedDistractionsCard({
 
             <div className="relative z-10 flex flex-col flex-grow">
                 {/* Header */}
-                <div className="flex justify-between items-center mb-3">
+                <div className="flex justify-between items-center mb-2">
                     <h2 className="font-bold flex items-center">
                         <ShieldBan className="mr-1.5 h-4 w-4" />
                         Distractions
@@ -95,10 +129,8 @@ export function OptimizedDistractionsCard({
                 </div>
 
                 {/* Distraction Grid */}
-                <div className="flex-grow mb-2 space-y-1.5 overflow-y-auto pr-1 custom-scrollbar">
-                    {isLoading ? (
-                        <div className="text-center text-white/70 text-sm py-4">Loading stats...</div>
-                    ) : sitesToDisplay.length > 0 ? (
+                <div className="flex-grow mb-1 space-y-1 overflow-y-auto pr-1 custom-scrollbar">
+                    {sitesToDisplay.length > 0 ? (
                         sitesToDisplay.map((site) => {
                             const timeSpentMinutes = Math.round(site.todayTimeSeconds / 60);
                             const timeLimitDisplay = site.timeLimitMinutes > 0 ? formatMinutesToHoursMinutes(site.timeLimitMinutes) : '∞'; // Show infinity if limit is 0
@@ -113,7 +145,7 @@ export function OptimizedDistractionsCard({
                             const backgroundClass = site.accessedToday ? 'bg-amber-900/30' : 'bg-white/10'; // Warning background if accessed
 
                             return (
-                                <div key={site.id} className={cn("flex items-center justify-between text-sm p-2 rounded transition-colors duration-200", backgroundClass)}>
+                                <div key={site.id} className={cn("flex items-center justify-between text-sm px-2 py-1.5 rounded transition-colors duration-200", backgroundClass)}>
                                     {/* Site Name */}
                                     <span className="font-medium truncate mr-2 flex-shrink min-w-0">{site.name}</span>
 
@@ -142,7 +174,7 @@ export function OptimizedDistractionsCard({
 
                 {/* Show More/Less Button */}
                 {canExpand && (
-                    <div className="text-center mt-1 mb-2">
+                    <div className="text-center mt-1 mb-1">
                         <Button
                             variant="ghost"
                             size="sm"
@@ -159,14 +191,14 @@ export function OptimizedDistractionsCard({
                 <div className="mt-auto flex gap-2 flex-col sm:flex-row pt-2">
                     <Button
                         onClick={onManageDistractionsClick}
-                        className="flex-1 flex items-center justify-center py-2 bg-white/20 hover:bg-white/30 border-none text-white font-medium"
+                        className="flex-1 flex items-center justify-center h-9 bg-white/20 hover:bg-white/30 border-none text-white font-medium"
                     >
                         <ShieldBan className="h-4 w-4 mr-1.5" />
                         Manage
                     </Button>
                     <Button
                         onClick={handleDownloadExtension}
-                        className="flex-1 flex items-center justify-center py-2 bg-white/20 hover:bg-white/30 border-none text-white font-medium"
+                        className="flex-1 flex items-center justify-center h-9 bg-white/20 hover:bg-white/30 border-none text-white font-medium"
                     >
                         <Download className="h-4 w-4 mr-1.5" />
                         Extension

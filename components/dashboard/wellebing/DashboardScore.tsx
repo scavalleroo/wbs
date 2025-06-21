@@ -14,7 +14,6 @@ import { FocusSelector } from "@/components/timer/FocusSelector";
 import { Dialog } from "@/components/ui/dialog";
 import { useTimer } from "@/contexts/TimerProvider";
 import { ManageDistractionsDialog } from "./ManageDistractionsDialog";
-import MoodTrackingModal from "@/components/moodTracking/MoodTrackingModal";
 import { useTimerUI } from "@/contexts/TimerUIProvider";
 
 export const DashboardScore = ({ user, setTimeRange, timeRange }: {
@@ -460,18 +459,6 @@ export const DashboardScore = ({ user, setTimeRange, timeRange }: {
                     blockedSitesCount={blockedSitesCount}
                     onBlockedSitesUpdated={loadData}
                 />
-
-                {moodDialogOpen && (
-                    <MoodTrackingModal
-                        user={user}
-                        isOpen={moodDialogOpen}
-                        setIsOpen={setMoodDialogOpen}
-                        onComplete={() => {
-                            loadData();
-                            setHasRecentMoodData(true);
-                        }}
-                    />
-                )}
             </div>
         </TooltipProvider>
     );

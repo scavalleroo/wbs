@@ -8,7 +8,6 @@ import {
 } from '@/contexts/layout';
 import { useEffect, useState } from 'react';
 import Analytics from '../analytics';
-import MoodTrackingModal from '../moodTracking/MoodTrackingModal';
 import { Navbar } from '../navbar/Navbar';
 import { TimerProvider } from '@/contexts/TimerProvider';
 import Footer from '../footer/Footer';
@@ -45,7 +44,6 @@ function InnerLayout({ children, user, userDetails, isMobile }: InnerLayoutProps
       <Toaster />
       <main className='mx-auto h-screen bg-neutral-50 dark:bg-neutral-900 flex'>
         <Analytics />
-        <MoodTrackingModal user={user} />
 
         {/* Desktop Sidebar (hidden on mobile) */}
         {!isMobile && (

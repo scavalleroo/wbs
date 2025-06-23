@@ -40,7 +40,7 @@ export default async function DefaultAuth() {
                     </div>
                     <div className="flex flex-col space-y-2 text-center">
                         <h1 className="text-4xl md:text-5xl lg:text-6xl font-light tracking-tight mb-4 text-white">
-                            What matters most, every day.
+                            What matters most, everyday.
                         </h1>
                     </div>
                     <GoogleSignInButton />

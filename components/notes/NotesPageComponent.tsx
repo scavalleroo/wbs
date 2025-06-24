@@ -174,14 +174,15 @@ export const NotesPageComponent: React.FC<NotesPageComponentProps> = ({
     <div className="w-full h-full py-2">
       <div className="max-w-screen-lg mx-auto w-full h-full">
         <Card className="rounded-lg bg-transparent text-card-foreground h-full overflow-auto border-none">
-          {activeTab === 'daily' && dailyNote && !loading ? (
+          {activeTab === 'daily' ? (
             <RealtimeEditor
-              key={`daily-${dailyNote.id}`}
+              key={`daily-${dailyNote?.id || 'new'}`}
               tableName="user_daily_notes"
-              rowId={dailyNote.id}
-              initalLastSaved={dailyNote.updated_at ? new Date(dailyNote.updated_at) : undefined}
-              initialContent={dailyNote.content as JSONContent}
+              rowId={dailyNote?.id || 0}
+              initalLastSaved={dailyNote?.updated_at ? new Date(dailyNote.updated_at) : undefined}
+              initialContent={(dailyNote?.content as JSONContent) || {}}
               onContentUpdate={(content) => setContentEditor(content)}
+              disabled={loading || !dailyNote}
               // Integrated header props
               activeTab={activeTab}
               onTabChange={handleTabChange}
@@ -190,18 +191,19 @@ export const NotesPageComponent: React.FC<NotesPageComponentProps> = ({
               days={days}
               onDaysChange={setDays}
             />
-          ) : activeTab === 'project' && selectedProject ? (
+          ) : (
             // In the activeTab === 'project' render section:
             <RealtimeEditor
-              key={`project-${selectedProject.id}`}
+              key={`project-${selectedProject?.id || 'new'}`}
               tableName="user_projects_notes"
-              rowId={selectedProject.id}
-              initalLastSaved={selectedProject.updated_at ? new Date(selectedProject.updated_at) : undefined}
-              initialContent={selectedProject.content as JSONContent}
+              rowId={selectedProject?.id || 0}
+              initalLastSaved={selectedProject?.updated_at ? new Date(selectedProject.updated_at) : undefined}
+              initialContent={(selectedProject?.content as JSONContent) || {}}
               handleDeleteProject={handleDeleteProject}
               handleRenameProject={handleRenameProject}
-              selectedProject={selectedProject}
+              selectedProject={selectedProject || undefined}
               onContentUpdate={(content) => setContentEditor(content)}
+              disabled={loading || !selectedProject}
               // Integrated header props
               activeTab={activeTab}
               onTabChange={handleTabChange}
@@ -213,12 +215,6 @@ export const NotesPageComponent: React.FC<NotesPageComponentProps> = ({
                   .then(() => { }) // Explicitly return void to fix type error
               }}
             />
-          ) : (
-            <div className="flex items-center justify-center h-full">
-              <div className="text-center">
-                <p className="text-muted-foreground">Loading...</p>
-              </div>
-            </div>
           )}
         </Card>
       </div>

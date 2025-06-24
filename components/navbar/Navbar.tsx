@@ -13,7 +13,7 @@ interface NavbarProps {
 export function Navbar({ user, userDetails, position = 'top' }: NavbarProps) {
     return (
         <div className={`
-            flex items-center px-0 sm:px-4 h-[3.5rem] 
+            flex items-center px-0 sm:px-4 h-[3.5rem] pt-1
             bg-neutral-100 dark:bg-neutral-800 
             border-b border-neutral-200 dark:border-neutral-700
             ${position === 'bottom' ?
@@ -38,14 +38,14 @@ export function Navbar({ user, userDetails, position = 'top' }: NavbarProps) {
                 />
             </div>
 
-            {/* Mobile layout - grid for equal distribution */}
-            <div className="grid grid-cols-5 w-full gap-0 sm:hidden md:hidden pl-2">
-                <NavbarItems className="col-span-4" />
+            {/* Mobile layout - each item gets equal 1/4 space */}
+            <div className="flex w-full sm:hidden md:hidden">
+                <NavbarItems className="flex-[3]" />
                 <NavbarUser
                     user={user}
                     userDetails={userDetails}
                     condensed={true}
-                    className="w-auto h-full"
+                    className="flex-1 h-full"
                 />
             </div>
 

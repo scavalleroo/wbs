@@ -64,31 +64,29 @@ const ProjectDialogs: React.FC<ProjectDialogsProps> = ({
     return (
         <div className="flex items-center space-x-1 flex-shrink-0">
             {/* Action Buttons */}
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-1 sm:gap-2">
                 {/* Rename Button */}
-                <Button
-                    variant="ghost"
-                    size="sm"
+                <button
                     onClick={() => {
                         setNewProjectTitle(project.title);
                         setIsRenameOpen(true);
                     }}
-                    className="h-8 px-2 sm:px-3 text-neutral-600 hover:bg-neutral-100 hover:text-neutral-800 dark:text-neutral-300 dark:hover:bg-neutral-800 dark:hover:text-neutral-100 transition-colors"
+                    className="flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-2 text-xs sm:text-sm font-medium rounded-lg bg-white/15 text-white hover:bg-white/25 border border-white/20 transition-all"
+                    title="Rename page"
                 >
-                    <Pencil className="h-4 w-4" />
-                    <span className="sr-only sm:not-sr-only sm:ml-2">Rename</span>
-                </Button>
+                    <Pencil className="h-3 w-3 sm:h-4 sm:w-4" />
+                    <span>Rename</span>
+                </button>
 
                 {/* Delete Button */}
-                <Button
-                    variant="ghost"
-                    size="sm"
+                <button
                     onClick={() => setIsDeleteOpen(true)}
-                    className="h-8 px-2 sm:px-3 text-neutral-600 hover:bg-neutral-100 hover:text-neutral-700 dark:text-neutral-300 dark:hover:bg-neutral-800 dark:hover:text-neutral-100 transition-colors border-0"
+                    className="flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-2 text-xs sm:text-sm font-medium rounded-lg bg-white/15 text-white hover:bg-white/25 border border-white/20 transition-all"
+                    title="Delete page"
                 >
-                    <Trash className="h-4 w-4" />
-                    <span className="sr-only sm:not-sr-only sm:ml-2">Delete</span>
-                </Button>
+                    <Trash className="h-3 w-3 sm:h-4 sm:w-4" />
+                    <span>Delete</span>
+                </button>
             </div>
 
             {/* Rename Project Dialog - Updated Styling */}

@@ -234,7 +234,7 @@ export default async function LandingPage() {
 
                 {/* Section 6: More to Come */}
                 <section
-                    className="relative bg-cover bg-center bg-no-repeat py-24 sm:py-32"
+                    className="relative bg-cover bg-center bg-no-repeat min-h-screen flex items-center"
                     style={{ backgroundImage: "url('/images/hero.jpg')" }}
                 >
                     <div className="absolute inset-0 bg-background/70 backdrop-blur-sm" />

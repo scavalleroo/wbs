@@ -15,10 +15,14 @@ import { PlusCircle, Loader2 } from 'lucide-react';
 
 interface CreateProjectDialogProps {
     onCreateProject: (title: string) => Promise<void>;
+    disabled?: boolean;
+    variant?: 'default' | 'dropdown';
 }
 
 const CreateProjectDialog: React.FC<CreateProjectDialogProps> = ({
     onCreateProject,
+    disabled = false,
+    variant = 'default',
 }) => {
     const [projectTitle, setProjectTitle] = useState('');
     const [isOpen, setIsOpen] = useState(false);
@@ -49,13 +53,25 @@ const CreateProjectDialog: React.FC<CreateProjectDialogProps> = ({
     return (
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
             <DialogTrigger asChild>
-                <Button
-                    variant="ghost"
-                    size="icon"
-                    className="ml-1 p-1.5 rounded-full text-white/90 hover:bg-white/20 transition-all"
-                >
-                    <PlusCircle className="h-4 w-4" />
-                </Button>
+                {variant === 'dropdown' ? (
+                    <button
+                        disabled={disabled}
+                        className={`flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-lg w-full text-left hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 transition-all ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    >
+                        <PlusCircle className="h-4 w-4" />
+                        <span>Add New Page</span>
+                    </button>
+                ) : (
+                    <Button
+                        variant="ghost"
+                        size="sm"
+                        disabled={disabled}
+                        className={`flex items-center gap-2 px-3 py-2 text-xs sm:text-sm font-medium rounded-lg bg-white/20 text-white hover:bg-white/30 backdrop-blur-sm border border-white/20 transition-all shadow-sm ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    >
+                        <PlusCircle className="h-4 w-4" />
+                        <span className="hidden sm:inline">Add Page</span>
+                    </Button>
+                )}
             </DialogTrigger>
 
             {/* Enhanced Dialog Styling */}

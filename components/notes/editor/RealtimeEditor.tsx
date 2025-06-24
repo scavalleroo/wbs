@@ -29,9 +29,13 @@ import GenerativeMenuSwitch from './generative/generative-menu-switch';
 import { MathSelector } from './selectors/math-selector';
 import { EventSelector } from './selectors/event-selector';
 import { formatRelativeTime } from '@/lib/utils';
-import { Book, Calendar, ChevronLeft, ChevronRight, Plus } from 'lucide-react';
+import { Book, Calendar, ChevronLeft, ChevronRight, Plus, CalendarDays, Search } from 'lucide-react';
 import CreateProjectDialog from '../create-project-dialog';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Calendar as CalendarComponent } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Input } from '@/components/ui/input';
+import './realtime-editor.css';
 
 const extensions = [...defaultExtensions, slashCommand];
 
@@ -53,6 +57,7 @@ interface RealtimeEditorProps {
   onCreateProject?: (title: string) => Promise<void>;
   days?: Date[];
   onDaysChange?: (days: Date[]) => void;
+  disabled?: boolean;
 }
 
 export const RealtimeEditor: React.FC<RealtimeEditorProps> = ({
@@ -73,9 +78,24 @@ export const RealtimeEditor: React.FC<RealtimeEditorProps> = ({
   onProjectSelect,
   onCreateProject,
   days = [],
-  onDaysChange
+  onDaysChange,
+  disabled = false
 }) => {
   const supabase = createClient();
+
+  // Helper function to get user's local time from UTC
+  const getLocalTimeFromUTC = useCallback((utcDate: Date): Date => {
+    // Create a new date in the user's local timezone
+    const localDate = new Date(utcDate.getTime());
+    return localDate;
+  }, []);
+
+  // Helper function to format relative time with proper timezone handling
+  const formatLocalRelativeTime = useCallback((date: Date): string => {
+    const localDate = getLocalTimeFromUTC(date);
+    return formatRelativeTime(localDate);
+  }, [getLocalTimeFromUTC]);
+
   const [content, setContent] = useState<JSONContent>(initialContent);
   const [localContent, setLocalContent] = useState<JSONContent>(initialContent);
   const [openNode, setOpenNode] = useState(false);
@@ -83,9 +103,12 @@ export const RealtimeEditor: React.FC<RealtimeEditorProps> = ({
   const [openLink, setOpenLink] = useState(false);
   const [openAI, setOpenAI] = useState(false);
   const [openEvent, setOpenEvent] = useState(false);
+  const [projectSearchTerm, setProjectSearchTerm] = useState('');
 
   const [isSaving, setIsSaving] = useState(false);
-  const [lastSaved, setLastSaved] = useState<Date | undefined>(initalLastSaved);
+  const [lastSaved, setLastSaved] = useState<Date | undefined>(
+    initalLastSaved ? getLocalTimeFromUTC(initalLastSaved) : undefined
+  );
   const editorRef = useRef<EditorInstance | null>(null);
   const prevRowIdRef = useRef<string | number>(rowId);
   const prevInitialContentRef = useRef<JSONContent>(initialContent);
@@ -132,6 +155,7 @@ export const RealtimeEditor: React.FC<RealtimeEditorProps> = ({
           console.error(`Error updating ${tableName}:`, error);
         } else {
           setContent(debouncedContent);
+          // Store the current local time for proper timezone display
           setLastSaved(new Date());
         }
       } catch (error) {
@@ -158,223 +182,338 @@ export const RealtimeEditor: React.FC<RealtimeEditorProps> = ({
 
   return (
     <EditorRoot>
-      <div className="flex flex-col w-full h-full bg-neutral-100 dark:bg-neutral-800 rounded-lg border border-gray-200 dark:border-gray-700 relative">
-        {onTabChange && (
-          <div className="border-b border-gray-200 dark:border-gray-700 bg-gradient-to-r from-blue-500 via-indigo-500 to-blue-500 shadow-md">
-            {/* Header with dropdown */}
-            <div className="px-2 pt-2 pb-1">
-              <div className="flex justify-between items-center">
-                {/* Dropdown for switching between Diary and Pages */}
-                <div className="relative">
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <button
-                        className="px-4 py-2 text-sm rounded-md transition-colors bg-blue-600/50 text-white hover:bg-blue-600/70 flex items-center"
-                      >
-                        <span className="flex items-center">
-                          {activeTab === 'daily' ? (
-                            <>
-                              <Calendar className="h-4 w-4 mr-2" />
-                              <span>Diary</span>
-                            </>
-                          ) : (
-                            <>
-                              <Book className="h-4 w-4 mr-2" />
-                              <span>Pages</span>
-                            </>
-                          )}
-                        </span>
-                        <svg className="ml-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                        </svg>
-                      </button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="start" className="w-40 bg-white dark:bg-neutral-800 border-gray-200 dark:border-gray-700">
-                      <DropdownMenuItem
-                        onClick={() => onTabChange('daily')}
-                        className={`flex items-center ${activeTab === 'daily'
-                          ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-300'
-                          : 'text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700'}`}
-                      >
-                        <Calendar className="h-4 w-4 mr-2" />
-                        <span>Diary</span>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={() => onTabChange('project')}
-                        className={`flex items-center ${activeTab === 'project'
-                          ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-300'
-                          : 'text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700'}`}
-                      >
-                        <Book className="h-4 w-4 mr-2" />
-                        <span>Pages</span>
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </div>
-
-                {/* Right side buttons remain the same */}
-                <div className="flex-shrink-0">
-                  {activeTab === 'daily' && onDateChange && selectedDate.toDateString() !== new Date().toDateString() && (
-                    <button
-                      className="px-3 py-1.5 text-xs rounded-md bg-blue-600/50 text-white/90 hover:bg-blue-600/70"
-                      onClick={() => {
-                        const today = new Date();
-                        onDateChange(today);
-
-                        // Center today in the visible days
-                        if (onDaysChange) {
-                          const middleIndex = Math.floor(days.length / 2);
-                          const newDays = Array.from({ length: days.length }, (_, i) => {
-                            const newDate = new Date(today);
-                            newDate.setDate(newDate.getDate() + (i - middleIndex));
-                            return newDate;
-                          });
-                          onDaysChange(newDays);
-                        }
-                      }}
-                    >
-                      <span className="flex items-center">
-                        <Calendar className="h-3.5 w-3.5 mr-1.5" />
-                        <span className="font-medium">Today</span>
-                      </span>
-                    </button>
-                  )}
-                  {activeTab === 'project' && onCreateProject && (
-                    <CreateProjectDialog onCreateProject={onCreateProject} />
-                  )}
+      <div className="flex flex-col w-full h-full bg-neutral-100 dark:bg-neutral-800 rounded-lg border border-gray-200 dark:border-gray-700 relative">        {onTabChange && (
+        <div className="border-b border-gray-200 dark:border-gray-700 header-gradient shadow-lg">
+          {/* Unified Header with Tab Selection */}
+          <div className="px-3 sm:px-4 py-4">
+            <div className="flex flex-col lg:flex-row lg:items-start gap-4">
+              {/* Tab selection - vertical on desktop, horizontal on mobile */}
+              <div className="flex items-center justify-center lg:justify-start flex-shrink-0">
+                <div className="tab-container-vertical flex flex-row lg:flex-col">
+                  <button
+                    onClick={() => !disabled && onTabChange('daily')}
+                    disabled={disabled}
+                    className={`tab-button-vertical flex items-center px-3 sm:px-4 py-2 text-sm font-medium transition-all ${activeTab === 'daily' ? 'active' : ''
+                      } ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  >
+                    <Calendar className="h-4 w-4 mr-2" />
+                    <span className="hidden xs:inline">Daily Notes</span>
+                    <span className="xs:hidden">Daily</span>
+                  </button>
+                  <button
+                    onClick={() => !disabled && onTabChange('project')}
+                    disabled={disabled}
+                    className={`tab-button-vertical flex items-center px-3 sm:px-4 py-2 text-sm font-medium transition-all ${activeTab === 'project' ? 'active' : ''
+                      } ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  >
+                    <Book className="h-4 w-4 mr-2" />
+                    <span>Pages</span>
+                  </button>
                 </div>
               </div>
-            </div>
 
-            {/* Dynamic Content Area - Improved touch targets */}
-            <div className="py-2 px-2 flex items-center min-h-[50px]">
-              {/* Daily content */}
-              {activeTab === 'daily' && onDateChange && days.length > 0 && (
-                <div className="flex items-center w-full justify-center">
-                  <button
-                    className="p-2 text-white/90 hover:bg-white/20 rounded-full flex-shrink-0"
-                    onClick={() => {
-                      if (onDaysChange) {
-                        const newDays = days.map(day => {
-                          const newDate = new Date(day);
-                          newDate.setDate(newDate.getDate() - 1);
-                          return newDate;
-                        });
-                        onDaysChange(newDays);
-
-                        const newDate = new Date(selectedDate);
-                        newDate.setDate(newDate.getDate() - 1);
-                        onDateChange(newDate);
-                      }
-                    }}
-                  >
-                    <ChevronLeft className="h-5 w-5" />
-                  </button>
-
-                  <div className="overflow-x-auto scrollbar-hide flex-grow mx-2">
-                    <div className="flex w-max mx-auto">
-                      {days.map(day => {
-                        const isToday = day.toDateString() === new Date().toDateString();
-                        const isSelected = day.toDateString() === selectedDate.toDateString();
-
-                        return (
+              {/* Navigation content - takes remaining space */}
+              <div className="flex-1 min-w-0">
+                {/* Daily Notes Navigation */}
+                {activeTab === 'daily' && onDateChange && days.length > 0 && (
+                  <div className="flex flex-col sm:flex-row sm:items-end gap-3 sm:gap-4 w-full">
+                    {/* Date carousel navigation */}
+                    <div className="flex flex-col gap-1 flex-1 min-w-0">
+                      <span className="navigation-label text-white/70 px-1">Daily Notes</span>
+                      <div className={`flex items-center justify-center ${disabled ? 'opacity-50' : ''}`}>
+                        <div className="flex items-center gap-1 w-full">
                           <button
-                            key={day.toISOString()}
-                            onClick={() => onDateChange(day)}
-                            className={`mx-1 px-3 py-1.5 text-sm rounded-md whitespace-nowrap transition-all 
-                               flex flex-col items-center justify-center min-h-[3.25rem] min-w-[3.5rem]
-                               ${isSelected
-                                ? 'bg-white text-blue-600 font-medium shadow-sm'
-                                : 'bg-white/10 text-white/90 hover:bg-white/20'
+                            disabled={disabled}
+                            className={`p-1 sm:p-2 text-white/90 hover:bg-white/20 rounded-lg transition-all flex-shrink-0 ${disabled ? 'cursor-not-allowed' : ''
                               }`}
+                            onClick={() => {
+                              if (onDaysChange && !disabled) {
+                                const newDays = days.map(day => {
+                                  const newDate = new Date(day);
+                                  newDate.setDate(newDate.getDate() - 1);
+                                  return newDate;
+                                });
+                                onDaysChange(newDays);
+                                const newDate = new Date(selectedDate);
+                                newDate.setDate(newDate.getDate() - 1);
+                                onDateChange(newDate);
+                              }
+                            }}
+                            title="Previous day"
                           >
-                            <span className="text-center">{day.toLocaleDateString('en-US', {
-                              weekday: window.innerWidth < 375 ? 'narrow' : 'short',
-                              day: 'numeric'
-                            })}</span>
-                            {isToday && (
-                              <span className="text-xs mt-0.5 font-medium text-center">
-                                Today
-                              </span>
-                            )}
+                            <ChevronLeft className="h-4 w-4 sm:h-5 sm:w-5" />
                           </button>
-                        );
-                      })}
-                    </div>
-                  </div>
 
-                  <button
-                    className="p-2 text-white/90 hover:bg-white/20 rounded-full flex-shrink-0"
-                    onClick={() => {
-                      if (onDaysChange) {
-                        const newDays = days.map(day => {
-                          const newDate = new Date(day);
-                          newDate.setDate(newDate.getDate() + 1);
-                          return newDate;
-                        });
-                        onDaysChange(newDays);
+                          <div className="flex date-carousel-buttons flex-1 justify-center px-1">
+                            {days.map(day => {
+                              const isToday = day.toDateString() === new Date().toDateString();
+                              const isSelected = day.toDateString() === selectedDate.toDateString();
+                              const dayOfWeek = day.toLocaleDateString('en-US', { weekday: 'short' });
+                              const dayNumber = day.getDate();
+                              const month = day.toLocaleDateString('en-US', { month: 'short' });
+                              const year = day.getFullYear().toString().slice(-2); // Get last 2 digits of year
 
-                        const newDate = new Date(selectedDate);
-                        newDate.setDate(newDate.getDate() + 1);
-                        onDateChange(newDate);
-                      }
-                    }}
-                  >
-                    <ChevronRight className="h-5 w-5" />
-                  </button>
-                </div>
-              )}
+                              return (
+                                <button
+                                  key={day.toISOString()}
+                                  disabled={disabled}
+                                  onClick={() => !disabled && onDateChange(day)}
+                                  className={`date-carousel-item px-1 sm:px-2 py-2 rounded-lg flex-1 min-w-[2.5rem] sm:min-w-[3.5rem] text-center relative transition-all ${isSelected
+                                    ? 'bg-white text-blue-600 shadow-md font-medium'
+                                    : 'bg-white/10 text-white/90 hover:bg-white/20'
+                                    } ${isToday && !isSelected ? 'ring-1 sm:ring-2 ring-yellow-400/50' : ''} ${disabled ? 'cursor-not-allowed' : ''
+                                    }`}
+                                  title={`${dayOfWeek}, ${month} ${dayNumber}, ${day.getFullYear()}${isToday ? ' (Today)' : ''}`}
+                                >
+                                  <div className="text-xs font-medium leading-tight">{dayOfWeek} {dayNumber}</div>
+                                  <div className="text-xs opacity-75 leading-tight">{month} {year}</div>
+                                  {isToday && (
+                                    <div className="absolute -top-1 -right-1 w-1.5 h-1.5 sm:w-2 sm:h-2 bg-yellow-400 rounded-full"></div>
+                                  )}
+                                </button>
+                              );
+                            })}
+                          </div>
 
-              {/* Project content - with improved touch targets */}
-              {activeTab === 'project' && onProjectSelect && (
-                <div className="flex items-center w-full">
-                  {projectNotes.length === 0 ? (
-                    <span className="text-sm text-white/80 px-2 flex-grow text-center">No pages</span>
-                  ) : (
-                    <div className="overflow-x-auto scrollbar-hide flex-grow px-1 max-w-full">
-                      <div className="flex w-max">
-                        {projectNotes.map(project => (
                           <button
-                            key={project.id}
-                            onClick={() => onProjectSelect(project)}
-                            className={`mx-1 px-3 py-1.5 text-sm rounded-md whitespace-nowrap transition-all ${selectedProject?.id === project.id
-                              ? 'bg-white text-blue-600 font-medium shadow-sm'
-                              : 'bg-white/10 text-white/90 hover:bg-white/20'
+                            disabled={disabled}
+                            className={`p-1 sm:p-2 text-white/90 hover:bg-white/20 rounded-lg transition-all flex-shrink-0 ${disabled ? 'cursor-not-allowed' : ''
                               }`}
+                            onClick={() => {
+                              if (onDaysChange && !disabled) {
+                                const newDays = days.map(day => {
+                                  const newDate = new Date(day);
+                                  newDate.setDate(newDate.getDate() + 1);
+                                  return newDate;
+                                });
+                                onDaysChange(newDays);
+                                const newDate = new Date(selectedDate);
+                                newDate.setDate(newDate.getDate() + 1);
+                                onDateChange(newDate);
+                              }
+                            }}
+                            title="Next day"
                           >
-                            {project.title || "Untitled"}
+                            <ChevronRight className="h-4 w-4 sm:h-5 sm:w-5" />
                           </button>
-                        ))}
+                        </div>
                       </div>
                     </div>
-                  )}
-                </div>
-              )}
+
+                    {/* Date navigation actions - Pick Date and Today buttons */}
+                    <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0 pb-[1px]">
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <button
+                            disabled={disabled}
+                            className={`flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-2 text-xs sm:text-sm font-medium rounded-lg bg-white/15 text-white hover:bg-white/25 border border-white/20 transition-all ${disabled ? 'cursor-not-allowed opacity-50' : ''
+                              }`}
+                            title="Pick a specific date"
+                          >
+                            <CalendarDays className="h-3 w-3 sm:h-4 sm:w-4" />
+                            <span>Pick Date</span>
+                          </button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="end">
+                          <CalendarComponent
+                            mode="single"
+                            selected={selectedDate}
+                            onSelect={(date) => {
+                              if (date && onDateChange && !disabled) {
+                                onDateChange(date);
+                                if (onDaysChange) {
+                                  const middleIndex = Math.floor(days.length / 2);
+                                  const newDays = Array.from({ length: days.length }, (_, i) => {
+                                    const newDate = new Date(date);
+                                    newDate.setDate(newDate.getDate() + (i - middleIndex));
+                                    return newDate;
+                                  });
+                                  onDaysChange(newDays);
+                                }
+                              }
+                            }}
+                            initialFocus
+                          />
+                        </PopoverContent>
+                      </Popover>
+
+                      {selectedDate.toDateString() !== new Date().toDateString() && (
+                        <button
+                          disabled={disabled}
+                          className={`flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-2 text-xs sm:text-sm font-medium rounded-lg bg-white/15 text-white hover:bg-white/25 border border-white/20 transition-all ${disabled ? 'cursor-not-allowed opacity-50' : ''
+                            }`}
+                          onClick={() => {
+                            if (!disabled) {
+                              const today = new Date();
+                              onDateChange(today);
+                              if (onDaysChange) {
+                                const middleIndex = Math.floor(days.length / 2);
+                                const newDays = Array.from({ length: days.length }, (_, i) => {
+                                  const newDate = new Date(today);
+                                  newDate.setDate(newDate.getDate() + (i - middleIndex));
+                                  return newDate;
+                                });
+                                onDaysChange(newDays);
+                              }
+                            }
+                          }}
+                          title="Go to today's notes"
+                        >
+                          <Calendar className="h-3 w-3 sm:h-4 sm:w-4" />
+                          <span>Today</span>
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Pages Navigation */}
+                {activeTab === 'project' && onProjectSelect && (
+                  <div className="flex flex-col sm:flex-row sm:items-end gap-3 sm:gap-4 w-full">
+                    {/* Current page selector */}
+                    <div className="flex flex-col gap-1 flex-1 min-w-0">
+                      <span className="navigation-label text-white/70 px-1">Current Page</span>
+                      {projectNotes.length === 0 ? (
+                        <div className="flex flex-col gap-2">
+                          <div className="text-sm text-white/70 font-medium px-3 py-2 bg-white/10 rounded-lg border border-white/20">
+                            No pages yet
+                          </div>
+                          {onCreateProject && (
+                            <CreateProjectDialog
+                              onCreateProject={onCreateProject}
+                              disabled={disabled}
+                            />
+                          )}
+                        </div>
+                      ) : (
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <button
+                              disabled={disabled}
+                              className={`flex items-center px-3 py-2 text-sm font-medium rounded-lg bg-white/15 text-white hover:bg-white/25 border border-white/20 transition-all justify-between min-w-0 ${disabled ? 'cursor-not-allowed opacity-50' : ''
+                                }`}
+                              title={`Select a page to edit${selectedProject?.title ? ` - Currently: ${selectedProject.title}` : ''}`}
+                            >
+                              <span className="truncate text-left max-w-[200px] sm:max-w-[250px]">
+                                {selectedProject?.title || "Select a page"}
+                              </span>
+                              <ChevronLeft className="h-4 w-4 ml-2 rotate-[-90deg] flex-shrink-0" />
+                            </button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent className="w-80 bg-white dark:bg-neutral-800 border-gray-200 dark:border-gray-700 shadow-xl" align="start">
+                            <div className="p-2 border-b border-gray-200 dark:border-gray-700">
+                              <div className="relative">
+                                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                                <Input
+                                  placeholder="Search pages..."
+                                  value={projectSearchTerm}
+                                  onChange={(e) => !disabled && setProjectSearchTerm(e.target.value)}
+                                  disabled={disabled}
+                                  className="pl-10 text-sm"
+                                />
+                              </div>
+                            </div>
+                            <div className="max-h-60 overflow-y-auto">
+                              {projectNotes
+                                .filter(project =>
+                                  (project.title || "Untitled")
+                                    .toLowerCase()
+                                    .includes(projectSearchTerm.toLowerCase())
+                                )
+                                .map(project => (
+                                  <DropdownMenuItem
+                                    key={project.id}
+                                    onClick={() => {
+                                      if (!disabled) {
+                                        onProjectSelect(project);
+                                        setProjectSearchTerm('');
+                                      }
+                                    }}
+                                    className={`flex items-center p-3 cursor-pointer ${selectedProject?.id === project.id
+                                      ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-300'
+                                      : 'text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700'
+                                      }`}
+                                  >
+                                    <Book className="h-4 w-4 mr-3 flex-shrink-0" />
+                                    <span className="truncate">{project.title || "Untitled"}</span>
+                                  </DropdownMenuItem>
+                                ))}
+                              {projectNotes.filter(project =>
+                                (project.title || "Untitled")
+                                  .toLowerCase()
+                                  .includes(projectSearchTerm.toLowerCase())
+                              ).length === 0 && projectSearchTerm && (
+                                  <div className="p-3 text-sm text-gray-500 text-center">
+                                    No pages found
+                                  </div>
+                                )}
+                            </div>
+
+                            {/* Add new page button at the bottom of dropdown */}
+                            {onCreateProject && (
+                              <div className="border-t border-gray-200 dark:border-gray-700 p-2">
+                                <CreateProjectDialog
+                                  onCreateProject={onCreateProject}
+                                  disabled={disabled}
+                                  variant="dropdown"
+                                />
+                              </div>
+                            )}
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      )}
+                    </div>
+
+                    {/* Page actions - only rename and delete buttons */}
+                    <div className="flex items-center gap-2 flex-shrink-0 pb-[1px]">
+                      {selectedProject && handleRenameProject && handleDeleteProject && (
+                        <ProjectDialogs
+                          project={selectedProject}
+                          onRenameProject={handleRenameProject}
+                          onDeleteProject={handleDeleteProject}
+                        />
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
-        )}
+        </div>
+      )}
 
-        <div className="flex flex-col flex-grow overflow-auto">
+        <div className="flex flex-col flex-grow overflow-auto relative">
+          {/* Loading overlay */}
+          {disabled && (
+            <div className="absolute inset-0 bg-white/50 dark:bg-neutral-800/50 z-10 flex items-center justify-center backdrop-blur-sm">
+              <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+                <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+                <span className="font-medium">Loading content...</span>
+              </div>
+            </div>
+          )}
+
           <EditorContent
-            className="w-full break-words radius-lg h-full"
+            className={`w-full break-words radius-lg h-full ${disabled ? 'pointer-events-none' : ''}`}
             extensions={extensions}
             editorProps={{
               handleDOMEvents: {
-                keydown: (_view, event) => handleCommandNavigation(event),
+                keydown: (_view, event) => disabled ? true : handleCommandNavigation(event),
               },
-              handlePaste: (view, event) => handleImagePaste(view, event, uploadFn),
-              handleDrop: (view, event, _slice, moved) => handleImageDrop(view, event, moved, uploadFn),
+              handlePaste: (view, event) => disabled ? true : handleImagePaste(view, event, uploadFn),
+              handleDrop: (view, event, _slice, moved) => disabled ? true : handleImageDrop(view, event, moved, uploadFn),
               attributes: {
-                class: `prose prose-lg dark:prose-invert prose-headings:font-title font-default focus:outline-none max-w-full radius-lg`,
+                class: `prose prose-lg dark:prose-invert prose-headings:font-title font-default focus:outline-none max-w-full radius-lg ${disabled ? 'opacity-60' : ''}`,
               }
             }}
             initialContent={initialContent}
-            onUpdate={({ editor }) => handleContentUpdate(editor)}
+            onUpdate={({ editor }) => disabled ? undefined : handleContentUpdate(editor)}
             immediatelyRender={false}
             slotAfter={<ImageResizer />}
             onContentError={(error) => {
               console.error("Content error", error);
             }}
+            editable={!disabled}
           >
 
             {/* Command Palette */}
@@ -418,32 +557,30 @@ export const RealtimeEditor: React.FC<RealtimeEditorProps> = ({
           </EditorContent>
         </div>
 
-        {/* Footer with justified content - Last saved on left, ProjectDialogs on right */}
-        <div className="flex justify-between items-center z-10 p-2 border-t">
-          <div className="flex items-center gap-2">
+        {/* Enhanced Footer */}
+        <div className="flex justify-between items-center border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-neutral-900/50 px-4 py-3">
+          <div className="flex items-center gap-3">
             {isSaving && (
-              <div className="text-xs text-muted-foreground">
-                Saving...
+              <div className="flex items-center gap-2 text-sm text-blue-600 dark:text-blue-400">
+                <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+                <span className="font-medium">Saving...</span>
               </div>
             )}
             {!isSaving && lastSaved && (
-              <div className="text-xs text-muted-foreground p-2 sm:p-4">
-                Last saved: {formatRelativeTime(lastSaved)}
+              <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                <span>
+                  Last saved: <span className="font-medium">{formatLocalRelativeTime(lastSaved)}</span>
+                </span>
+              </div>
+            )}
+            {!isSaving && !lastSaved && (
+              <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-500">
+                <div className="w-2 h-2 bg-gray-400 rounded-full"></div>
+                <span>Not saved yet</span>
               </div>
             )}
           </div>
-          {
-            selectedProject &&
-            handleRenameProject &&
-            handleDeleteProject && (
-              <div>
-                <ProjectDialogs
-                  project={selectedProject!}
-                  onRenameProject={handleRenameProject}
-                  onDeleteProject={handleDeleteProject}
-                />
-              </div>
-            )}
         </div>
       </div>
     </EditorRoot>

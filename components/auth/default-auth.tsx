@@ -1,10 +1,15 @@
 import Link from "next/link";
 import GoogleSignInButton from "./GoogleSignInButton";
 import Image from "next/image";
+import { Inter } from "next/font/google";
+import OneTapComponent from "../OneTap";
+
+const inter = Inter({ subsets: ['latin'] });
 
 export default async function DefaultAuth() {
     return (
-        <div className="relative min-h-screen grid w-full lg:max-w-none lg:grid-cols-2 lg:px-0">
+        <div className={`relative min-h-screen grid w-full lg:max-w-none lg:grid-cols-2 lg:px-0 ${inter.className}`}>
+            <OneTapComponent />
             {/* Left side with background image - unchanged */}
             <div className="relative hidden h-full flex-col p-10 text-white lg:flex">
                 <div className="absolute inset-0 bg-cover bg-center" style={{
@@ -13,7 +18,9 @@ export default async function DefaultAuth() {
                 {/* Add a dark overlay for better text visibility */}
                 <div className="absolute inset-0 bg-black/30 z-10"></div>
                 <div className="relative z-20 flex items-start">
-                    <Image src="/logoTransparent.svg" alt="Weko Logo" width={128} height={128} />
+                    <Link href="/">
+                        <Image src="/logoTransparent.svg" alt="Weko Logo" width={128} height={128} />
+                    </Link>
                 </div>
                 <div className="relative z-20 mt-auto">
                     <p className="text-foreground-muted">Your calm space for productivity, powered by AI</p>
@@ -29,17 +36,19 @@ export default async function DefaultAuth() {
                 <div className="mx-auto flex w-full max-w-[600px] flex-col justify-center space-y-6 sm:w-[550px] items-center px-6 relative z-10">
                     {/* Logo for mobile view */}
                     <div className="flex flex-col justify-center items-center lg:hidden mb-8">
-                        <Image
-                            src="/logoTransparent.svg"
-                            alt="Weko Logo"
-                            width={128}
-                            height={128}
-                            className="mb-[-24px]"
-                        />
+                        <Link href="/">
+                            <Image
+                                src="/logoTransparent.svg"
+                                alt="Weko Logo"
+                                width={128}
+                                height={128}
+                                className="mb-[-24px]"
+                            />
+                        </Link>
                         <p className="text-white">Your calm space for productivity, powered by AI</p>
                     </div>
                     <div className="flex flex-col space-y-2 text-center">
-                        <h1 className="text-4xl md:text-5xl lg:text-6xl font-light tracking-tight mb-4 text-white">
+                        <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight mb-4 text-white">
                             What matters most, everyday.
                         </h1>
                     </div>

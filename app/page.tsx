@@ -16,7 +16,7 @@ export default async function LandingPage() {
     const { data: { user } } = await supabase.auth.getUser();
 
     return (
-        <div className="bg-background text-foreground">
+        <div className="dark bg-background text-foreground">
             <header className="sticky top-0 w-full bg-gradient-to-b from-background/90 to-transparent backdrop-blur-sm z-50">
                 <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex items-center justify-between h-16">

@@ -114,6 +114,26 @@ export const RealtimeEditor: React.FC<RealtimeEditorProps> = ({
   const prevInitialContentRef = useRef<JSONContent>(initialContent);
   const debouncedContent = useDebounce(localContent, 2000);
 
+  // Ensure days array is centered around selected date
+  useEffect(() => {
+    if (onDaysChange && selectedDate) {
+      const selectedIndex = days.findIndex(d => d.toDateString() === selectedDate.toDateString());
+
+      // If days array is empty, or selected date is not found, or not properly centered
+      if (days.length === 0 || selectedIndex === -1 || selectedIndex !== Math.floor(days.length / 2)) {
+        // Generate days array centered around selectedDate
+        const numberOfDays = Math.max(7, days.length || 7); // Default to 7 days or maintain current length
+        const middleIndex = Math.floor(numberOfDays / 2);
+        const newDays = Array.from({ length: numberOfDays }, (_, i) => {
+          const newDate = new Date(selectedDate);
+          newDate.setDate(newDate.getDate() + (i - middleIndex));
+          return newDate;
+        });
+        onDaysChange(newDays);
+      }
+    }
+  }, [selectedDate, days, onDaysChange]);
+
   // Update content when initialContent prop changes or rowId changes
   useEffect(() => {
     const contentChanged = JSON.stringify(initialContent) !== JSON.stringify(prevInitialContentRef.current);
@@ -228,15 +248,19 @@ export const RealtimeEditor: React.FC<RealtimeEditorProps> = ({
                               }`}
                             onClick={() => {
                               if (onDaysChange && !disabled) {
-                                const newDays = days.map(day => {
-                                  const newDate = new Date(day);
-                                  newDate.setDate(newDate.getDate() - 1);
-                                  return newDate;
-                                });
-                                onDaysChange(newDays);
                                 const newDate = new Date(selectedDate);
                                 newDate.setDate(newDate.getDate() - 1);
                                 onDateChange(newDate);
+
+                                // Center the new selected date in the days array
+                                const numberOfDays = days.length;
+                                const middleIndex = Math.floor(numberOfDays / 2);
+                                const newDays = Array.from({ length: numberOfDays }, (_, i) => {
+                                  const dayDate = new Date(newDate);
+                                  dayDate.setDate(dayDate.getDate() + (i - middleIndex));
+                                  return dayDate;
+                                });
+                                onDaysChange(newDays);
                               }
                             }}
                             title="Previous day"
@@ -245,34 +269,143 @@ export const RealtimeEditor: React.FC<RealtimeEditorProps> = ({
                           </button>
 
                           <div className="flex date-carousel-buttons flex-1 justify-center px-1">
-                            {days.map(day => {
-                              const isToday = day.toDateString() === new Date().toDateString();
-                              const isSelected = day.toDateString() === selectedDate.toDateString();
-                              const dayOfWeek = day.toLocaleDateString('en-US', { weekday: 'short' });
-                              const dayNumber = day.getDate();
-                              const month = day.toLocaleDateString('en-US', { month: 'short' });
-                              const year = day.getFullYear().toString().slice(-2); // Get last 2 digits of year
+                            {/* Mobile: Show only 3 days (selected ± 1) */}
+                            <div className="flex w-full justify-center sm:hidden gap-1">
+                              {(() => {
+                                const selectedIndex = days.findIndex(d => d.toDateString() === selectedDate.toDateString());
 
-                              return (
-                                <button
-                                  key={day.toISOString()}
-                                  disabled={disabled}
-                                  onClick={() => !disabled && onDateChange(day)}
-                                  className={`date-carousel-item px-1 sm:px-2 py-2 rounded-lg flex-1 min-w-[2.5rem] sm:min-w-[3.5rem] text-center relative transition-all ${isSelected
-                                    ? 'bg-white text-blue-600 shadow-md font-medium'
-                                    : 'bg-white/10 text-white/90 hover:bg-white/20'
-                                    } ${isToday && !isSelected ? 'ring-1 sm:ring-2 ring-yellow-400/50' : ''} ${disabled ? 'cursor-not-allowed' : ''
-                                    }`}
-                                  title={`${dayOfWeek}, ${month} ${dayNumber}, ${day.getFullYear()}${isToday ? ' (Today)' : ''}`}
-                                >
-                                  <div className="text-xs font-medium leading-tight">{dayOfWeek} {dayNumber}</div>
-                                  <div className="text-xs opacity-75 leading-tight">{month} {year}</div>
-                                  {isToday && (
-                                    <div className="absolute -top-1 -right-1 w-1.5 h-1.5 sm:w-2 sm:h-2 bg-yellow-400 rounded-full"></div>
-                                  )}
-                                </button>
-                              );
-                            })}
+                                // If selectedDate is not found in days array, default to middle
+                                const safeSelectedIndex = selectedIndex !== -1 ? selectedIndex : Math.floor(days.length / 2);
+
+                                // Calculate start and end indices to always show 3 days
+                                let startIndex = Math.max(0, safeSelectedIndex - 1);
+                                let endIndex = Math.min(days.length - 1, safeSelectedIndex + 1);
+
+                                // Adjust if we're at the edges to ensure 3 days when possible
+                                if (endIndex - startIndex < 2 && days.length >= 3) {
+                                  if (startIndex === 0) {
+                                    endIndex = Math.min(days.length - 1, startIndex + 2);
+                                  } else if (endIndex === days.length - 1) {
+                                    startIndex = Math.max(0, endIndex - 2);
+                                  }
+                                }
+
+                                // Get the 3 days to show
+                                const mobileDays = days.slice(startIndex, endIndex + 1);
+
+                                return mobileDays.map((day) => {
+                                  const isToday = day.toDateString() === new Date().toDateString();
+                                  const isSelected = day.toDateString() === selectedDate.toDateString();
+                                  const dayOfWeek = day.toLocaleDateString('en-US', { weekday: 'short' });
+                                  const dayNumber = day.getDate();
+                                  const month = day.toLocaleDateString('en-US', { month: 'short' });
+                                  const year = day.getFullYear().toString().slice(-2);
+
+                                  return (
+                                    <button
+                                      key={day.toISOString()}
+                                      disabled={disabled}
+                                      onClick={() => {
+                                        if (!disabled) {
+                                          onDateChange(day);
+                                          // Center the clicked date in the days array
+                                          if (onDaysChange) {
+                                            const numberOfDays = days.length;
+                                            const middleIndex = Math.floor(numberOfDays / 2);
+                                            const newDays = Array.from({ length: numberOfDays }, (_, i) => {
+                                              const newDate = new Date(day);
+                                              newDate.setDate(newDate.getDate() + (i - middleIndex));
+                                              return newDate;
+                                            });
+                                            onDaysChange(newDays);
+                                          }
+                                        }
+                                      }}
+                                      className={`date-carousel-item px-1 py-2 rounded-lg flex-1 min-w-[2.5rem] text-center relative transition-all ${isSelected
+                                        ? 'bg-white text-blue-600 shadow-md font-medium'
+                                        : 'bg-white/10 text-white/90 hover:bg-white/20'
+                                        } ${isToday && !isSelected ? 'ring-1 ring-yellow-400/50' : ''} ${disabled ? 'cursor-not-allowed' : ''}`}
+                                      title={`${dayOfWeek}, ${month} ${dayNumber}, ${day.getFullYear()}${isToday ? ' (Today)' : ''}`}
+                                    >
+                                      {isToday && (
+                                        <div className="text-xs font-medium leading-tight mb-0.5">Today</div>
+                                      )}
+                                      <div className="text-sm font-medium leading-tight">{dayOfWeek} {dayNumber}</div>
+                                      <div className="text-xs opacity-75 leading-tight">{month} {year}</div>
+                                    </button>
+                                  );
+                                });
+                              })()}
+                            </div>
+
+                            {/* Desktop: Show 5 days with selected day in the middle (3rd position) */}
+                            <div className="hidden sm:flex w-full justify-center gap-1">
+                              {(() => {
+                                const selectedIndex = days.findIndex(d => d.toDateString() === selectedDate.toDateString());
+
+                                // If selectedDate is not found in days array, default to middle
+                                const safeSelectedIndex = selectedIndex !== -1 ? selectedIndex : Math.floor(days.length / 2);
+
+                                // Calculate start and end indices to show 5 days with selected in the middle
+                                let startIndex = Math.max(0, safeSelectedIndex - 2);
+                                let endIndex = Math.min(days.length - 1, safeSelectedIndex + 2);
+
+                                // Adjust if we're at the edges to ensure 5 days when possible
+                                if (endIndex - startIndex < 4 && days.length >= 5) {
+                                  if (startIndex === 0) {
+                                    endIndex = Math.min(days.length - 1, startIndex + 4);
+                                  } else if (endIndex === days.length - 1) {
+                                    startIndex = Math.max(0, endIndex - 4);
+                                  }
+                                }
+
+                                // Get the 5 days to show
+                                const desktopDays = days.slice(startIndex, endIndex + 1);
+
+                                return desktopDays.map((day) => {
+                                  const isToday = day.toDateString() === new Date().toDateString();
+                                  const isSelected = day.toDateString() === selectedDate.toDateString();
+                                  const dayOfWeek = day.toLocaleDateString('en-US', { weekday: 'short' });
+                                  const dayNumber = day.getDate();
+                                  const month = day.toLocaleDateString('en-US', { month: 'short' });
+                                  const year = day.getFullYear().toString().slice(-2);
+
+                                  return (
+                                    <button
+                                      key={day.toISOString()}
+                                      disabled={disabled}
+                                      onClick={() => {
+                                        if (!disabled) {
+                                          onDateChange(day);
+                                          // Center the clicked date in the days array
+                                          if (onDaysChange) {
+                                            const numberOfDays = days.length;
+                                            const middleIndex = Math.floor(numberOfDays / 2);
+                                            const newDays = Array.from({ length: numberOfDays }, (_, i) => {
+                                              const newDate = new Date(day);
+                                              newDate.setDate(newDate.getDate() + (i - middleIndex));
+                                              return newDate;
+                                            });
+                                            onDaysChange(newDays);
+                                          }
+                                        }
+                                      }}
+                                      className={`date-carousel-item px-2 py-2 rounded-lg flex-1 min-w-[3.5rem] text-center relative transition-all ${isSelected
+                                        ? 'bg-white text-blue-600 shadow-md font-medium'
+                                        : 'bg-white/10 text-white/90 hover:bg-white/20'
+                                        } ${isToday && !isSelected ? 'ring-2 ring-yellow-400/50' : ''} ${disabled ? 'cursor-not-allowed' : ''}`}
+                                      title={`${dayOfWeek}, ${month} ${dayNumber}, ${day.getFullYear()}${isToday ? ' (Today)' : ''}`}
+                                    >
+                                      {isToday && (
+                                        <div className="text-xs font-medium leading-tight mb-0.5">Today</div>
+                                      )}
+                                      <div className="text-xs font-medium leading-tight">{dayOfWeek} {dayNumber}</div>
+                                      <div className="text-xs opacity-75 leading-tight">{month} {year}</div>
+                                    </button>
+                                  );
+                                });
+                              })()}
+                            </div>
                           </div>
 
                           <button
@@ -281,15 +414,19 @@ export const RealtimeEditor: React.FC<RealtimeEditorProps> = ({
                               }`}
                             onClick={() => {
                               if (onDaysChange && !disabled) {
-                                const newDays = days.map(day => {
-                                  const newDate = new Date(day);
-                                  newDate.setDate(newDate.getDate() + 1);
-                                  return newDate;
-                                });
-                                onDaysChange(newDays);
                                 const newDate = new Date(selectedDate);
                                 newDate.setDate(newDate.getDate() + 1);
                                 onDateChange(newDate);
+
+                                // Center the new selected date in the days array
+                                const numberOfDays = days.length;
+                                const middleIndex = Math.floor(numberOfDays / 2);
+                                const newDays = Array.from({ length: numberOfDays }, (_, i) => {
+                                  const dayDate = new Date(newDate);
+                                  dayDate.setDate(dayDate.getDate() + (i - middleIndex));
+                                  return dayDate;
+                                });
+                                onDaysChange(newDays);
                               }
                             }}
                             title="Next day"
@@ -301,17 +438,49 @@ export const RealtimeEditor: React.FC<RealtimeEditorProps> = ({
                     </div>
 
                     {/* Date navigation actions - Pick Date and Today buttons */}
-                    <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0 pb-[1px]">
+                    <div className="flex sm:flex-col gap-1 sm:gap-2 flex-shrink-0 pb-[1px] sm:w-[110px]">
+                      {/* Today button or spacer - always reserve space on desktop */}
+                      {selectedDate.toDateString() !== new Date().toDateString() ? (
+                        <button
+                          disabled={disabled}
+                          className={`flex items-center justify-center gap-1 sm:gap-2 px-2 sm:px-3 py-2 text-xs sm:text-sm font-medium rounded-lg bg-white/15 text-white hover:bg-white/25 border border-white/20 transition-all sm:w-full whitespace-nowrap ${disabled ? 'cursor-not-allowed opacity-50' : ''
+                            }`}
+                          onClick={() => {
+                            if (!disabled) {
+                              const today = new Date();
+                              onDateChange(today);
+                              if (onDaysChange) {
+                                const numberOfDays = days.length;
+                                const middleIndex = Math.floor(numberOfDays / 2);
+                                const newDays = Array.from({ length: numberOfDays }, (_, i) => {
+                                  const newDate = new Date(today);
+                                  newDate.setDate(newDate.getDate() + (i - middleIndex));
+                                  return newDate;
+                                });
+                                onDaysChange(newDays);
+                              }
+                            }
+                          }}
+                          title="Go to today's notes"
+                        >
+                          <Calendar className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
+                          <span className="text-xs sm:text-sm">Today</span>
+                        </button>
+                      ) : (
+                        <div className="hidden sm:block h-[36px]"></div> // Invisible spacer to maintain layout on desktop only
+                      )}
+
+                      {/* Pick Date button - always in second position on desktop, first/alongside on mobile */}
                       <Popover>
                         <PopoverTrigger asChild>
                           <button
                             disabled={disabled}
-                            className={`flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-2 text-xs sm:text-sm font-medium rounded-lg bg-white/15 text-white hover:bg-white/25 border border-white/20 transition-all ${disabled ? 'cursor-not-allowed opacity-50' : ''
+                            className={`flex items-center justify-center gap-1 sm:gap-2 px-2 sm:px-3 py-2 text-xs sm:text-sm font-medium rounded-lg bg-white/15 text-white hover:bg-white/25 border border-white/20 transition-all sm:w-full whitespace-nowrap ${disabled ? 'cursor-not-allowed opacity-50' : ''
                               }`}
                             title="Pick a specific date"
                           >
-                            <CalendarDays className="h-3 w-3 sm:h-4 sm:w-4" />
-                            <span>Pick Date</span>
+                            <CalendarDays className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
+                            <span className="text-xs sm:text-sm">Pick Date</span>
                           </button>
                         </PopoverTrigger>
                         <PopoverContent className="w-auto p-0" align="end">
@@ -322,8 +491,9 @@ export const RealtimeEditor: React.FC<RealtimeEditorProps> = ({
                               if (date && onDateChange && !disabled) {
                                 onDateChange(date);
                                 if (onDaysChange) {
-                                  const middleIndex = Math.floor(days.length / 2);
-                                  const newDays = Array.from({ length: days.length }, (_, i) => {
+                                  const numberOfDays = days.length;
+                                  const middleIndex = Math.floor(numberOfDays / 2);
+                                  const newDays = Array.from({ length: numberOfDays }, (_, i) => {
                                     const newDate = new Date(date);
                                     newDate.setDate(newDate.getDate() + (i - middleIndex));
                                     return newDate;
@@ -336,33 +506,6 @@ export const RealtimeEditor: React.FC<RealtimeEditorProps> = ({
                           />
                         </PopoverContent>
                       </Popover>
-
-                      {selectedDate.toDateString() !== new Date().toDateString() && (
-                        <button
-                          disabled={disabled}
-                          className={`flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-2 text-xs sm:text-sm font-medium rounded-lg bg-white/15 text-white hover:bg-white/25 border border-white/20 transition-all ${disabled ? 'cursor-not-allowed opacity-50' : ''
-                            }`}
-                          onClick={() => {
-                            if (!disabled) {
-                              const today = new Date();
-                              onDateChange(today);
-                              if (onDaysChange) {
-                                const middleIndex = Math.floor(days.length / 2);
-                                const newDays = Array.from({ length: days.length }, (_, i) => {
-                                  const newDate = new Date(today);
-                                  newDate.setDate(newDate.getDate() + (i - middleIndex));
-                                  return newDate;
-                                });
-                                onDaysChange(newDays);
-                              }
-                            }
-                          }}
-                          title="Go to today's notes"
-                        >
-                          <Calendar className="h-3 w-3 sm:h-4 sm:w-4" />
-                          <span>Today</span>
-                        </button>
-                      )}
                     </div>
                   </div>
                 )}

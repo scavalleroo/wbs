@@ -12,65 +12,41 @@ export const useFocusSession = ({ user }: UserIdParam) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Tracking session with interval
-  const sessionInterval = useRef<NodeJS.Timeout | null>(null);
+  // Local session tracking (no intervals or DB polling)
   const sessionStartTime = useRef<Date | null>(null);
 
-  // Check for active session on mount
+  // Check for active session on mount (cleanup any orphaned sessions)
   useEffect(() => {
     if (user?.id) {
-      checkForActiveSession();
+      cleanupOrphanedSessions();
     }
-    
-    return () => {
-      if (sessionInterval.current) {
-        clearInterval(sessionInterval.current);
-      }
-    };
   }, [user?.id]);
 
-  // Check if user has an active focus session
-  const checkForActiveSession = useCallback(async () => {
-    if (!user?.id) return null;
+  // Cleanup any orphaned active sessions on mount (mark them as abandoned)
+  const cleanupOrphanedSessions = useCallback(async () => {
+    if (!user?.id) return;
     
     try {
-      setLoading(true);
-      
-      const { data, error } = await supabase
+      // Find any active sessions and mark them as abandoned
+      // This handles cases where the user closed the app without properly ending a session
+      const { error } = await supabase
         .from('focus_sessions')
-        .select('*')
+        .update({
+          status: 'abandoned',
+          ended_at: new Date().toISOString()
+        })
         .eq('user_id', user.id)
-        .eq('status', 'active')
-        .order('started_at', { ascending: false })
-        .limit(1)
-        .maybeSingle();
+        .eq('status', 'active');
       
-      if (error) throw error;
-      
-      if (data) {
-        setCurrentSession(data);
-        
-        // Start tracking time for active session
-        sessionStartTime.current = new Date(data.started_at);
-        startSessionTracking();
-      } else {
-        setCurrentSession(null);
-        stopSessionTracking();
+      if (error) {
+        console.error('Error cleaning up orphaned sessions:', error);
       }
-      
-      return data;
     } catch (err) {
-      console.error('Error checking for active focus session:', err);
-      const errorMessage = err instanceof Error ? err.message : String(err);
-      setError(errorMessage);
-      toast.error('Failed to check for active focus sessions');
-      return null;
-    } finally {
-      setLoading(false);
+      console.error('Error in cleanupOrphanedSessions:', err);
     }
   }, [user?.id]);
 
-  // Start a new focus session
+  // Start a new focus session (only called when user presses play)
   const startSession = useCallback(async (sessionData: Omit<FocusSessionCreate, 'user_id'>) => {
     if (!user?.id) {
       toast.error('You must be logged in to start a focus session');
@@ -80,10 +56,7 @@ export const useFocusSession = ({ user }: UserIdParam) => {
     try {
       setLoading(true);
       
-      // First, ensure there are no active sessions
-      await endAllActiveSessions('abandoned');
-      
-      // Create new session
+      // Create new session in database
       const { data, error } = await supabase
         .from('focus_sessions')
         .insert([{
@@ -100,9 +73,9 @@ export const useFocusSession = ({ user }: UserIdParam) => {
       
       if (error) throw error;
       
+      // Set local state
       setCurrentSession(data);
       sessionStartTime.current = new Date();
-      startSessionTracking();
       
       return data;
     } catch (err) {
@@ -116,7 +89,7 @@ export const useFocusSession = ({ user }: UserIdParam) => {
     }
   }, [user?.id]);
 
-  // End a specific session
+  // End the current session (only called when user presses stop)
   const endSession = useCallback(async (
     sessionId: string, 
     status: 'completed' | 'abandoned' = 'completed'
@@ -124,27 +97,23 @@ export const useFocusSession = ({ user }: UserIdParam) => {
     try {
       setLoading(true);
       
-      if (!sessionId) return null;
+      if (!sessionId || !sessionStartTime.current) return null;
       
-      // Calculate actual duration
-      let actualDuration = 0;
-      if (currentSession && currentSession.id === sessionId && sessionStartTime.current) {
-        const endTime = new Date();
-        actualDuration = Math.floor((endTime.getTime() - sessionStartTime.current.getTime()) / 1000);
-      } else if (currentSession) {
-        actualDuration = currentSession.actual_duration;
-      }
+      // Calculate actual duration based on start time
+      const endTime = new Date();
+      const actualDuration = Math.floor((endTime.getTime() - sessionStartTime.current.getTime()) / 1000);
       
-      // Only save sessions longer than 1 minutes (60 seconds)
+      // Only save sessions longer than 1 minute (60 seconds)
       if (actualDuration < 60 && status === 'completed') {
         status = 'abandoned'; // Mark short sessions as abandoned
       }
       
+      // Update session in database with final duration
       const { data, error } = await supabase
         .from('focus_sessions')
         .update({
           actual_duration: actualDuration,
-          ended_at: new Date().toISOString(),
+          ended_at: endTime.toISOString(),
           status: status
         })
         .eq('id', sessionId)
@@ -153,19 +122,15 @@ export const useFocusSession = ({ user }: UserIdParam) => {
       
       if (error) throw error;
       
-      // Clear current session if it matches
-      if (currentSession && currentSession.id === sessionId) {
-        setCurrentSession(null);
-        stopSessionTracking();
-      }
+      // Clear local session state
+      setCurrentSession(null);
+      sessionStartTime.current = null;
       
-      // If completed successfully and over 2 minutes
-      if (status === 'completed') {
-        toast.success('Focus session completed! 🎉');
+      // Show success message for completed sessions
+      if (status === 'completed' && actualDuration >= 60) {
+        const minutes = Math.floor(actualDuration / 60);
+        toast.success(`Focus session completed! 🎉 (${minutes}m ${actualDuration % 60}s)`);
       }
-      
-      // Refresh recent sessions
-      fetchRecentSessions();
       
       return data;
     } catch (err) {
@@ -177,7 +142,34 @@ export const useFocusSession = ({ user }: UserIdParam) => {
     } finally {
       setLoading(false);
     }
-  }, [currentSession]);
+  }, []);
+
+  // Get today's total focus time for the user
+  const getTodaysFocusTime = useCallback(async () => {
+    if (!user?.id) return 0;
+    
+    try {
+      const today = new Date();
+      const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+      const endOfDay = new Date(startOfDay.getTime() + 24 * 60 * 60 * 1000);
+      
+      const { data, error } = await supabase
+        .from('focus_sessions')
+        .select('actual_duration')
+        .eq('user_id', user.id)
+        .eq('status', 'completed')
+        .gte('created_at', startOfDay.toISOString())
+        .lt('created_at', endOfDay.toISOString());
+      
+      if (error) throw error;
+      
+      const totalSeconds = data?.reduce((sum, session) => sum + session.actual_duration, 0) || 0;
+      return totalSeconds;
+    } catch (err) {
+      console.error('Error fetching today\'s focus time:', err);
+      return 0;
+    }
+  }, [user?.id]);
 
   // Delete a focus session
   const deleteSession = useCallback(async (sessionId: string) => {
@@ -211,68 +203,6 @@ export const useFocusSession = ({ user }: UserIdParam) => {
       setLoading(false);
     }
   }, [user?.id]);
-
-  // End all active sessions for the user
-  const endAllActiveSessions = useCallback(async (status: 'completed' | 'abandoned' = 'abandoned') => {
-    if (!user?.id) return;
-    
-    try {
-      // First, get all active sessions
-      const { data: activeSessions, error: fetchError } = await supabase
-        .from('focus_sessions')
-        .select('id, started_at, actual_duration')
-        .eq('user_id', user.id)
-        .eq('status', 'active');
-      
-      if (fetchError) throw fetchError;
-      
-      // End each active session
-      if (activeSessions && activeSessions.length > 0) {
-        const now = new Date();
-        
-        for (const session of activeSessions) {
-          const startTime = new Date(session.started_at);
-          const actualDuration = Math.floor((now.getTime() - startTime.getTime()) / 1000);
-          
-          await supabase
-            .from('focus_sessions')
-            .update({
-              actual_duration: actualDuration,
-              ended_at: now.toISOString(),
-              status: status
-            })
-            .eq('id', session.id);
-        }
-      }
-      
-      stopSessionTracking();
-      setCurrentSession(null);
-    } catch (err) {
-      console.error('Error ending active sessions:', err);
-    }
-  }, [user?.id]);
-
-  // Update the current session's actual duration in the background
-  const updateSessionDuration = useCallback(async () => {
-    if (!currentSession || !sessionStartTime.current || !user?.id) return;
-    
-    try {
-      const now = new Date();
-      const actualDuration = Math.floor((now.getTime() - sessionStartTime.current.getTime()) / 1000);
-      
-      await supabase
-        .from('focus_sessions')
-        .update({
-          actual_duration: actualDuration
-        })
-        .eq('id', currentSession.id)
-        .eq('user_id', user.id);
-        
-      setCurrentSession(prev => prev ? {...prev, actual_duration: actualDuration} : null);
-    } catch (err) {
-      console.error('Error updating session duration:', err);
-    }
-  }, [currentSession, user?.id]);
 
   // Get user's recent focus sessions
   const fetchRecentSessions = useCallback(async (limit = 10) => {
@@ -388,24 +318,6 @@ export const useFocusSession = ({ user }: UserIdParam) => {
     }
   }, [user?.id]);
 
-  // Tracking helpers
-  const startSessionTracking = () => {
-    // Update every 30 seconds
-    if (!sessionInterval.current) {
-      sessionInterval.current = setInterval(() => {
-        updateSessionDuration();
-      }, 30000); // 30 seconds
-    }
-  };
-  
-  const stopSessionTracking = () => {
-    if (sessionInterval.current) {
-      clearInterval(sessionInterval.current);
-      sessionInterval.current = null;
-    }
-    sessionStartTime.current = null;
-  };
-
   return {
     currentSession,
     recentSessions,
@@ -414,10 +326,10 @@ export const useFocusSession = ({ user }: UserIdParam) => {
     error,
     startSession,
     endSession,
-    endAllActiveSessions,
     fetchRecentSessions,
     fetchSessionStats,
-    checkForActiveSession,
-    deleteSession
+    deleteSession,
+    getTodaysFocusTime,
+    cleanupOrphanedSessions
   };
 };

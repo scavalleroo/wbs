@@ -1,8 +1,9 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { HeartPulse, ArrowLeft, Check, Edit3, ChevronLeft, ChevronRight } from 'lucide-react';
+import { HeartPulse, ArrowLeft, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
 import MoodScale from '@/components/moodTracking/MoodScale';
 import { Textarea } from '@/components/ui/textarea';
@@ -11,7 +12,6 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { User } from '@supabase/supabase-js';
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts';
 import useMood from '@/hooks/use-mood';
-import { useRouter } from 'next/navigation';
 import { format, subDays, eachDayOfInterval, isSameDay, addDays } from 'date-fns';
 
 export interface WellnessChartDataPoint {
@@ -23,6 +23,7 @@ export interface WellnessChartDataPoint {
     nutrition_rating: number | null;
     exercise_rating: number | null;
     social_rating: number | null;
+    description: string | null;
 }
 
 interface MoodEntry {
@@ -32,6 +33,7 @@ interface MoodEntry {
     nutrition_rating: number | null;
     exercise_rating: number | null;
     social_rating: number | null;
+    description: string | null;
 }
 
 export interface WellnessRatings {
@@ -46,6 +48,15 @@ interface OptimizedWellbeingCardProps {
     user: User | null | undefined;
     isMobile?: boolean;
 }
+
+type ChartPeriod = 'week' | 'month' | '3months' | 'all';
+
+const CHART_PERIODS = {
+    week: { days: 7, label: 'This Week' },
+    month: { days: 30, label: 'This Month' },
+    '3months': { days: 90, label: 'Last 3 Months' },
+    all: { days: 365, label: 'All Time' }
+} as const;
 
 const calculateDailyWellnessScore = (entry: MoodEntry | WellnessChartDataPoint): number | null => {
     const values = [
@@ -68,16 +79,15 @@ const calculateDailyWellnessScore = (entry: MoodEntry | WellnessChartDataPoint):
 };
 
 export function OptimizedWellbeingCard({ user, isMobile = false }: OptimizedWellbeingCardProps) {
-    const router = useRouter();
     const { getMoodHistory, submitWellness } = useMood({ user });
 
     const [isLoading, setIsLoading] = useState(true);
     const [wellnessScore, setWellnessScore] = useState<number | null>(null);
     const [wellnessChartData, setWellnessChartData] = useState<WellnessChartDataPoint[]>([]);
     const [hasRecentMoodData, setHasRecentMoodData] = useState(true);
-    const [chartDateOffset, setChartDateOffset] = useState(0);
-    const [currentChartWeekLabel, setCurrentChartWeekLabel] = useState('');
-    const N_DAYS_FOR_CHART = 7;
+    const [chartPeriod, setChartPeriod] = useState<ChartPeriod>('week');
+    const [selectedDataPoint, setSelectedDataPoint] = useState<WellnessChartDataPoint | null>(null);
+    const [showTooltip, setShowTooltip] = useState(false);
 
     const [currentStep, setCurrentStep] = useState(0);
     const [ratings, setRatings] = useState<WellnessRatings>({ mood_rating: null, sleep_rating: null, nutrition_rating: null, exercise_rating: null, social_rating: null });
@@ -91,13 +101,9 @@ export function OptimizedWellbeingCard({ user, isMobile = false }: OptimizedWell
             if (!user) return;
             setIsLoading(true);
 
-            const baseDate = addDays(new Date(), chartDateOffset);
-            const chartEndDate = baseDate;
-            const chartStartDate = subDays(chartEndDate, N_DAYS_FOR_CHART - 1);
-
-            const startLabel = format(chartStartDate, 'MMM d');
-            const endLabel = format(chartEndDate, 'MMM d');
-            setCurrentChartWeekLabel(chartDateOffset === 0 ? "This Week" : `${startLabel} - ${endLabel}`);
+            const currentPeriod = CHART_PERIODS[chartPeriod];
+            const chartEndDate = new Date();
+            const chartStartDate = subDays(chartEndDate, currentPeriod.days - 1);
 
             const moodHistory: MoodEntry[] = await getMoodHistory(subDays(chartStartDate, 1).toISOString(), addDays(chartEndDate, 1).toISOString());
 
@@ -123,30 +129,51 @@ export function OptimizedWellbeingCard({ user, isMobile = false }: OptimizedWell
                             nutrition_rating: dayEntry.nutrition_rating,
                             exercise_rating: dayEntry.exercise_rating,
                             social_rating: dayEntry.social_rating,
+                            description: dayEntry.description,
                         };
                     }
-                    return { date: format(dateInInterval, 'E'), fullDate: format(dateInInterval, 'yyyy-MM-dd'), score: null, mood_rating: null, sleep_rating: null, nutrition_rating: null, exercise_rating: null, social_rating: null };
+                    return {
+                        date: format(dateInInterval, 'E'),
+                        fullDate: format(dateInInterval, 'yyyy-MM-dd'),
+                        score: null,
+                        mood_rating: null,
+                        sleep_rating: null,
+                        nutrition_rating: null,
+                        exercise_rating: null,
+                        social_rating: null,
+                        description: null
+                    };
                 });
                 setWellnessChartData(chartDataPoints);
             } else {
-                if (chartDateOffset === 0) setHasRecentMoodData(false);
+                setHasRecentMoodData(false);
                 setWellnessScore(null);
                 const dateRangeForChart = eachDayOfInterval({ start: chartStartDate, end: chartEndDate });
-                setWellnessChartData(dateRangeForChart.map(dateInInterval => ({ date: format(dateInInterval, 'E'), fullDate: format(dateInInterval, 'yyyy-MM-dd'), score: null, mood_rating: null, sleep_rating: null, nutrition_rating: null, exercise_rating: null, social_rating: null })));
+                setWellnessChartData(dateRangeForChart.map(dateInInterval => ({
+                    date: format(dateInInterval, 'E'),
+                    fullDate: format(dateInInterval, 'yyyy-MM-dd'),
+                    score: null,
+                    mood_rating: null,
+                    sleep_rating: null,
+                    nutrition_rating: null,
+                    exercise_rating: null,
+                    social_rating: null,
+                    description: null
+                })));
             }
             setIsLoading(false);
         };
 
         loadWellbeingData();
-    }, [user, chartDateOffset, getMoodHistory]);
+    }, [user, chartPeriod, getMoodHistory]);
 
     useEffect(() => {
-        if (chartDateOffset === 0 && !hasRecentMoodData) {
+        if (!hasRecentMoodData) {
             setShowQuestionnaire(true);
         } else {
             setShowQuestionnaire(false);
         }
-    }, [hasRecentMoodData, chartDateOffset]);
+    }, [hasRecentMoodData]);
 
     const wellnessQuestionSteps = [
         { id: 'mood', question: "How's your mood today?", emoji: '😊', field: 'mood_rating' as keyof WellnessRatings },
@@ -190,8 +217,7 @@ export function OptimizedWellbeingCard({ user, isMobile = false }: OptimizedWell
             await submitWellness(ratings, description, new Date());
             resetFormState();
             setShowQuestionnaire(false);
-            if (chartDateOffset !== 0) setChartDateOffset(0); // This will trigger refetch
-            else setHasRecentMoodData(true); // Manually update to avoid full reload if already on current week
+            setHasRecentMoodData(true); // Update to avoid full reload
         } catch (error) {
             console.error('Error submitting inline wellness data:', error);
         } finally {
@@ -199,13 +225,22 @@ export function OptimizedWellbeingCard({ user, isMobile = false }: OptimizedWell
         }
     };
 
-    const handleEditToday = () => {
-        resetFormState();
-        setShowQuestionnaire(true);
+    const handlePeriodChange = (newPeriod: ChartPeriod) => {
+        setChartPeriod(newPeriod);
     };
 
-    const handleChartPrevious = () => setChartDateOffset(prev => prev - N_DAYS_FOR_CHART);
-    const handleChartNext = () => setChartDateOffset(prev => Math.min(0, prev + N_DAYS_FOR_CHART));
+    const handleChartClick = (data: any) => {
+        if (data && data.activePayload && data.activePayload.length > 0) {
+            const clickedData = data.activePayload[0].payload as WellnessChartDataPoint;
+            setSelectedDataPoint(clickedData);
+            setShowTooltip(true);
+        }
+    };
+
+    const closeTooltip = () => {
+        setShowTooltip(false);
+        setSelectedDataPoint(null);
+    };
 
     const getWellnessColor = (score: number | null): string => {
         if (score === null) return '#94A3B8';
@@ -227,18 +262,7 @@ export function OptimizedWellbeingCard({ user, isMobile = false }: OptimizedWell
         return '😔';
     };
 
-    const getMessage = () => {
-        if (wellnessScore === null && hasRecentMoodData) return "Update today's wellbeing";
-        if (wellnessScore === null) return "Track today's wellbeing";
-        if (wellnessScore >= 75) return "You're doing great!";
-        if (wellnessScore >= 50) return "You're doing ok";
-        return "Could be better";
-    };
-
-    const onRelaxClick = () => router.push('/relax');
-
-    const emoji = getWellnessEmoji(wellnessScore);
-    const chartMargins = isMobile ? { top: 5, right: 10, left: -25, bottom: 0 } : { top: 10, right: 15, left: -10, bottom: 5 };
+    const chartMargins = isMobile ? { top: 5, right: 10, left: -35, bottom: 15 } : { top: 10, right: 15, left: -20, bottom: 20 };
 
     if (isLoading) {
         return (
@@ -250,44 +274,106 @@ export function OptimizedWellbeingCard({ user, isMobile = false }: OptimizedWell
     }
 
     if (showQuestionnaire) {
-        return (
-            <div className={cn("rounded-xl p-3 shadow-[0_0_12px_rgba(192,38,211,0.4)] text-white relative overflow-hidden flex flex-col", isMobile ? "bg-gradient-to-r from-purple-400 to-pink-500" : "bg-gradient-to-br from-purple-400 via-fuchsia-500 to-pink-600")}>
-                <div className="absolute inset-0 bg-black/30 z-0"></div>
-                <div className="relative z-10 flex flex-col h-full">
-                    <div className="flex items-center justify-between mb-2">
-                        <h2 className="font-bold text-lg text-center flex-grow">{chartDateOffset === 0 ? "Daily Wellness Check" : "Viewing Past Data"}</h2>
-                        {(chartDateOffset === 0 && hasRecentMoodData) && (
-                            <Button variant="ghost" size="icon" onClick={() => setShowQuestionnaire(false)} className="text-white/70 hover:text-white hover:bg-white/10 h-8 w-8"><ArrowLeft className="h-5 w-5" /></Button>
-                        )}
-                    </div>
-                    <AnimatePresence mode="wait">
-                        {!showNotes ? (
-                            <motion.div key={`step-${currentStep}`} initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.2 }} className="flex-grow flex flex-col justify-center">
-                                <div className="text-center mb-3"><p className="text-md font-medium px-2">{wellnessQuestionSteps[currentStep].question}</p></div>
-                                <MoodScale question="" onSelect={handleRatingSelect} questionType={wellnessQuestionSteps[currentStep].id} isMobile={isMobile} />
-                            </motion.div>
-                        ) : (
-                            <motion.div key="notes" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }} className="flex-grow flex flex-col justify-center">
-                                <Label htmlFor="mood-description" className="mb-2 text-sm font-medium">Additional notes? (optional)</Label>
-                                <Textarea id="mood-description" placeholder="Share anything else about your day..." value={description} onChange={(e) => setDescription(e.target.value)} rows={2} className="bg-white/10 border-white/30 placeholder-white/50 text-white resize-none rounded-md" />
-                            </motion.div>
-                        )}
-                    </AnimatePresence>
-                    <div className="mt-auto pt-3">
-                        <div className="flex justify-between items-center mb-2">
-                            {(currentStep > 0 || showNotes) && (<Button variant="ghost" onClick={handleBack} className="text-white/80 hover:text-white hover:bg-white/10 px-3 py-1.5 text-sm" size={isMobile ? "sm" : "default"}><ArrowLeft className={cn("mr-1", isMobile ? "h-3.5 w-3.5" : "h-4 w-4")} /> Back</Button>)}
-                            <div className="flex-grow"></div>
-                            {!showNotes && currentStep < wellnessQuestionSteps.length - 1 && (<Button variant="ghost" onClick={handleSkipStep} className="text-white/80 hover:text-white hover:bg-white/10 px-3 py-1.5 text-sm" size={isMobile ? "sm" : "default"}>Skip</Button>)}
+        if (isMobile) {
+            return (
+                <div className="wellbeing-card-container rounded-2xl p-4 pb-3 bg-gradient-to-r from-purple-500 to-pink-600 shadow-lg text-white relative">
+                    <div className="absolute inset-0 bg-black/10 z-0 rounded-2xl"></div>
+                    <div className="relative z-10 flex flex-col h-full">
+                        {/* Header matching chart mode */}
+                        <div className="flex items-start justify-between mb-3">
+                            <div className="flex-grow min-w-0">
+                                <h2 className="font-bold text-lg">Daily Wellness Check</h2>
+                            </div>
+                            {hasRecentMoodData && (
+                                <Button variant="ghost" size="icon" onClick={() => setShowQuestionnaire(false)} className="text-white/70 hover:text-white hover:bg-white/10 h-6 w-6 ml-2">
+                                    <ArrowLeft className="h-4 w-4" />
+                                </Button>
+                            )}
                         </div>
-                        {showNotes && (<Button onClick={handleInlineWellnessSubmit} disabled={isSubmitting} className="w-full bg-white/25 hover:bg-white/35 text-white font-semibold h-9" size={isMobile ? "sm" : "default"}>{isSubmitting ? 'Submitting...' : (hasRecentMoodData && chartDateOffset === 0 ? 'Update Wellness' : 'Submit Wellness')} <Check className={cn("ml-2", isMobile ? "h-4 w-4" : "h-5 w-5")} /></Button>)}
-                        <div className="flex justify-center space-x-1.5 mt-3">
-                            {wellnessQuestionSteps.map((_, idx) => (<div key={idx} className={cn("h-2 rounded-full transition-all duration-300", idx === currentStep && !showNotes ? 'w-5 bg-white' : 'w-2 bg-white/50')} />))}
-                            <div className={cn("h-2 rounded-full transition-all duration-300", showNotes ? 'w-5 bg-white' : 'w-2 bg-white/50')} />
+
+                        {/* Main content area - compact */}
+                        <div className="flex-grow flex flex-col justify-center">
+                            <AnimatePresence mode="wait">
+                                {!showNotes ? (
+                                    <motion.div key={`step-${currentStep}`} initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.2 }} className="flex flex-col justify-center">
+                                        <div className="text-center mb-2"><p className="text-sm font-medium px-2">{wellnessQuestionSteps[currentStep].question}</p></div>
+                                        <MoodScale question="" onSelect={handleRatingSelect} questionType={wellnessQuestionSteps[currentStep].id} isMobile={isMobile} />
+                                    </motion.div>
+                                ) : (
+                                    <motion.div key="notes" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }} className="flex flex-col justify-center">
+                                        <Label htmlFor="mood-description" className="mb-2 text-sm font-medium">Additional notes? (optional)</Label>
+                                        <Textarea id="mood-description" placeholder="Share anything else about your day..." value={description} onChange={(e) => setDescription(e.target.value)} rows={2} className="bg-white/10 border-white/30 placeholder-white/50 text-white resize-none rounded-md" />
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
+                        </div>
+
+                        {/* Footer controls - compact */}
+                        <div className="pt-2">
+                            <div className="flex justify-between items-center mb-2">
+                                {(currentStep > 0 || showNotes) && (<Button variant="ghost" onClick={handleBack} className="text-white/80 hover:text-white hover:bg-white/10 px-2 py-1 text-xs" size="sm"><ArrowLeft className="mr-1 h-3 w-3" /> Back</Button>)}
+                                <div className="flex-grow"></div>
+                                {!showNotes && currentStep < wellnessQuestionSteps.length - 1 && (<Button variant="ghost" onClick={handleSkipStep} className="text-white/80 hover:text-white hover:bg-white/10 px-2 py-1 text-xs" size="sm">Skip</Button>)}
+                            </div>
+                            {showNotes && (<Button onClick={handleInlineWellnessSubmit} disabled={isSubmitting} className="w-full bg-white/25 hover:bg-white/35 text-white font-semibold h-8" size="sm">{isSubmitting ? 'Submitting...' : (hasRecentMoodData ? 'Update Wellness' : 'Submit Wellness')} <Check className="ml-1 h-3 w-3" /></Button>)}
+                            <div className="flex justify-center space-x-1.5 mt-2">
+                                {wellnessQuestionSteps.map((_, idx) => (<div key={idx} className={cn("h-1.5 rounded-full transition-all duration-300", idx === currentStep && !showNotes ? 'w-4 bg-white' : 'w-1.5 bg-white/50')} />))}
+                                <div className={cn("h-1.5 rounded-full transition-all duration-300", showNotes ? 'w-4 bg-white' : 'w-1.5 bg-white/50')} />
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
-        );
+            );
+        } else {
+            return (
+                <div className="wellbeing-card-container rounded-2xl p-6 pb-4 bg-gradient-to-br from-purple-500 via-fuchsia-600 to-pink-700 shadow-xl text-white relative">
+                    <div className="relative z-10 flex flex-col h-full">
+                        {/* Header matching chart mode */}
+                        <div className="flex justify-between items-start mb-4">
+                            <div className="flex-grow min-w-0">
+                                <h2 className="font-bold text-xl">Daily Wellness Check</h2>
+                            </div>
+                            {hasRecentMoodData && (
+                                <Button variant="ghost" size="icon" onClick={() => setShowQuestionnaire(false)} className="text-white/70 hover:text-white hover:bg-white/10 h-7 w-7 ml-3">
+                                    <ArrowLeft className="h-4 w-4" />
+                                </Button>
+                            )}
+                        </div>
+
+                        {/* Main content area - optimized spacing */}
+                        <div className="flex-grow flex flex-col justify-center">
+                            <AnimatePresence mode="wait">
+                                {!showNotes ? (
+                                    <motion.div key={`step-${currentStep}`} initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.2 }} className="flex flex-col justify-center">
+                                        <div className="text-center mb-3"><p className="text-base font-medium px-2">{wellnessQuestionSteps[currentStep].question}</p></div>
+                                        <MoodScale question="" onSelect={handleRatingSelect} questionType={wellnessQuestionSteps[currentStep].id} isMobile={isMobile} />
+                                    </motion.div>
+                                ) : (
+                                    <motion.div key="notes" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }} className="flex flex-col justify-center">
+                                        <Label htmlFor="mood-description" className="mb-2 text-sm font-medium">Additional notes? (optional)</Label>
+                                        <Textarea id="mood-description" placeholder="Share anything else about your day..." value={description} onChange={(e) => setDescription(e.target.value)} rows={3} className="bg-white/10 border-white/30 placeholder-white/50 text-white resize-none rounded-md" />
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
+                        </div>
+
+                        {/* Footer controls - optimized spacing */}
+                        <div className="pt-3">
+                            <div className="flex justify-between items-center mb-2">
+                                {(currentStep > 0 || showNotes) && (<Button variant="ghost" onClick={handleBack} className="text-white/80 hover:text-white hover:bg-white/10 px-3 py-1.5 text-sm"><ArrowLeft className="mr-1 h-4 w-4" /> Back</Button>)}
+                                <div className="flex-grow"></div>
+                                {!showNotes && currentStep < wellnessQuestionSteps.length - 1 && (<Button variant="ghost" onClick={handleSkipStep} className="text-white/80 hover:text-white hover:bg-white/10 px-3 py-1.5 text-sm">Skip</Button>)}
+                            </div>
+                            {showNotes && (<Button onClick={handleInlineWellnessSubmit} disabled={isSubmitting} className="w-full bg-white/25 hover:bg-white/35 text-white font-semibold h-9">{isSubmitting ? 'Submitting...' : (hasRecentMoodData ? 'Update Wellness' : 'Submit Wellness')} <Check className="ml-2 h-4 w-4" /></Button>)}
+                            <div className="flex justify-center space-x-1.5 mt-3">
+                                {wellnessQuestionSteps.map((_, idx) => (<div key={idx} className={cn("h-2 rounded-full transition-all duration-300", idx === currentStep && !showNotes ? 'w-5 bg-white' : 'w-2 bg-white/50')} />))}
+                                <div className={cn("h-2 rounded-full transition-all duration-300", showNotes ? 'w-5 bg-white' : 'w-2 bg-white/50')} />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
     }
 
     const RatingDetail = ({ label, value }: { label: string, value: number | null }) => {
@@ -295,81 +381,353 @@ export function OptimizedWellbeingCard({ user, isMobile = false }: OptimizedWell
         return (<p className="text-xs">{label}: <span className="font-semibold">{value}/5</span></p>);
     };
 
-    const ChartTooltip = ({ active, payload }: any) => {
+    const SimpleTooltip = ({ active, payload, label }: any) => {
         if (active && payload && payload.length) {
             const data: WellnessChartDataPoint = payload[0].payload;
+            if (data.score === null) return null;
+
+            const hasNote = data.description && data.description.trim() !== '';
+
             return (
-                <div className="bg-black/80 text-white p-3 rounded-lg shadow-xl border border-white/25 text-left">
-                    <p className="text-xs font-semibold mb-1">{`Date: ${data.fullDate}`}</p>
-                    <p className="text-sm font-bold mb-1.5" style={{ color: getWellnessColor(data.score) }}>{`Overall Score: ${data.score !== null ? data.score : 'N/A'}`}</p>
-                    <RatingDetail label="Mood" value={data.mood_rating} /><RatingDetail label="Sleep" value={data.sleep_rating} /><RatingDetail label="Nutrition" value={data.nutrition_rating} /><RatingDetail label="Exercise" value={data.exercise_rating} /><RatingDetail label="Social" value={data.social_rating} />
+                <div className="bg-gray-900/90 backdrop-blur-sm text-white px-3 py-2 rounded-lg shadow-lg text-sm border border-gray-700">
+                    <div className="flex items-center gap-2">
+                        <span className="font-medium">Score: {data.score}</span>
+                        {hasNote && (
+                            <span role="img" aria-label="has note" className="text-yellow-400">💭</span>
+                        )}
+                    </div>
+                    <div className="text-xs text-gray-300 mt-1">Click to see more</div>
                 </div>
             );
         }
         return null;
     };
 
-    if (isMobile) {
+    const CenteredTooltip = () => {
+        if (!showTooltip || !selectedDataPoint) return null;
+
+        const data = selectedDataPoint;
+        const formattedDate = new Date(data.fullDate).toLocaleDateString('en-US', {
+            day: '2-digit',
+            month: 'long',
+            year: '2-digit'
+        });
+
+        const renderStars = (rating: number | null) => {
+            if (rating === null) return '—';
+            return '★'.repeat(rating) + '☆'.repeat(5 - rating);
+        };
+
         return (
-            <div className="rounded-xl p-3 bg-gradient-to-r from-purple-400 to-pink-500 shadow-sm text-white relative overflow-hidden flex flex-col">
-                <div className="absolute inset-0 bg-black/20 z-0"></div>
-                <div className="relative z-10 flex flex-col h-full">
-                    <div className="flex items-start justify-between mb-1">
-                        <div className="flex-grow min-w-0"><h2 className="font-bold flex items-center text-sm truncate"><HeartPulse className="mr-1.5 h-3.5 w-3.5 flex-shrink-0" />Wellbeing</h2><p className="text-xs mt-0.5 truncate">{getMessage()}</p></div>
-                        <div className="text-xl ml-2 flex-shrink-0">{emoji}</div>
+            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onClick={closeTooltip}>
+                <div
+                    className="bg-white/95 backdrop-blur-sm text-gray-900 p-6 rounded-xl shadow-2xl border border-white/30 text-left max-w-sm w-full mx-4 relative"
+                    onClick={(e) => e.stopPropagation()}
+                    role="dialog"
+                    aria-modal="true"
+                    aria-labelledby="tooltip-title"
+                >
+                    {/* Close Button */}
+                    <button
+                        onClick={closeTooltip}
+                        className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 transition-colors"
+                        aria-label="Close"
+                    >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+
+                    {/* Overall Score - Most Prominent */}
+                    <div className="text-center mb-4 pb-4 border-b border-gray-200">
+                        <div className="text-3xl font-bold mb-2" style={{ color: getWellnessColor(data.score) }}>
+                            {data.score !== null ? data.score : 'N/A'}
+                        </div>
+                        <div id="tooltip-title" className="text-sm text-gray-600 uppercase tracking-wider">Overall Score</div>
                     </div>
-                    <div className="flex items-center justify-between my-1">
-                        <Button onClick={handleChartPrevious} variant="ghost" size="icon" className="h-7 w-7 text-white/70 hover:text-white hover:bg-white/10"><ChevronLeft className="h-5 w-5" /></Button>
-                        <p className="text-xs font-medium tabular-nums">{currentChartWeekLabel}</p>
-                        <Button onClick={handleChartNext} disabled={chartDateOffset >= 0} variant="ghost" size="icon" className="h-7 w-7 text-white/70 hover:text-white hover:bg-white/10 disabled:opacity-50"><ChevronRight className="h-5 w-5" /></Button>
+
+                    {/* Date */}
+                    <div className="text-center mb-4 pb-3 border-b border-gray-200">
+                        <div className="text-base font-medium text-gray-700">{formattedDate}</div>
                     </div>
-                    <div className="flex-grow mb-1" style={{ minHeight: '120px' }}>
-                        {(wellnessChartData && wellnessChartData.length > 0) ? (
-                            <ResponsiveContainer width="100%" height="100%">
-                                <LineChart data={wellnessChartData} margin={chartMargins}>
-                                    <XAxis dataKey="date" stroke="#fff" fontSize={10} tickLine={false} axisLine={false} dy={5} /><YAxis stroke="#fff" fontSize={10} domain={[0, 100]} tickLine={false} axisLine={false} dx={-5} /><Tooltip content={<ChartTooltip />} cursor={{ stroke: 'rgba(255,255,255,0.3)', strokeWidth: 1 }} /><Line type="monotone" dataKey="score" stroke={getWellnessColor(wellnessScore)} strokeWidth={2} dot={{ r: 3, fill: getWellnessColor(wellnessScore) }} connectNulls={true} /><ReferenceLine y={50} stroke="rgba(255,255,255,0.3)" strokeDasharray="3 3" />
-                                </LineChart>
-                            </ResponsiveContainer>
-                        ) : (<div className="flex items-center justify-center h-full"><p className="text-xs text-white/70">No wellness data for this period.</p></div>)}
+
+                    {/* Individual Ratings with Emojis - Standardized spacing */}
+                    <div className="space-y-3 mb-4">
+                        {data.mood_rating !== null && (
+                            <div className="flex items-center justify-between">
+                                <span className="flex items-center gap-3">
+                                    <span role="img" aria-label="mood" className="text-lg">😊</span>
+                                    <span className="text-sm text-gray-600">Mood</span>
+                                </span>
+                                <span className="text-base font-medium" aria-label={`Mood rating: ${data.mood_rating} out of 5 stars`}>
+                                    {renderStars(data.mood_rating)}
+                                </span>
+                            </div>
+                        )}
+                        {data.sleep_rating !== null && (
+                            <div className="flex items-center justify-between">
+                                <span className="flex items-center gap-3">
+                                    <span role="img" aria-label="sleep" className="text-lg">🌙</span>
+                                    <span className="text-sm text-gray-600">Sleep</span>
+                                </span>
+                                <span className="text-base font-medium" aria-label={`Sleep rating: ${data.sleep_rating} out of 5 stars`}>
+                                    {renderStars(data.sleep_rating)}
+                                </span>
+                            </div>
+                        )}
+                        {data.nutrition_rating !== null && (
+                            <div className="flex items-center justify-between">
+                                <span className="flex items-center gap-3">
+                                    <span role="img" aria-label="nutrition" className="text-lg">🍎</span>
+                                    <span className="text-sm text-gray-600">Nutrition</span>
+                                </span>
+                                <span className="text-base font-medium" aria-label={`Nutrition rating: ${data.nutrition_rating} out of 5 stars`}>
+                                    {renderStars(data.nutrition_rating)}
+                                </span>
+                            </div>
+                        )}
+                        {data.exercise_rating !== null && (
+                            <div className="flex items-center justify-between">
+                                <span className="flex items-center gap-3">
+                                    <span role="img" aria-label="exercise" className="text-lg">🏃</span>
+                                    <span className="text-sm text-gray-600">Exercise</span>
+                                </span>
+                                <span className="text-base font-medium" aria-label={`Exercise rating: ${data.exercise_rating} out of 5 stars`}>
+                                    {renderStars(data.exercise_rating)}
+                                </span>
+                            </div>
+                        )}
+                        {data.social_rating !== null && (
+                            <div className="flex items-center justify-between">
+                                <span className="flex items-center gap-3">
+                                    <span role="img" aria-label="social" className="text-lg">💬</span>
+                                    <span className="text-sm text-gray-600">Social</span>
+                                </span>
+                                <span className="text-base font-medium" aria-label={`Social rating: ${data.social_rating} out of 5 stars`}>
+                                    {renderStars(data.social_rating)}
+                                </span>
+                            </div>
+                        )}
                     </div>
-                    <div className="flex gap-2 mt-auto">
-                        {chartDateOffset === 0 && (<Button onClick={handleEditToday} className="flex-1 h-8 flex items-center justify-center bg-white/20 hover:bg-white/30 border-none text-white font-medium text-xs"><Edit3 className="h-3.5 w-3.5 mr-1" />Update</Button>)}
-                        <Button onClick={onRelaxClick} className={cn("h-8 flex items-center justify-center bg-white/20 hover:bg-white/30 border-none text-white font-medium text-xs", chartDateOffset === 0 ? "flex-1" : "w-full")}><HeartPulse className="h-3.5 w-3.5 mr-1" />Relax</Button>
-                    </div>
+
+                    {/* Comments Section */}
+                    {data.description && (
+                        <div className="pt-3 border-t border-gray-200">
+                            <div className="flex items-start gap-3 mb-3">
+                                <span role="img" aria-label="comments" className="text-lg">💭</span>
+                                <span className="text-sm text-gray-600 uppercase tracking-wider">Notes</span>
+                            </div>
+                            <p className="text-sm text-gray-700 italic leading-relaxed" role="note">
+                                "{data.description}"
+                            </p>
+                        </div>
+                    )}
                 </div>
             </div>
+        );
+    };
+
+    if (isMobile) {
+        return (
+            <>
+                <div className="wellbeing-card-container rounded-2xl p-4 pb-3 bg-gradient-to-r from-purple-500 to-pink-600 shadow-lg text-white relative">
+                    <div className="absolute inset-0 bg-black/10 z-0 rounded-2xl"></div>
+                    <div className="relative z-10">
+                        {/* Header with Period Selector */}
+                        <div className="flex items-start justify-between mb-4">
+                            <div className="flex-grow min-w-0">
+                                <h2 className="font-bold text-lg">
+                                    Wellbeing Score
+                                </h2>
+                                {wellnessScore !== null && (
+                                    <div className="flex items-center gap-2">
+                                        <p className="text-sm text-white/90">
+                                            {wellnessScore} today {getWellnessEmoji(wellnessScore)}
+                                        </p>
+                                        <button
+                                            onClick={() => setShowQuestionnaire(true)}
+                                            className="text-xs text-white/80 hover:text-white bg-white/10 hover:bg-white/20 px-2 py-1 rounded transition-colors"
+                                        >
+                                            Update score
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
+                            <div className="ml-3">
+                                <div className="text-center mb-1">
+                                    <span className="text-white/50 text-xs uppercase tracking-wider">Period</span>
+                                </div>
+                                <Select value={chartPeriod} onValueChange={(value: ChartPeriod) => handlePeriodChange(value)}>
+                                    <SelectTrigger className="w-20 mx-auto bg-white/20 border-white/30 text-white text-xs h-6 backdrop-blur-sm">
+                                        <SelectValue placeholder="Select" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="week">Week</SelectItem>
+                                        <SelectItem value="month">Month</SelectItem>
+                                        <SelectItem value="3months">3 Months</SelectItem>
+                                        <SelectItem value="all">All Time</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                        </div>
+
+                        {/* Chart */}
+                        <div className="wellbeing-chart-container h-32 relative">
+                            {(wellnessChartData && wellnessChartData.length > 0) ? (
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <LineChart data={wellnessChartData} margin={chartMargins} onClick={handleChartClick} style={{ cursor: 'pointer' }}>
+                                        <XAxis dataKey="date" stroke="#fff" fontSize={10} tickLine={false} axisLine={true} />
+                                        <YAxis stroke="#fff" fontSize={10} domain={[0, 100]} tickLine={false} axisLine={false} />
+                                        <Tooltip
+                                            content={<SimpleTooltip />}
+                                            cursor={{ stroke: 'rgba(255,255,255,0.5)', strokeWidth: 1 }}
+                                            wrapperStyle={{ outline: 'none', zIndex: 1000 }}
+                                            allowEscapeViewBox={{ x: false, y: false }}
+                                            position={{ x: undefined, y: undefined }}
+                                        />
+                                        <Line
+                                            type="monotone"
+                                            dataKey="score"
+                                            stroke="#fff"
+                                            strokeWidth={2}
+                                            dot={(props: any) => {
+                                                const { cx, cy, payload } = props;
+                                                const hasNote = payload?.description && payload.description.trim() !== '';
+                                                return (
+                                                    <circle
+                                                        cx={cx}
+                                                        cy={cy}
+                                                        r={3}
+                                                        fill={hasNote ? "#FFD700" : "#fff"}
+                                                        stroke={hasNote ? "#FFA500" : "#fff"}
+                                                        strokeWidth={1}
+                                                    />
+                                                );
+                                            }}
+                                            activeDot={{ r: 5, fill: "#fff", stroke: "#fff", strokeWidth: 2 }}
+                                            connectNulls={false}
+                                        />
+                                        <ReferenceLine y={50} stroke="rgba(255,255,255,0.3)" strokeDasharray="3 3" />
+                                    </LineChart>
+                                </ResponsiveContainer>
+                            ) : (
+                                <div className="flex items-center justify-center h-full text-center">
+                                    <div>
+                                        <HeartPulse className="h-8 w-8 mx-auto mb-2 text-white/50" />
+                                        <p className="text-xs text-white/70">No wellness data for this period</p>
+                                        {chartPeriod === 'week' && !hasRecentMoodData && (
+                                            <button
+                                                onClick={() => setShowQuestionnaire(true)}
+                                                className="text-xs text-white/90 underline mt-1 hover:text-white"
+                                            >
+                                                Track today
+                                            </button>
+                                        )}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+                <CenteredTooltip />
+            </>
         );
     }
 
     return (
-        <div className="rounded-xl p-3 bg-gradient-to-br from-purple-400 via-fuchsia-500 to-pink-600 shadow-[0_0_12px_rgba(192,38,211,0.4)] text-white relative overflow-hidden flex flex-col">
-            <div className="absolute -right-8 -bottom-8 w-32 h-32 rounded-full bg-white/10 z-0"></div>
-            <div className="absolute -right-16 -bottom-16 w-32 h-32 rounded-full bg-white/10 z-0"></div>
-            <div className="absolute inset-0 bg-black/20 z-0"></div>
-            <div className="relative z-10 flex flex-col h-full">
-                <div className="flex justify-between items-start mb-1">
-                    <div className="flex-grow min-w-0"><h2 className="font-bold flex items-center truncate"><HeartPulse className="mr-1.5 h-4 w-4 flex-shrink-0" />Wellbeing</h2><p className="text-xs mt-0.5 text-white/80 truncate">{getMessage()}</p></div>
-                    <div className="text-2xl ml-2 flex-shrink-0">{emoji}</div>
-                </div>
-                <div className="flex items-center justify-between my-1">
-                    <Button onClick={handleChartPrevious} variant="ghost" size="sm" className="text-white/80 hover:text-white hover:bg-white/10 px-2 py-1"><ChevronLeft className="h-4 w-4 mr-1" /> Prev</Button>
-                    <p className="text-sm font-medium tabular-nums">{currentChartWeekLabel}</p>
-                    <Button onClick={handleChartNext} disabled={chartDateOffset >= 0} variant="ghost" size="sm" className="text-white/80 hover:text-white hover:bg-white/10 px-2 py-1 disabled:opacity-50">Next <ChevronRight className="h-4 w-4 ml-1" /></Button>
-                </div>
-                <div className="flex-grow" style={{ minHeight: '120px' }}>
-                    {(wellnessChartData && wellnessChartData.length > 0) ? (
-                        <ResponsiveContainer width="100%" height="100%">
-                            <LineChart data={wellnessChartData} margin={chartMargins}>
-                                <XAxis dataKey="date" stroke="#fff" fontSize={12} tickLine={false} axisLine={false} dy={5} /><YAxis stroke="#fff" fontSize={12} domain={[0, 100]} tickLine={false} axisLine={false} dx={-5} /><Tooltip content={<ChartTooltip />} cursor={{ stroke: 'rgba(255,255,255,0.3)', strokeWidth: 1 }} /><Line type="monotone" dataKey="score" stroke={getWellnessColor(wellnessScore)} strokeWidth={2.5} dot={{ r: 4, fill: getWellnessColor(wellnessScore) }} activeDot={{ r: 6 }} connectNulls={true} /><ReferenceLine y={50} stroke="rgba(255,255,255,0.3)" strokeDasharray="3 3" />
-                            </LineChart>
-                        </ResponsiveContainer>
-                    ) : (<div className="flex items-center justify-center h-full"><p className="text-sm text-white/70">No wellness data for this period.</p></div>)}
-                </div>
-                <div className="flex gap-2 mt-auto pt-2">
-                    {chartDateOffset === 0 && (<Button onClick={handleEditToday} className="flex-1 flex items-center justify-center h-9 bg-white/20 hover:bg-white/30 border-none text-white font-medium"><Edit3 className="h-4 w-4 mr-1.5" />Update</Button>)}
-                    <Button onClick={onRelaxClick} className={cn("flex items-center justify-center h-9 bg-white/20 hover:bg-white/30 border-none text-white font-medium", chartDateOffset === 0 ? "flex-1" : "w-full")}><HeartPulse className="h-4 w-4 mr-1.5" />Relax Now</Button>
+        <>
+            <div className="wellbeing-card-container rounded-2xl p-6 pb-4 bg-gradient-to-br from-purple-500 via-fuchsia-600 to-pink-700 shadow-xl text-white relative">
+                <div className="relative z-10">
+                    {/* Header with Period Selector */}
+                    <div className="flex justify-between items-start mb-6">
+                        <div className="flex-grow min-w-0">
+                            <h2 className="font-bold text-xl">
+                                Wellbeing Score
+                            </h2>
+                            {wellnessScore !== null && (
+                                <div className="flex items-center gap-3">
+                                    <p className="text-base text-white/90">
+                                        {wellnessScore} today {getWellnessEmoji(wellnessScore)}
+                                    </p>
+                                    <button
+                                        onClick={() => setShowQuestionnaire(true)}
+                                        className="text-sm text-white/80 hover:text-white bg-white/10 hover:bg-white/20 px-3 py-1.5 rounded-md transition-colors"
+                                    >
+                                        Update score
+                                    </button>
+                                </div>
+                            )}
+                        </div>
+                        <div className="ml-4">
+                            <div className="text-center mb-1">
+                                <span className="text-white/50 text-xs uppercase tracking-wider">Period</span>
+                            </div>
+                            <Select value={chartPeriod} onValueChange={(value: ChartPeriod) => handlePeriodChange(value)}>
+                                <SelectTrigger className="w-28 mx-auto bg-white/20 border-white/30 text-white text-xs h-7 backdrop-blur-sm">
+                                    <SelectValue placeholder="Select" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="week">Week</SelectItem>
+                                    <SelectItem value="month">Month</SelectItem>
+                                    <SelectItem value="3months">3 Months</SelectItem>
+                                    <SelectItem value="all">All Time</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+                    </div>
+
+                    {/* Chart */}
+                    <div className="wellbeing-chart-container h-48 relative">
+                        {(wellnessChartData && wellnessChartData.length > 0) ? (
+                            <ResponsiveContainer width="100%" height="100%">
+                                <LineChart data={wellnessChartData} margin={chartMargins} onClick={handleChartClick} style={{ cursor: 'pointer' }}>
+                                    <XAxis dataKey="date" stroke="#fff" fontSize={12} tickLine={false} axisLine={true} />
+                                    <YAxis stroke="#fff" fontSize={12} domain={[0, 100]} tickLine={false} axisLine={false} />
+                                    <Tooltip
+                                        content={<SimpleTooltip />}
+                                        cursor={{ stroke: 'rgba(255,255,255,0.5)', strokeWidth: 1 }}
+                                        wrapperStyle={{ outline: 'none', zIndex: 1000 }}
+                                        allowEscapeViewBox={{ x: false, y: false }}
+                                        position={{ x: undefined, y: undefined }}
+                                    />
+                                    <Line
+                                        type="monotone"
+                                        dataKey="score"
+                                        stroke="#fff"
+                                        strokeWidth={3}
+                                        dot={(props: any) => {
+                                            const { cx, cy, payload } = props;
+                                            const hasNote = payload?.description && payload.description.trim() !== '';
+                                            return (
+                                                <circle
+                                                    cx={cx}
+                                                    cy={cy}
+                                                    r={4}
+                                                    fill={hasNote ? "#FFD700" : "#fff"}
+                                                    stroke={hasNote ? "#FFA500" : "#fff"}
+                                                    strokeWidth={1}
+                                                />
+                                            );
+                                        }}
+                                        activeDot={{ r: 7, fill: "#fff", stroke: "#fff", strokeWidth: 2 }}
+                                        connectNulls={false}
+                                    />
+                                    <ReferenceLine y={50} stroke="rgba(255,255,255,0.3)" strokeDasharray="3 3" />
+                                </LineChart>
+                            </ResponsiveContainer>
+                        ) : (
+                            <div className="flex items-center justify-center h-full text-center">
+                                <div>
+                                    <HeartPulse className="h-12 w-12 mx-auto mb-3 text-white/50" />
+                                    <p className="text-white/70 text-base mb-2">No wellness data for this period</p>
+                                    <p className="text-white/60 text-sm">Start tracking your daily wellbeing to see your progress over time</p>
+                                </div>
+                            </div>
+                        )}
+                    </div>
                 </div>
             </div>
-        </div>
+            <CenteredTooltip />
+        </>
     );
 }

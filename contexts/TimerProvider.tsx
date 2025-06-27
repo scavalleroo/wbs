@@ -3,7 +3,6 @@
 import { createContext, useContext, useState, useEffect, useRef, ReactNode } from 'react';
 import { useFocusSession } from '@/hooks/use-focus-session';
 import { User } from '@supabase/supabase-js';
-import { clearClosedSessionState, markSessionClosed, wasSessionClosed } from '@/utils/session-state';
 
 interface TimerContextProps {
     autoplayBlocked: boolean;
@@ -50,7 +49,7 @@ export function TimerProvider({ children, user }: { children: ReactNode; user: U
         startSession,
         endSession: endFocusSession,
         currentSession,
-        checkForActiveSession
+        cleanupOrphanedSessions
     } = useFocusSession({ user });
 
     // State
@@ -71,52 +70,15 @@ export function TimerProvider({ children, user }: { children: ReactNode; user: U
     const timerRef = useRef<NodeJS.Timeout | null>(null);
     const sessionStartedAt = useRef<Date | null>(null);
 
-    // Load existing session if available
-    useEffect(() => {
-        if (user?.id && currentSession) {
-            const session = currentSession;
+    // Since we're not persisting active sessions, we don't need to load existing sessions
+    // Each session starts fresh when the user presses play
 
-            // Load session state
-            setActivity(session.activity);
-            setSound(session.sound);
-            setDuration(session.duration);
-            setFlowMode(session.flow_mode);
-            setSessionId(session.id);
-
-            // Calculate time elapsed and remaining
-            const startTime = new Date(session.started_at);
-            const now = new Date();
-            const elapsedSeconds = Math.floor((now.getTime() - startTime.getTime()) / 1000);
-
-            if (session.flow_mode) {
-                setTimeElapsed(elapsedSeconds);
-                setTimeRemaining(0);
-            } else {
-                const remainingSeconds = Math.max(0, session.duration - elapsedSeconds);
-                setTimeRemaining(remainingSeconds);
-                setTimeElapsed(elapsedSeconds);
-            }
-
-            sessionStartedAt.current = startTime;
-            setIsRunning(true);
-        }
-    }, [user?.id, currentSession]);
-
-    // Check for existing session on mount
+    // Clean up any orphaned sessions on mount
     useEffect(() => {
         if (user?.id) {
-            checkActiveSession();
+            cleanupOrphanedSessions();
         }
-
-        async function checkActiveSession() {
-            const session = await checkForActiveSession();
-
-            if (session && wasSessionClosed(session.id)) {
-                await endFocusSession(session.id, 'abandoned');
-                resetTimerState();
-            }
-        }
-    }, [user?.id, checkForActiveSession]);
+    }, [user?.id, cleanupOrphanedSessions]);
 
     // Initialize session with settings
     const initializeSession = async (settings: TimerSettings) => {
@@ -134,7 +96,6 @@ export function TimerProvider({ children, user }: { children: ReactNode; user: U
             setTimeRemaining(settings.initialTimeRemaining || settings.duration * 60);
             setTimeElapsed(0);
         }
-        clearClosedSessionState();
 
         setIsRunning(true);
         sessionStartedAt.current = new Date();
@@ -170,9 +131,6 @@ export function TimerProvider({ children, user }: { children: ReactNode; user: U
 
             // End database session
             await endFocusSession(sessionId, status);
-
-            // Mark this session as manually closed to prevent auto-reopening
-            markSessionClosed(sessionId);
         }
 
         // Reset timer state

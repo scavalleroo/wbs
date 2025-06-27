@@ -4,16 +4,17 @@ import React, { useState, useEffect } from 'react';
 import { User } from '@supabase/supabase-js';
 import 'react-circular-progressbar/dist/styles.css';
 import { useUserGoals } from '@/hooks/use-user-goals';
+import { useFocusSession } from '@/hooks/use-focus-session';
 import { useTimer } from '@/contexts/TimerProvider';
-import { FocusSelector } from '@/components/timer/FocusSelector';
 import { useTimerUI } from '@/contexts/TimerUIProvider';
-import { Trophy } from 'lucide-react';
 import { ManageDistractionsDialog } from './wellebing/ManageDistractionsDialog';
 import { useRouter } from 'next/navigation';
 import { format, formatDuration, intervalToDuration } from 'date-fns';
 import { OptimizedFocusTimeCard } from './cards/OptimizedFocusTimeCard';
 import { OptimizedDistractionsCard } from './cards/OptimizedDistractionsCard';
 import { OptimizedWellbeingCard } from './cards/OptimizedWellbeingCard';
+import { useBlockedSite } from '@/hooks/use-blocked-site';
+import useMood from '@/hooks/use-mood';
 
 interface DashboardComponetProps {
     user: User | null | undefined;
@@ -31,9 +32,17 @@ const formatMinutesToHoursMinutes = (minutes: number) => {
 const DashboardComponet = ({ user }: DashboardComponetProps) => {
     const router = useRouter();
     const { goalStreak, calculateStreak } = useUserGoals({ user });
-    const [focusDialogOpen, setFocusDialogOpen] = useState(false);
+    const { getTodaysFocusTime } = useFocusSession({ user });
+    const { getBlockedSiteStats } = useBlockedSite({ user });
+    const { fetchMood } = useMood({ user });
     const [distDialogOpen, setDistDialogOpen] = useState(false);
     const [distractionsKey, setDistractionsKey] = useState(0);
+
+    // Dashboard summary data
+    const [todayFocusTime, setTodayFocusTime] = useState(0);
+    const [todayWellbeingScore, setTodayWellbeingScore] = useState<number | null>(null);
+    const [todayDistractionTime, setTodayDistractionTime] = useState(0);
+    const [isLoadingSummary, setIsLoadingSummary] = useState(true);
 
     const {
         initializeSession,
@@ -41,6 +50,7 @@ const DashboardComponet = ({ user }: DashboardComponetProps) => {
         timeElapsed,
         isRunning,
         flowMode,
+        sessionId,
     } = useTimer();
 
     const { setShowFullScreenTimer } = useTimerUI();
@@ -48,25 +58,70 @@ const DashboardComponet = ({ user }: DashboardComponetProps) => {
     useEffect(() => {
         if (user) {
             calculateStreak();
+            loadDashboardSummary();
         }
     }, [user, calculateStreak]);
 
-    const handleStartFocus = (settings: {
-        activity: string;
-        sound: string;
-        duration: number;
-        volume: number;
-        flowMode?: boolean;
-    }) => {
-        initializeSession({
-            activity: settings.activity,
-            sound: settings.sound,
-            duration: settings.duration,
-            volume: settings.volume,
-            flowMode: settings.flowMode
-        });
+    // Only refresh summary when a session ends (not during active timer)
+    const [lastSessionId, setLastSessionId] = useState<string | null>(null);
 
-        setFocusDialogOpen(false);
+    useEffect(() => {
+        if (user) {
+            // If we had a session that's now gone, refresh the data
+            if (lastSessionId && !sessionId) {
+                loadDashboardSummary();
+            }
+            setLastSessionId(sessionId);
+        }
+    }, [user, sessionId, lastSessionId]);
+
+    const loadDashboardSummary = async () => {
+        if (!user) return;
+
+        setIsLoadingSummary(true);
+        try {
+            // Load focus time directly from focus sessions
+            const todayFocusSeconds = await getTodaysFocusTime();
+            setTodayFocusTime(Math.round(todayFocusSeconds / 60)); // Convert to minutes
+
+            // Load wellbeing score
+            const moodData = await fetchMood();
+            if (moodData) {
+                // Calculate daily wellness score
+                const values = [
+                    moodData.mood_rating,
+                    moodData.sleep_rating,
+                    moodData.nutrition_rating,
+                    moodData.exercise_rating,
+                    moodData.social_rating
+                ].filter(v => typeof v === 'number');
+
+                if (values.length > 0) {
+                    const pointsPerMetric = 100 / values.length;
+                    let calculatedScore = 0;
+                    if (typeof moodData.mood_rating === 'number') calculatedScore += (moodData.mood_rating / 5) * pointsPerMetric;
+                    if (typeof moodData.sleep_rating === 'number') calculatedScore += (moodData.sleep_rating / 5) * pointsPerMetric;
+                    if (typeof moodData.nutrition_rating === 'number') calculatedScore += (moodData.nutrition_rating / 5) * pointsPerMetric;
+                    if (typeof moodData.exercise_rating === 'number') calculatedScore += (moodData.exercise_rating / 5) * pointsPerMetric;
+                    if (typeof moodData.social_rating === 'number') calculatedScore += (moodData.social_rating / 5) * pointsPerMetric;
+                    setTodayWellbeingScore(Math.round(calculatedScore));
+                }
+            }
+
+            // Load distraction time
+            const siteStats = await getBlockedSiteStats();
+            if (siteStats && Array.isArray(siteStats)) {
+                const totalDistractionSeconds = siteStats.reduce((total: number, site: any) => {
+                    return total + (site.todayTimeSeconds || 0);
+                }, 0);
+                setTodayDistractionTime(Math.round(totalDistractionSeconds / 60)); // Convert to minutes
+            }
+
+        } catch (error) {
+            console.error('Error loading dashboard summary:', error);
+        } finally {
+            setIsLoadingSummary(false);
+        }
     };
 
     const isTimerActive = (flowMode && timeElapsed > 0) || (!flowMode && timeRemaining > 0 && isRunning);
@@ -114,80 +169,126 @@ const DashboardComponet = ({ user }: DashboardComponetProps) => {
     };
 
     return (
-        <div className="space-y-3 py-3">
-            <div className="mb-2 px-4 sm:px-0">
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                    <h1 className="text-2xl font-bold">
-                        {getTimeBasedGreeting()}, {getFirstName(user)}!
-                    </h1>
-
-                    {goalStreak > 0 && (
-                        <p className="text-sm font-medium flex items-center bg-amber-100/10 dark:bg-amber-900/20 text-amber-900 dark:text-amber-200 px-3 py-1 rounded-full">
-                            <Trophy className="h-4 w-4 mr-1 text-amber-500" />
-                            {goalStreak} day streak!
+        <div className="space-y-4 py-3">
+            {/* Header Section with improved visual hierarchy */}
+            <div className="mb-8 px-4 sm:px-0">
+                {/* Mobile: Stacked vertically */}
+                <div className="flex flex-col gap-4 lg:hidden">
+                    <div>
+                        <h1 className="text-2xl font-medium text-foreground">
+                            {getTimeBasedGreeting()}, {getFirstName(user)}
+                        </h1>
+                        <p className="text-sm text-muted-foreground mt-0.5">
+                            {format(new Date(), 'EEEE, MMMM d')}
                         </p>
-                    )}
+                    </div>
+
+                    <div className="flex items-center gap-6">
+                        <div className="text-left">
+                            <div className="text-lg font-medium text-foreground">
+                                {isLoadingSummary ? '—' : formatMinutesToHoursMinutes(todayFocusTime)}
+                            </div>
+                            <div className="text-xs text-muted-foreground">Focus</div>
+                        </div>
+                        <div className="text-left">
+                            <div className="text-lg font-medium text-foreground">
+                                {isLoadingSummary ? '—' : (todayWellbeingScore ? `${todayWellbeingScore}` : '—')}
+                            </div>
+                            <div className="text-xs text-muted-foreground">Wellbeing</div>
+                        </div>
+                        <div className="text-left">
+                            <div className="text-lg font-medium text-foreground">
+                                {isLoadingSummary ? '—' : formatMinutesToHoursMinutes(todayDistractionTime)}
+                            </div>
+                            <div className="text-xs text-muted-foreground">Distractions</div>
+                        </div>
+                    </div>
                 </div>
-                <p className="text-sm text-muted-foreground">
-                    {format(new Date(), 'EEEE, MMMM d')}
-                </p>
+
+                {/* Desktop: Horizontal layout */}
+                <div className="hidden lg:flex lg:items-center lg:justify-between">
+                    <div>
+                        <h1 className="text-2xl font-medium text-foreground">
+                            {getTimeBasedGreeting()}, {getFirstName(user)}
+                        </h1>
+                        <p className="text-sm text-muted-foreground mt-0.5">
+                            {format(new Date(), 'EEEE, MMMM d')}
+                        </p>
+                    </div>
+
+                    <div className="flex items-center gap-6">
+                        <div className="text-right">
+                            <div className="text-lg font-medium text-foreground">
+                                {isLoadingSummary ? '—' : formatMinutesToHoursMinutes(todayFocusTime)}
+                            </div>
+                            <div className="text-xs text-muted-foreground">Focus</div>
+                        </div>
+                        <div className="text-right">
+                            <div className="text-lg font-medium text-foreground">
+                                {isLoadingSummary ? '—' : (todayWellbeingScore ? `${todayWellbeingScore}` : '—')}
+                            </div>
+                            <div className="text-xs text-muted-foreground">Wellbeing</div>
+                        </div>
+                        <div className="text-right">
+                            <div className="text-lg font-medium text-foreground">
+                                {isLoadingSummary ? '—' : formatMinutesToHoursMinutes(todayDistractionTime)}
+                            </div>
+                            <div className="text-xs text-muted-foreground">Distractions</div>
+                        </div>
+                    </div>
+                </div>
             </div>
 
-            {/* Mobile View - New Layout */}
-            <div className="block md:hidden space-y-3 px-4 sm:px-0">
-                <OptimizedDistractionsCard
-                    key={`mobile-${distractionsKey}`}
-                    user={user}
-                    onManageDistractionsClick={() => setDistDialogOpen(true)}
-                    formatMinutesToHoursMinutes={formatMinutesToHoursMinutes}
-                    isMobile={true}
-                />
-                <OptimizedWellbeingCard
-                    user={user}
-                    isMobile={true}
-                />
+            {/* Mobile View - Improved Layout */}
+            <div className="block lg:hidden space-y-4 px-4 sm:px-0">
+                {/* Focus Card - Most Important, Goes First */}
                 <OptimizedFocusTimeCard
                     user={user}
-                    isTimerActive={isTimerActive}
-                    getTimerStatusText={getTimerStatusText}
-                    formatMinutesToHoursMinutes={formatMinutesToHoursMinutes}
-                    onStartFocusClick={() => setFocusDialogOpen(true)}
-                    onResumeFocusClick={() => setShowFullScreenTimer(true)}
                     isMobile={true}
                 />
+
+                {/* Side by side for secondary features */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <OptimizedWellbeingCard
+                        user={user}
+                        isMobile={true}
+                    />
+                    <OptimizedDistractionsCard
+                        key={`mobile-${distractionsKey}`}
+                        user={user}
+                        onManageDistractionsClick={() => setDistDialogOpen(true)}
+                        formatMinutesToHoursMinutes={formatMinutesToHoursMinutes}
+                        isMobile={true}
+                    />
+                </div>
             </div>
 
-            {/* Desktop View - New Layout */}
-            <div className="hidden md:grid md:grid-cols-2 gap-3 px-4 sm:px-0">
+            {/* Desktop View - Improved Layout */}
+            <div className="hidden lg:grid lg:grid-cols-3 gap-4 px-4 sm:px-0">
+                {/* Focus takes full width to emphasize its importance */}
+                <div className="lg:col-span-3">
+                    <OptimizedFocusTimeCard
+                        user={user}
+                        isMobile={false}
+                    />
+                </div>
+
+                {/* Wellbeing takes 2 columns for chart visibility */}
+                <div className="lg:col-span-2">
+                    <OptimizedWellbeingCard
+                        user={user}
+                        isMobile={false}
+                    />
+                </div>
+
+                {/* Distractions in remaining column */}
                 <OptimizedDistractionsCard
                     key={`desktop-${distractionsKey}`}
                     user={user}
                     onManageDistractionsClick={() => setDistDialogOpen(true)}
                     formatMinutesToHoursMinutes={formatMinutesToHoursMinutes}
                 />
-                <OptimizedWellbeingCard
-                    user={user}
-                    isMobile={false}
-                />
-                <div className="md:col-span-2">
-                    <OptimizedFocusTimeCard
-                        user={user}
-                        isTimerActive={isTimerActive}
-                        getTimerStatusText={getTimerStatusText}
-                        formatMinutesToHoursMinutes={formatMinutesToHoursMinutes}
-                        onStartFocusClick={() => setFocusDialogOpen(true)}
-                        onResumeFocusClick={() => setShowFullScreenTimer(true)}
-                        isMobile={false}
-                    />
-                </div>
             </div>
-
-            {focusDialogOpen && (
-                <FocusSelector
-                    onStart={handleStartFocus}
-                    onClose={() => setFocusDialogOpen(false)}
-                />
-            )}
 
             <ManageDistractionsDialog
                 user={user}

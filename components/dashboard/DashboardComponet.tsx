@@ -243,29 +243,14 @@ const DashboardComponet = ({ user }: DashboardComponetProps) => {
                 {/* Mobile: Stacked vertically */}
                 <div className="block lg:hidden space-y-4">
                     {/* Notes Section */}
-                    <div className="h-[700px]">
+                    <div className="h-[500px]">
                         <NotesPageComponent user={user} />
                     </div>
 
-                    {/* Focus Card */}
-                    <div className="w-full max-w-xs mx-auto">
-                        <OptimizedFocusTimeCard
-                            user={user}
-                            isMobile={true}
-                        />
-                    </div>
-
-                    {/* Wellbeing and Distractions side by side */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {/* Wellbeing only - Website block card removed on mobile */}
+                    <div className="grid grid-cols-1 gap-4">
                         <OptimizedWellbeingCard
                             user={user}
-                            isMobile={true}
-                        />
-                        <OptimizedDistractionsCard
-                            key={`mobile-${distractionsKey}`}
-                            user={user}
-                            onManageDistractionsClick={() => setDistDialogOpen(true)}
-                            formatMinutesToHoursMinutes={formatMinutesToHoursMinutes}
                             isMobile={true}
                         />
                     </div>

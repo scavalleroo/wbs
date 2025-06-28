@@ -21,9 +21,11 @@ export interface FocusSession {
   }
   
   export interface FocusSessionUpdate {
-    actual_duration: number;
+    sound?: string;
+    activity?: string;
+    actual_duration?: number;
     ended_at?: string;
-    status: 'active' | 'completed' | 'abandoned';
+    status?: 'active' | 'completed' | 'abandoned';
   }
   
   export interface FocusSessionStats {

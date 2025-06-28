@@ -207,10 +207,328 @@ export const RealtimeEditor: React.FC<RealtimeEditorProps> = ({
         {onTabChange && (
           <div className="border-b border-gray-200 dark:border-gray-700 header-gradient shadow-lg flex-shrink-0">
             {/* Unified Header with Tab Selection */}
-            <div className="px-3 sm:px-4 py-4">
-              <div className="flex flex-col lg:flex-row lg:items-start gap-4">
-                {/* Tab selection - vertical on desktop, horizontal on mobile */}
-                <div className="flex items-center justify-center lg:justify-start flex-shrink-0">
+            <div className="px-3 sm:px-4 py-2 sm:py-4">
+              <div className="flex flex-col lg:flex-row lg:items-start gap-2 sm:gap-4">
+                {/* Mobile: All buttons in one row */}
+                <div className="flex sm:hidden items-center justify-between w-full gap-1">
+                  {/* Left side: Tab buttons */}
+                  <div className="flex items-center gap-1">
+                    <button
+                      onClick={() => !disabled && onTabChange('daily')}
+                      disabled={disabled}
+                      className={`tab-button-vertical flex items-center px-2 py-1.5 text-xs font-medium transition-all ${activeTab === 'daily' ? 'active' : ''
+                        } ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    >
+                      <Calendar className="h-3 w-3 mr-1" />
+                      <span>Daily</span>
+                    </button>
+                    <button
+                      onClick={() => !disabled && onTabChange('project')}
+                      disabled={disabled}
+                      className={`tab-button-vertical flex items-center px-2 py-1.5 text-xs font-medium transition-all ${activeTab === 'project' ? 'active' : ''
+                        } ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    >
+                      <Book className="h-3 w-3 mr-1" />
+                      <span>Pages</span>
+                    </button>
+                  </div>
+
+                  {/* Right side: Date/Page action buttons */}
+                  {activeTab === 'daily' && onDateChange && (
+                    <div className="flex items-center gap-1">
+                      {selectedDate.toDateString() !== new Date().toDateString() && (
+                        <button
+                          disabled={disabled}
+                          className={`flex items-center justify-center gap-1 px-2 py-1.5 text-xs font-medium rounded-lg bg-white/10 backdrop-blur-md border border-white/20 text-white hover:bg-white/20 transition-all duration-200 whitespace-nowrap ${disabled ? 'cursor-not-allowed opacity-50' : ''
+                            }`}
+                          onClick={() => {
+                            if (!disabled) {
+                              const today = new Date();
+                              onDateChange(today);
+                              if (onDaysChange) {
+                                const numberOfDays = days.length;
+                                const middleIndex = Math.floor(numberOfDays / 2);
+                                const newDays = Array.from({ length: numberOfDays }, (_, i) => {
+                                  const newDate = new Date(today);
+                                  newDate.setDate(newDate.getDate() + (i - middleIndex));
+                                  return newDate;
+                                });
+                                onDaysChange(newDays);
+                              }
+                            }
+                          }}
+                          title="Go to today's notes"
+                        >
+                          <Calendar className="h-3 w-3" />
+                          <span>Today</span>
+                        </button>
+                      )}
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <button
+                            disabled={disabled}
+                            className={`flex items-center justify-center gap-1 px-2 py-1.5 text-xs font-medium rounded-lg bg-white/10 backdrop-blur-md border border-white/20 text-white hover:bg-white/20 transition-all duration-200 whitespace-nowrap ${disabled ? 'cursor-not-allowed opacity-50' : ''
+                              }`}
+                            title="Pick a specific date"
+                          >
+                            <CalendarDays className="h-3 w-3" />
+                            <span>Pick</span>
+                          </button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="end">
+                          <CalendarComponent
+                            mode="single"
+                            selected={selectedDate}
+                            onSelect={(date) => {
+                              if (date && onDateChange && !disabled) {
+                                onDateChange(date);
+                                if (onDaysChange) {
+                                  const numberOfDays = days.length;
+                                  const middleIndex = Math.floor(numberOfDays / 2);
+                                  const newDays = Array.from({ length: numberOfDays }, (_, i) => {
+                                    const newDate = new Date(date);
+                                    newDate.setDate(newDate.getDate() + (i - middleIndex));
+                                    return newDate;
+                                  });
+                                  onDaysChange(newDays);
+                                }
+                              }
+                            }}
+                            initialFocus
+                          />
+                        </PopoverContent>
+                      </Popover>
+                    </div>
+                  )}
+
+                  {activeTab === 'project' && onCreateProject && projectNotes.length === 0 && (
+                    <div className="flex items-center">
+                      <CreateProjectDialog
+                        onCreateProject={onCreateProject}
+                        disabled={disabled}
+                      />
+                    </div>
+                  )}
+
+                  {activeTab === 'project' && selectedProject && handleRenameProject && handleDeleteProject && (
+                    <div className="flex items-center gap-1">
+                      <ProjectDialogs
+                        project={selectedProject}
+                        onRenameProject={handleRenameProject}
+                        onDeleteProject={handleDeleteProject}
+                      />
+                    </div>
+                  )}
+                </div>
+
+                {/* Mobile: Date carousel navigation for daily notes */}
+                {activeTab === 'daily' && onDateChange && days.length > 0 && (
+                  <div className="flex sm:hidden items-center justify-center gap-1 mt-2">
+                    <button
+                      disabled={disabled}
+                      className={`p-1 text-white/90 bg-white/10 backdrop-blur-md border border-white/20 hover:bg-white/20 rounded-lg transition-all duration-200 flex-shrink-0 ${disabled ? 'cursor-not-allowed' : ''
+                        }`}
+                      onClick={() => {
+                        if (onDaysChange && !disabled) {
+                          const newDate = new Date(selectedDate);
+                          newDate.setDate(newDate.getDate() - 1);
+                          onDateChange(newDate);
+
+                          // Center the new selected date in the days array
+                          const numberOfDays = days.length;
+                          const middleIndex = Math.floor(numberOfDays / 2);
+                          const newDays = Array.from({ length: numberOfDays }, (_, i) => {
+                            const dayDate = new Date(newDate);
+                            dayDate.setDate(dayDate.getDate() + (i - middleIndex));
+                            return dayDate;
+                          });
+                          onDaysChange(newDays);
+                        }
+                      }}
+                      title="Previous day"
+                    >
+                      <ChevronLeft className="h-4 w-4" />
+                    </button>
+
+                    <div className="flex flex-1 justify-center gap-1 px-1">
+                      {(() => {
+                        const selectedIndex = days.findIndex(d => d.toDateString() === selectedDate.toDateString());
+
+                        // If selectedDate is not found in days array, default to middle
+                        const safeSelectedIndex = selectedIndex !== -1 ? selectedIndex : Math.floor(days.length / 2);
+
+                        // Calculate start and end indices to always show 3 days
+                        let startIndex = Math.max(0, safeSelectedIndex - 1);
+                        let endIndex = Math.min(days.length - 1, safeSelectedIndex + 1);
+
+                        // Adjust if we're at the edges to ensure 3 days when possible
+                        if (endIndex - startIndex < 2 && days.length >= 3) {
+                          if (startIndex === 0) {
+                            endIndex = Math.min(days.length - 1, startIndex + 2);
+                          } else if (endIndex === days.length - 1) {
+                            startIndex = Math.max(0, endIndex - 2);
+                          }
+                        }
+
+                        // Get the 3 days to show
+                        const mobileDays = days.slice(startIndex, endIndex + 1);
+
+                        return mobileDays.map((day) => {
+                          const isToday = day.toDateString() === new Date().toDateString();
+                          const isSelected = day.toDateString() === selectedDate.toDateString();
+                          const dayOfWeek = day.toLocaleDateString('en-US', { weekday: 'short' });
+                          const dayNumber = day.getDate();
+                          const month = day.toLocaleDateString('en-US', { month: 'short' });
+                          const year = day.getFullYear().toString().slice(-2);
+
+                          return (
+                            <button
+                              key={day.toISOString()}
+                              disabled={disabled}
+                              onClick={() => {
+                                if (!disabled) {
+                                  onDateChange(day);
+                                  // Center the clicked date in the days array
+                                  if (onDaysChange) {
+                                    const numberOfDays = days.length;
+                                    const middleIndex = Math.floor(numberOfDays / 2);
+                                    const newDays = Array.from({ length: numberOfDays }, (_, i) => {
+                                      const newDate = new Date(day);
+                                      newDate.setDate(newDate.getDate() + (i - middleIndex));
+                                      return newDate;
+                                    });
+                                    onDaysChange(newDays);
+                                  }
+                                }
+                              }}
+                              className={`date-carousel-item px-1 py-1.5 rounded-lg flex-1 min-w-[2.5rem] text-center relative transition-all duration-200 ${isSelected
+                                ? 'bg-white text-blue-600 shadow-md font-medium'
+                                : 'bg-white/10 backdrop-blur-md border border-white/20 text-white/90 hover:bg-white/20'
+                                } ${isToday && !isSelected ? 'ring-1 ring-yellow-400/50' : ''} ${disabled ? 'cursor-not-allowed' : ''}`}
+                              title={`${dayOfWeek}, ${month} ${dayNumber}, ${day.getFullYear()}${isToday ? ' (Today)' : ''}`}
+                            >
+                              {isToday && (
+                                <div className="text-xs font-medium leading-tight mb-0.5">Today</div>
+                              )}
+                              <div className="text-xs font-medium leading-tight">{dayOfWeek} {dayNumber}</div>
+                              <div className="text-xs opacity-75 leading-tight">{month} {year}</div>
+                            </button>
+                          );
+                        });
+                      })()}
+                    </div>
+
+                    <button
+                      disabled={disabled}
+                      className={`p-1 text-white/90 bg-white/10 backdrop-blur-md border border-white/20 hover:bg-white/20 rounded-lg transition-all duration-200 flex-shrink-0 ${disabled ? 'cursor-not-allowed' : ''
+                        }`}
+                      onClick={() => {
+                        if (onDaysChange && !disabled) {
+                          const newDate = new Date(selectedDate);
+                          newDate.setDate(newDate.getDate() + 1);
+                          onDateChange(newDate);
+
+                          // Center the new selected date in the days array
+                          const numberOfDays = days.length;
+                          const middleIndex = Math.floor(numberOfDays / 2);
+                          const newDays = Array.from({ length: numberOfDays }, (_, i) => {
+                            const dayDate = new Date(newDate);
+                            dayDate.setDate(dayDate.getDate() + (i - middleIndex));
+                            return dayDate;
+                          });
+                          onDaysChange(newDays);
+                        }
+                      }}
+                      title="Next day"
+                    >
+                      <ChevronRight className="h-4 w-4" />
+                    </button>
+                  </div>
+                )}
+
+                {/* Mobile: Project selector for project notes */}
+                {activeTab === 'project' && onProjectSelect && projectNotes.length > 0 && (
+                  <div className="flex sm:hidden mt-2">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <button
+                          disabled={disabled}
+                          className={`flex items-center px-3 py-1.5 text-xs font-medium rounded-lg bg-white/10 backdrop-blur-md border border-white/20 text-white hover:bg-white/20 transition-all duration-200 justify-between min-w-0 flex-1 ${disabled ? 'cursor-not-allowed opacity-50' : ''
+                            }`}
+                          title={`Select a page to edit${selectedProject?.title ? ` - Currently: ${selectedProject.title}` : ''}`}
+                        >
+                          <span className="truncate text-left">
+                            {selectedProject?.title || "Select a page"}
+                          </span>
+                          <ChevronLeft className="h-3 w-3 ml-2 rotate-[-90deg] flex-shrink-0" />
+                        </button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent className="w-80 bg-white dark:bg-neutral-800 border-gray-200 dark:border-gray-700 shadow-xl" align="start">
+                        <div className="p-2 border-b border-gray-200 dark:border-gray-700">
+                          <div className="relative">
+                            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                            <Input
+                              placeholder="Search pages..."
+                              value={projectSearchTerm}
+                              onChange={(e) => !disabled && setProjectSearchTerm(e.target.value)}
+                              disabled={disabled}
+                              className="pl-10 text-sm"
+                            />
+                          </div>
+                        </div>
+                        <div className="max-h-60 overflow-y-auto">
+                          {projectNotes
+                            .filter(project =>
+                              (project.title || "Untitled")
+                                .toLowerCase()
+                                .includes(projectSearchTerm.toLowerCase())
+                            )
+                            .map(project => (
+                              <DropdownMenuItem
+                                key={project.id}
+                                onClick={() => {
+                                  if (!disabled) {
+                                    onProjectSelect(project);
+                                    setProjectSearchTerm('');
+                                  }
+                                }}
+                                className={`flex items-center p-3 cursor-pointer ${selectedProject?.id === project.id
+                                  ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-300'
+                                  : 'text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700'
+                                  }`}
+                              >
+                                <Book className="h-4 w-4 mr-3 flex-shrink-0" />
+                                <span className="truncate">{project.title || "Untitled"}</span>
+                              </DropdownMenuItem>
+                            ))}
+                          {projectNotes.filter(project =>
+                            (project.title || "Untitled")
+                              .toLowerCase()
+                              .includes(projectSearchTerm.toLowerCase())
+                          ).length === 0 && projectSearchTerm && (
+                              <div className="p-3 text-sm text-gray-500 text-center">
+                                No pages found
+                              </div>
+                            )}
+                        </div>
+
+                        {/* Add new page button at the bottom of dropdown */}
+                        {onCreateProject && (
+                          <div className="border-t border-gray-200 dark:border-gray-700 p-2">
+                            <CreateProjectDialog
+                              onCreateProject={onCreateProject}
+                              disabled={disabled}
+                              variant="dropdown"
+                            />
+                          </div>
+                        )}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
+                )}
+
+                {/* Desktop: Tab selection - vertical layout */}
+                <div className="hidden sm:flex items-center justify-center lg:justify-start flex-shrink-0">
                   <div className="tab-container-vertical flex flex-row lg:flex-col">
                     <button
                       onClick={() => !disabled && onTabChange('daily')}
@@ -235,7 +553,7 @@ export const RealtimeEditor: React.FC<RealtimeEditorProps> = ({
                 </div>
 
                 {/* Navigation content - takes remaining space */}
-                <div className="flex-1 min-w-0">
+                <div className="flex-1 min-w-0 hidden sm:block">
                   {/* Daily Notes Navigation */}
                   {activeTab === 'daily' && onDateChange && days.length > 0 && (
                     <div className="flex flex-col sm:flex-row sm:items-end gap-3 sm:gap-4 w-full">
@@ -271,77 +589,8 @@ export const RealtimeEditor: React.FC<RealtimeEditorProps> = ({
                             </button>
 
                             <div className="flex date-carousel-buttons flex-1 justify-center px-1">
-                              {/* Mobile: Show only 3 days (selected ± 1) */}
-                              <div className="flex w-full justify-center sm:hidden gap-1">
-                                {(() => {
-                                  const selectedIndex = days.findIndex(d => d.toDateString() === selectedDate.toDateString());
-
-                                  // If selectedDate is not found in days array, default to middle
-                                  const safeSelectedIndex = selectedIndex !== -1 ? selectedIndex : Math.floor(days.length / 2);
-
-                                  // Calculate start and end indices to always show 3 days
-                                  let startIndex = Math.max(0, safeSelectedIndex - 1);
-                                  let endIndex = Math.min(days.length - 1, safeSelectedIndex + 1);
-
-                                  // Adjust if we're at the edges to ensure 3 days when possible
-                                  if (endIndex - startIndex < 2 && days.length >= 3) {
-                                    if (startIndex === 0) {
-                                      endIndex = Math.min(days.length - 1, startIndex + 2);
-                                    } else if (endIndex === days.length - 1) {
-                                      startIndex = Math.max(0, endIndex - 2);
-                                    }
-                                  }
-
-                                  // Get the 3 days to show
-                                  const mobileDays = days.slice(startIndex, endIndex + 1);
-
-                                  return mobileDays.map((day) => {
-                                    const isToday = day.toDateString() === new Date().toDateString();
-                                    const isSelected = day.toDateString() === selectedDate.toDateString();
-                                    const dayOfWeek = day.toLocaleDateString('en-US', { weekday: 'short' });
-                                    const dayNumber = day.getDate();
-                                    const month = day.toLocaleDateString('en-US', { month: 'short' });
-                                    const year = day.getFullYear().toString().slice(-2);
-
-                                    return (
-                                      <button
-                                        key={day.toISOString()}
-                                        disabled={disabled}
-                                        onClick={() => {
-                                          if (!disabled) {
-                                            onDateChange(day);
-                                            // Center the clicked date in the days array
-                                            if (onDaysChange) {
-                                              const numberOfDays = days.length;
-                                              const middleIndex = Math.floor(numberOfDays / 2);
-                                              const newDays = Array.from({ length: numberOfDays }, (_, i) => {
-                                                const newDate = new Date(day);
-                                                newDate.setDate(newDate.getDate() + (i - middleIndex));
-                                                return newDate;
-                                              });
-                                              onDaysChange(newDays);
-                                            }
-                                          }
-                                        }}
-                                        className={`date-carousel-item px-1 py-2 rounded-lg flex-1 min-w-[2.5rem] text-center relative transition-all duration-200 ${isSelected
-                                          ? 'bg-white text-blue-600 shadow-md font-medium'
-                                          : 'bg-white/10 backdrop-blur-md border border-white/20 text-white/90 hover:bg-white/20'
-                                          } ${isToday && !isSelected ? 'ring-1 ring-yellow-400/50' : ''} ${disabled ? 'cursor-not-allowed' : ''}`}
-                                        title={`${dayOfWeek}, ${month} ${dayNumber}, ${day.getFullYear()}${isToday ? ' (Today)' : ''}`}
-                                      >
-                                        {isToday && (
-                                          <div className="text-xs font-medium leading-tight mb-0.5">Today</div>
-                                        )}
-                                        <div className="text-sm font-medium leading-tight">{dayOfWeek} {dayNumber}</div>
-                                        <div className="text-xs opacity-75 leading-tight">{month} {year}</div>
-                                      </button>
-                                    );
-                                  });
-                                })()}
-                              </div>
-
                               {/* Desktop: Show 5 days with selected day in the middle (3rd position) */}
-                              <div className="hidden sm:flex w-full justify-center gap-1">
+                              <div className="flex w-full justify-center gap-1">
                                 {(() => {
                                   const selectedIndex = days.findIndex(d => d.toDateString() === selectedDate.toDateString());
 
@@ -469,7 +718,7 @@ export const RealtimeEditor: React.FC<RealtimeEditorProps> = ({
                             <span className="text-xs sm:text-sm">Today</span>
                           </button>
                         ) : (
-                          <div className="hidden sm:block h-[36px]"></div> // Invisible spacer to maintain layout on desktop only
+                          <div className="hidden sm:block h-[36px]"></div>
                         )}
 
                         {/* Pick Date button - always in second position on desktop, first/alongside on mobile */}

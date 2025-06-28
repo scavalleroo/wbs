@@ -144,6 +144,44 @@ export const useFocusSession = ({ user }: UserIdParam) => {
     }
   }, []);
 
+  // Update a running session (e.g., change sound/atmosphere)
+  const updateSession = useCallback(async (sessionId: string, updates: { sound?: string; activity?: string }) => {
+    if (!user?.id || !sessionId) {
+      toast.error('Unable to update session');
+      return null;
+    }
+
+    try {
+      setLoading(true);
+
+      // Update session in database
+      const { data, error } = await supabase
+        .from('focus_sessions')
+        .update(updates)
+        .eq('id', sessionId)
+        .eq('user_id', user.id)
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      // Update local session state
+      if (currentSession && currentSession.id === sessionId) {
+        setCurrentSession({ ...currentSession, ...updates });
+      }
+
+      return data;
+    } catch (err) {
+      console.error('Error updating focus session:', err);
+      const errorMessage = err instanceof Error ? err.message : String(err);
+      setError(errorMessage);
+      toast.error('Failed to update session');
+      return null;
+    } finally {
+      setLoading(false);
+    }
+  }, [currentSession, user?.id]);
+
   // Get today's total focus time for the user
   const getTodaysFocusTime = useCallback(async () => {
     if (!user?.id) return 0;
@@ -326,6 +364,7 @@ export const useFocusSession = ({ user }: UserIdParam) => {
     error,
     startSession,
     endSession,
+    updateSession,
     fetchRecentSessions,
     fetchSessionStats,
     deleteSession,

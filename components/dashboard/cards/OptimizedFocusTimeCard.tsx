@@ -22,7 +22,17 @@ export function OptimizedFocusTimeCard({
 }: OptimizedFocusTimeCardProps) {
     const [sound, setSound] = useState('Atmosphere');
     const videoRef = useRef<HTMLVideoElement>(null);
-    const { timeRemaining, timeElapsed, isRunning, initializeSession, endSession } = useTimer();
+    const { timeRemaining, timeElapsed, isRunning, initializeSession, endSession, updateSessionSound, sound: currentSound } = useTimer();
+
+    // Sync local sound with timer context sound
+    useEffect(() => {
+        if (currentSound && currentSound !== 'none') {
+            // Convert from backend format to display format
+            const displaySound = currentSound === 'atmosphere' ? 'Atmosphere' :
+                currentSound.charAt(0).toUpperCase() + currentSound.slice(1);
+            setSound(displaySound);
+        }
+    }, [currentSound]);
 
     // Video mapping
     const videoMapping: { [key: string]: string } = {
@@ -52,6 +62,19 @@ export function OptimizedFocusTimeCard({
             playVideo();
         }
     }, [sound]);
+
+    const handleSoundChange = async (newSound: string) => {
+        // Update local state immediately for UI responsiveness
+        setSound(newSound);
+
+        // Update the session in the background (if running)
+        try {
+            await updateSessionSound(newSound);
+        } catch (error) {
+            console.error('Failed to update session sound:', error);
+            // UI already updated, so we don't need to revert
+        }
+    };
 
     const handleStartFocus = () => {
         const soundValue = sound === 'Atmosphere' ? 'atmosphere' : sound.toLowerCase();
@@ -95,7 +118,7 @@ export function OptimizedFocusTimeCard({
 
             {/* Sound Selector - Top Right */}
             <div className="absolute top-4 right-4 w-32 z-50">
-                <Select value={sound} onValueChange={setSound}>
+                <Select value={sound} onValueChange={handleSoundChange}>
                     <SelectTrigger className="w-full bg-white/10 backdrop-blur-md border-white/20 text-white text-xs h-8 rounded-lg hover:bg-white/20 transition-all duration-200">
                         <SelectValue placeholder="Background" />
                     </SelectTrigger>

@@ -29,8 +29,9 @@ export function Sidebar({ user, userDetails, isCollapsed, isMobile = false, isOp
                 {/* Mobile sidebar */}
                 <div className={cn(
                     "fixed left-0 top-16 z-50 h-[calc(100vh-4rem)] w-64",
-                    "bg-white dark:bg-neutral-900 transition-transform duration-300 ease-in-out",
-                    "flex flex-col",
+                    "bg-white/80 dark:bg-neutral-900/80 backdrop-blur-md border-r border-white/20 dark:border-white/10",
+                    "transition-transform duration-300 ease-in-out",
+                    "flex flex-col shadow-xl",
                     isOpen ? "translate-x-0" : "-translate-x-full"
                 )}>
                     <div className="flex-grow px-2 py-4">
@@ -44,8 +45,9 @@ export function Sidebar({ user, userDetails, isCollapsed, isMobile = false, isOp
     return (
         <div className={cn(
             "fixed left-0 top-16 z-40 h-[calc(100vh-4rem)]",
-            "bg-white dark:bg-neutral-900 transition-all duration-300 ease-in-out",
-            "flex flex-col",
+            "bg-white/80 dark:bg-neutral-900/80 backdrop-blur-md border-r border-white/20 dark:border-white/10",
+            "transition-all duration-300 ease-in-out",
+            "flex flex-col shadow-xl",
             isCollapsed ? "w-16" : "w-64"
         )}>
             {/* Nav Items */}

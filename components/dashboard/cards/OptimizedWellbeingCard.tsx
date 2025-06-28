@@ -13,6 +13,7 @@ import { User } from '@supabase/supabase-js';
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts';
 import useMood from '@/hooks/use-mood';
 import { format, subDays, eachDayOfInterval, isSameDay, addDays } from 'date-fns';
+import '@/components/notes/editor/realtime-editor.css';
 
 export interface WellnessChartDataPoint {
     date: string;
@@ -266,7 +267,7 @@ export function OptimizedWellbeingCard({ user, isMobile = false }: OptimizedWell
 
     if (isLoading) {
         return (
-            <div className="rounded-2xl p-4 bg-gradient-to-br from-blue-500 via-indigo-600 to-purple-700 shadow-xl text-white relative overflow-hidden flex items-center justify-center min-h-[240px]">
+            <div className="rounded-2xl p-4 text-white relative overflow-hidden flex items-center justify-center min-h-[240px] header-gradient">
                 <div className="absolute inset-0 bg-black/10 backdrop-blur-md z-0 rounded-2xl"></div>
                 <div className="relative z-10 flex items-center gap-2">
                     <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
@@ -279,7 +280,7 @@ export function OptimizedWellbeingCard({ user, isMobile = false }: OptimizedWell
     if (showQuestionnaire) {
         if (isMobile) {
             return (
-                <div className="wellbeing-card-container rounded-2xl p-4 pb-3 bg-gradient-to-br from-blue-500 via-indigo-600 to-purple-700 shadow-xl text-white relative overflow-hidden">
+                <div className="wellbeing-card-container rounded-2xl p-4 pb-3 text-white relative overflow-hidden header-gradient">
                     <div className="absolute inset-0 bg-black/10 backdrop-blur-md z-0 rounded-2xl"></div>
                     <div className="relative z-10 flex flex-col h-full">
                         {/* Header matching chart mode */}
@@ -329,7 +330,7 @@ export function OptimizedWellbeingCard({ user, isMobile = false }: OptimizedWell
             );
         } else {
             return (
-                <div className="wellbeing-card-container rounded-2xl p-6 pb-4 bg-gradient-to-br from-blue-500 via-indigo-600 to-purple-700 shadow-xl text-white relative overflow-hidden">
+                <div className="wellbeing-card-container rounded-2xl p-6 pb-4 text-white relative overflow-hidden header-gradient">
                     <div className="absolute inset-0 bg-black/10 backdrop-blur-md z-0 rounded-2xl"></div>
                     <div className="relative z-10 flex flex-col h-full">
                         {/* Header matching chart mode */}
@@ -393,14 +394,14 @@ export function OptimizedWellbeingCard({ user, isMobile = false }: OptimizedWell
             const hasNote = data.description && data.description.trim() !== '';
 
             return (
-                <div className="bg-gray-900/90 backdrop-blur-sm text-white px-3 py-2 rounded-lg shadow-lg text-sm border border-gray-700">
+                <div className="bg-white/10 backdrop-blur-md text-white px-3 py-2 rounded-lg shadow-lg text-sm border border-white/20">
                     <div className="flex items-center gap-2">
                         <span className="font-medium">Score: {data.score}</span>
                         {hasNote && (
-                            <span role="img" aria-label="has note" className="text-yellow-400">💭</span>
+                            <span role="img" aria-label="has note" className="text-yellow-300">💭</span>
                         )}
                     </div>
-                    <div className="text-xs text-gray-300 mt-1">Click to see more</div>
+                    <div className="text-xs text-white/80 mt-1">Click to see more</div>
                 </div>
             );
         }
@@ -425,7 +426,7 @@ export function OptimizedWellbeingCard({ user, isMobile = false }: OptimizedWell
         return (
             <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50" onClick={closeTooltip}>
                 <div
-                    className="bg-white/95 backdrop-blur-md text-gray-900 p-6 rounded-xl shadow-2xl border border-white/30 text-left max-w-sm w-full mx-4 relative"
+                    className="bg-white/10 backdrop-blur-md text-white p-6 rounded-xl shadow-2xl border border-white/20 text-left max-w-sm w-full mx-4 relative"
                     onClick={(e) => e.stopPropagation()}
                     role="dialog"
                     aria-modal="true"
@@ -434,25 +435,25 @@ export function OptimizedWellbeingCard({ user, isMobile = false }: OptimizedWell
                     {/* Close Button */}
                     <button
                         onClick={closeTooltip}
-                        className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 transition-colors"
+                        className="absolute top-4 right-4 text-white/70 hover:text-white bg-white/10 backdrop-blur-md border border-white/20 hover:bg-white/20 transition-all duration-200 w-8 h-8 rounded-lg flex items-center justify-center"
                         aria-label="Close"
                     >
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                         </svg>
                     </button>
 
                     {/* Overall Score - Most Prominent */}
-                    <div className="text-center mb-4 pb-4 border-b border-gray-200">
-                        <div className="text-3xl font-bold mb-2" style={{ color: getWellnessColor(data.score) }}>
+                    <div className="text-center mb-4 pb-4 border-b border-white/20">
+                        <div className="text-3xl font-bold mb-2" style={{ color: '#ffffff' }}>
                             {data.score !== null ? data.score : 'N/A'}
                         </div>
-                        <div id="tooltip-title" className="text-sm text-gray-600 uppercase tracking-wider">Overall Score</div>
+                        <div id="tooltip-title" className="text-sm text-white/70 uppercase tracking-wider">Overall Score</div>
                     </div>
 
                     {/* Date */}
-                    <div className="text-center mb-4 pb-3 border-b border-gray-200">
-                        <div className="text-base font-medium text-gray-700">{formattedDate}</div>
+                    <div className="text-center mb-4 pb-3 border-b border-white/20">
+                        <div className="text-base font-medium text-white/90">{formattedDate}</div>
                     </div>
 
                     {/* Individual Ratings with Emojis - Standardized spacing */}
@@ -461,9 +462,9 @@ export function OptimizedWellbeingCard({ user, isMobile = false }: OptimizedWell
                             <div className="flex items-center justify-between">
                                 <span className="flex items-center gap-3">
                                     <span role="img" aria-label="mood" className="text-lg">😊</span>
-                                    <span className="text-sm text-gray-600">Mood</span>
+                                    <span className="text-sm text-white/80">Mood</span>
                                 </span>
-                                <span className="text-base font-medium" aria-label={`Mood rating: ${data.mood_rating} out of 5 stars`}>
+                                <span className="text-base font-medium text-white" aria-label={`Mood rating: ${data.mood_rating} out of 5 stars`}>
                                     {renderStars(data.mood_rating)}
                                 </span>
                             </div>
@@ -472,9 +473,9 @@ export function OptimizedWellbeingCard({ user, isMobile = false }: OptimizedWell
                             <div className="flex items-center justify-between">
                                 <span className="flex items-center gap-3">
                                     <span role="img" aria-label="sleep" className="text-lg">🌙</span>
-                                    <span className="text-sm text-gray-600">Sleep</span>
+                                    <span className="text-sm text-white/80">Sleep</span>
                                 </span>
-                                <span className="text-base font-medium" aria-label={`Sleep rating: ${data.sleep_rating} out of 5 stars`}>
+                                <span className="text-base font-medium text-white" aria-label={`Sleep rating: ${data.sleep_rating} out of 5 stars`}>
                                     {renderStars(data.sleep_rating)}
                                 </span>
                             </div>
@@ -483,9 +484,9 @@ export function OptimizedWellbeingCard({ user, isMobile = false }: OptimizedWell
                             <div className="flex items-center justify-between">
                                 <span className="flex items-center gap-3">
                                     <span role="img" aria-label="nutrition" className="text-lg">🍎</span>
-                                    <span className="text-sm text-gray-600">Nutrition</span>
+                                    <span className="text-sm text-white/80">Nutrition</span>
                                 </span>
-                                <span className="text-base font-medium" aria-label={`Nutrition rating: ${data.nutrition_rating} out of 5 stars`}>
+                                <span className="text-base font-medium text-white" aria-label={`Nutrition rating: ${data.nutrition_rating} out of 5 stars`}>
                                     {renderStars(data.nutrition_rating)}
                                 </span>
                             </div>
@@ -494,9 +495,9 @@ export function OptimizedWellbeingCard({ user, isMobile = false }: OptimizedWell
                             <div className="flex items-center justify-between">
                                 <span className="flex items-center gap-3">
                                     <span role="img" aria-label="exercise" className="text-lg">🏃</span>
-                                    <span className="text-sm text-gray-600">Exercise</span>
+                                    <span className="text-sm text-white/80">Exercise</span>
                                 </span>
-                                <span className="text-base font-medium" aria-label={`Exercise rating: ${data.exercise_rating} out of 5 stars`}>
+                                <span className="text-base font-medium text-white" aria-label={`Exercise rating: ${data.exercise_rating} out of 5 stars`}>
                                     {renderStars(data.exercise_rating)}
                                 </span>
                             </div>
@@ -505,9 +506,9 @@ export function OptimizedWellbeingCard({ user, isMobile = false }: OptimizedWell
                             <div className="flex items-center justify-between">
                                 <span className="flex items-center gap-3">
                                     <span role="img" aria-label="social" className="text-lg">💬</span>
-                                    <span className="text-sm text-gray-600">Social</span>
+                                    <span className="text-sm text-white/80">Social</span>
                                 </span>
-                                <span className="text-base font-medium" aria-label={`Social rating: ${data.social_rating} out of 5 stars`}>
+                                <span className="text-base font-medium text-white" aria-label={`Social rating: ${data.social_rating} out of 5 stars`}>
                                     {renderStars(data.social_rating)}
                                 </span>
                             </div>
@@ -516,12 +517,12 @@ export function OptimizedWellbeingCard({ user, isMobile = false }: OptimizedWell
 
                     {/* Comments Section */}
                     {data.description && (
-                        <div className="pt-3 border-t border-gray-200">
+                        <div className="pt-3 border-t border-white/20">
                             <div className="flex items-start gap-3 mb-3">
                                 <span role="img" aria-label="comments" className="text-lg">💭</span>
-                                <span className="text-sm text-gray-600 uppercase tracking-wider">Notes</span>
+                                <span className="text-sm text-white/70 uppercase tracking-wider">Notes</span>
                             </div>
-                            <p className="text-sm text-gray-700 italic leading-relaxed" role="note">
+                            <p className="text-sm text-white/90 italic leading-relaxed" role="note">
                                 "{data.description}"
                             </p>
                         </div>
@@ -534,56 +535,61 @@ export function OptimizedWellbeingCard({ user, isMobile = false }: OptimizedWell
     if (isMobile) {
         return (
             <>
-                <div className="wellbeing-card-container rounded-2xl p-4 pb-3 bg-gradient-to-br from-blue-500 via-indigo-600 to-purple-700 shadow-xl text-white relative overflow-hidden">
-                    <div className="absolute inset-0 bg-black/10 backdrop-blur-md z-0 rounded-2xl"></div>
-                    <div className="relative z-10">
-                        {/* Header with Period Selector */}
-                        <div className="flex items-start justify-between mb-4">
-                            <div className="flex-grow min-w-0">
-                                <h2 className="font-bold text-lg">
-                                    Wellbeing Score
-                                </h2>
-                                {wellnessScore !== null && (
-                                    <div className="flex items-center gap-2">
-                                        <p className="text-sm text-white/90">
-                                            {wellnessScore} today {getWellnessEmoji(wellnessScore)}
-                                        </p>                        <button
-                                            onClick={() => setShowQuestionnaire(true)}
-                                            className="text-xs text-white/80 hover:text-white bg-white/10 backdrop-blur-md border border-white/20 hover:bg-white/30 px-2 py-1 rounded-lg transition-all duration-200"
-                                        >
-                                            Update score
-                                        </button>
-                                    </div>
-                                )}
-                            </div>
-                            <div className="ml-3">
-                                <div className="text-center mb-1">
-                                    <span className="text-white/50 text-xs uppercase tracking-wider">Period</span>
+                <div className="wellbeing-card-container rounded-2xl bg-neutral-100 dark:bg-neutral-800 shadow-xl text-gray-900 dark:text-white relative overflow-hidden border border-gray-200 dark:border-gray-700">
+                    {/* Header with gradient background */}
+                    <div className="text-white p-4 pb-2 relative overflow-hidden header-gradient">
+                        <div className="absolute inset-0 bg-black/10 backdrop-blur-md z-0"></div>
+                        <div className="relative z-10">
+                            {/* Header with Period Selector */}
+                            <div className="flex items-start justify-between mb-3">
+                                <div className="flex-grow min-w-0">
+                                    <h2 className="font-bold text-lg">
+                                        Wellbeing Score
+                                    </h2>
+                                    {wellnessScore !== null && (
+                                        <div className="flex items-center gap-2 mt-1">
+                                            <p className="text-sm text-white/90">
+                                                {wellnessScore} today {getWellnessEmoji(wellnessScore)}
+                                            </p>                        <button
+                                                onClick={() => setShowQuestionnaire(true)}
+                                                className="text-xs text-white/80 hover:text-white bg-white/10 backdrop-blur-md border border-white/20 hover:bg-white/30 px-1.5 py-0.5 rounded-md transition-all duration-200 ml-2"
+                                            >
+                                                Update
+                                            </button>
+                                        </div>
+                                    )}
                                 </div>
-                                <Select value={chartPeriod} onValueChange={(value: ChartPeriod) => handlePeriodChange(value)}>
-                                    <SelectTrigger className="w-20 mx-auto bg-white/10 backdrop-blur-md border border-white/20 text-white text-xs h-6 rounded-lg">
-                                        <SelectValue placeholder="Select" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="week">Week</SelectItem>
-                                        <SelectItem value="month">Month</SelectItem>
-                                        <SelectItem value="3months">3 Months</SelectItem>
-                                        <SelectItem value="all">All Time</SelectItem>
-                                    </SelectContent>
-                                </Select>
+                                <div className="ml-3">
+                                    <div className="text-center mb-1">
+                                        <span className="text-white/50 text-xs uppercase tracking-wider">Period</span>
+                                    </div>
+                                    <Select value={chartPeriod} onValueChange={(value: ChartPeriod) => handlePeriodChange(value)}>
+                                        <SelectTrigger className="w-20 mx-auto bg-white/10 backdrop-blur-md border border-white/20 text-white text-xs h-6 rounded-lg">
+                                            <SelectValue placeholder="Select" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="week">Week</SelectItem>
+                                            <SelectItem value="month">Month</SelectItem>
+                                            <SelectItem value="3months">3 Months</SelectItem>
+                                            <SelectItem value="all">All Time</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
                             </div>
                         </div>
+                    </div>
 
-                        {/* Chart */}
-                        <div className="wellbeing-chart-container h-32 relative">
+                    {/* Chart area with neutral background */}
+                    <div className="p-4 pt-3">
+                        <div className="wellbeing-chart-container h-48 relative">
                             {(wellnessChartData && wellnessChartData.length > 0) ? (
                                 <ResponsiveContainer width="100%" height="100%">
                                     <LineChart data={wellnessChartData} margin={chartMargins} onClick={handleChartClick} style={{ cursor: 'pointer' }}>
-                                        <XAxis dataKey="date" stroke="#fff" fontSize={10} tickLine={false} axisLine={true} />
-                                        <YAxis stroke="#fff" fontSize={10} domain={[0, 100]} tickLine={false} axisLine={false} />
+                                        <XAxis dataKey="date" stroke="currentColor" fontSize={12} tickLine={false} axisLine={true} />
+                                        <YAxis stroke="currentColor" fontSize={12} domain={[0, 100]} tickLine={false} axisLine={false} />
                                         <Tooltip
                                             content={<SimpleTooltip />}
-                                            cursor={{ stroke: 'rgba(255,255,255,0.5)', strokeWidth: 1 }}
+                                            cursor={{ stroke: 'rgba(59, 130, 246, 0.5)', strokeWidth: 1 }}
                                             wrapperStyle={{ outline: 'none', zIndex: 1000 }}
                                             allowEscapeViewBox={{ x: false, y: false }}
                                             position={{ x: undefined, y: undefined }}
@@ -591,7 +597,7 @@ export function OptimizedWellbeingCard({ user, isMobile = false }: OptimizedWell
                                         <Line
                                             type="monotone"
                                             dataKey="score"
-                                            stroke="#fff"
+                                            stroke="#3B82F6"
                                             strokeWidth={2}
                                             dot={(props: any) => {
                                                 const { cx, cy, payload } = props;
@@ -601,27 +607,27 @@ export function OptimizedWellbeingCard({ user, isMobile = false }: OptimizedWell
                                                         cx={cx}
                                                         cy={cy}
                                                         r={3}
-                                                        fill={hasNote ? "#FFD700" : "#fff"}
-                                                        stroke={hasNote ? "#FFA500" : "#fff"}
+                                                        fill={hasNote ? "#FFD700" : "#3B82F6"}
+                                                        stroke={hasNote ? "#FFA500" : "#3B82F6"}
                                                         strokeWidth={1}
                                                     />
                                                 );
                                             }}
-                                            activeDot={{ r: 5, fill: "#fff", stroke: "#fff", strokeWidth: 2 }}
+                                            activeDot={{ r: 5, fill: "#3B82F6", stroke: "#3B82F6", strokeWidth: 2 }}
                                             connectNulls={false}
                                         />
-                                        <ReferenceLine y={50} stroke="rgba(255,255,255,0.3)" strokeDasharray="3 3" />
+                                        <ReferenceLine y={50} stroke="rgba(59, 130, 246, 0.3)" strokeDasharray="3 3" />
                                     </LineChart>
                                 </ResponsiveContainer>
                             ) : (
                                 <div className="flex items-center justify-center h-full text-center">
                                     <div>
-                                        <HeartPulse className="h-8 w-8 mx-auto mb-2 text-white/50" />
-                                        <p className="text-xs text-white/70">No wellness data for this period</p>
+                                        <HeartPulse className="h-8 w-8 mx-auto mb-2 text-gray-400 dark:text-gray-500" />
+                                        <p className="text-xs text-gray-600 dark:text-gray-400">No wellness data for this period</p>
                                         {chartPeriod === 'week' && !hasRecentMoodData && (
                                             <button
                                                 onClick={() => setShowQuestionnaire(true)}
-                                                className="text-xs text-white/90 underline mt-1 hover:text-white bg-white/10 backdrop-blur-md border border-white/20 hover:bg-white/30 px-2 py-1 rounded-lg transition-all duration-200"
+                                                className="text-xs text-blue-600 dark:text-blue-400 underline mt-1 hover:text-blue-700 dark:hover:text-blue-300 bg-blue-50 dark:bg-blue-900/20 backdrop-blur-md border border-blue-200 dark:border-blue-700 hover:bg-blue-100 dark:hover:bg-blue-900/30 px-2 py-1 rounded-lg transition-all duration-200"
                                             >
                                                 Track today
                                             </button>
@@ -639,57 +645,62 @@ export function OptimizedWellbeingCard({ user, isMobile = false }: OptimizedWell
 
     return (
         <>
-            <div className="wellbeing-card-container rounded-2xl p-6 pb-4 bg-gradient-to-br from-blue-500 via-indigo-600 to-purple-700 shadow-xl text-white relative overflow-hidden">
-                <div className="absolute inset-0 bg-black/10 backdrop-blur-md z-0 rounded-2xl"></div>
-                <div className="relative z-10">
-                    {/* Header with Period Selector */}
-                    <div className="flex justify-between items-start mb-6">
-                        <div className="flex-grow min-w-0">
-                            <h2 className="font-bold text-xl">
-                                Wellbeing Score
-                            </h2>
-                            {wellnessScore !== null && (
-                                <div className="flex items-center gap-3">
-                                    <p className="text-base text-white/90">
-                                        {wellnessScore} today {getWellnessEmoji(wellnessScore)}
-                                    </p>
-                                    <button
-                                        onClick={() => setShowQuestionnaire(true)}
-                                        className="text-sm text-white/80 hover:text-white bg-white/10 backdrop-blur-md border border-white/20 hover:bg-white/30 px-3 py-1.5 rounded-lg transition-all duration-200"
-                                    >
-                                        Update score
-                                    </button>
-                                </div>
-                            )}
-                        </div>
-                        <div className="ml-4">
-                            <div className="text-center mb-1">
-                                <span className="text-white/50 text-xs uppercase tracking-wider">Period</span>
+            <div className="wellbeing-card-container rounded-2xl bg-neutral-100 dark:bg-neutral-800 shadow-xl text-gray-900 dark:text-white relative overflow-hidden border border-gray-200 dark:border-gray-700">
+                {/* Header with gradient background */}
+                <div className="text-white p-4 pb-2 relative overflow-hidden header-gradient">
+                    <div className="absolute inset-0 bg-black/10 backdrop-blur-md z-0"></div>
+                    <div className="relative z-10">
+                        {/* Header with Period Selector */}
+                        <div className="flex justify-between items-start mb-4">
+                            <div className="flex-grow min-w-0">
+                                <h2 className="font-bold text-xl">
+                                    Wellbeing Score
+                                </h2>
+                                {wellnessScore !== null && (
+                                    <div className="flex items-center gap-3 mt-2">
+                                        <p className="text-base text-white/90">
+                                            {wellnessScore} today {getWellnessEmoji(wellnessScore)}
+                                        </p>
+                                        <button
+                                            onClick={() => setShowQuestionnaire(true)}
+                                            className="text-xs text-white/80 hover:text-white bg-white/10 backdrop-blur-md border border-white/20 hover:bg-white/30 px-2 py-1 rounded-md transition-all duration-200"
+                                        >
+                                            Update
+                                        </button>
+                                    </div>
+                                )}
                             </div>
-                            <Select value={chartPeriod} onValueChange={(value: ChartPeriod) => handlePeriodChange(value)}>
-                                <SelectTrigger className="w-28 mx-auto bg-white/10 backdrop-blur-md border border-white/20 text-white text-xs h-7 rounded-lg">
-                                    <SelectValue placeholder="Select" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="week">Week</SelectItem>
-                                    <SelectItem value="month">Month</SelectItem>
-                                    <SelectItem value="3months">3 Months</SelectItem>
-                                    <SelectItem value="all">All Time</SelectItem>
-                                </SelectContent>
-                            </Select>
+                            <div className="ml-4">
+                                <div className="text-center mb-1">
+                                    <span className="text-white/50 text-xs uppercase tracking-wider">Period</span>
+                                </div>
+                                <Select value={chartPeriod} onValueChange={(value: ChartPeriod) => handlePeriodChange(value)}>
+                                    <SelectTrigger className="w-28 mx-auto bg-white/10 backdrop-blur-md border border-white/20 text-white text-xs h-7 rounded-lg">
+                                        <SelectValue placeholder="Select" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="week">Week</SelectItem>
+                                        <SelectItem value="month">Month</SelectItem>
+                                        <SelectItem value="3months">3 Months</SelectItem>
+                                        <SelectItem value="all">All Time</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
                         </div>
                     </div>
+                </div>
 
-                    {/* Chart */}
-                    <div className="wellbeing-chart-container h-48 relative">
+                {/* Chart area with neutral background */}
+                <div className="p-6 pt-4">
+                    <div className="wellbeing-chart-container h-56 relative">
                         {(wellnessChartData && wellnessChartData.length > 0) ? (
                             <ResponsiveContainer width="100%" height="100%">
                                 <LineChart data={wellnessChartData} margin={chartMargins} onClick={handleChartClick} style={{ cursor: 'pointer' }}>
-                                    <XAxis dataKey="date" stroke="#fff" fontSize={12} tickLine={false} axisLine={true} />
-                                    <YAxis stroke="#fff" fontSize={12} domain={[0, 100]} tickLine={false} axisLine={false} />
+                                    <XAxis dataKey="date" stroke="currentColor" fontSize={14} tickLine={false} axisLine={true} />
+                                    <YAxis stroke="currentColor" fontSize={14} domain={[0, 100]} tickLine={false} axisLine={false} />
                                     <Tooltip
                                         content={<SimpleTooltip />}
-                                        cursor={{ stroke: 'rgba(255,255,255,0.5)', strokeWidth: 1 }}
+                                        cursor={{ stroke: 'rgba(59, 130, 246, 0.5)', strokeWidth: 1 }}
                                         wrapperStyle={{ outline: 'none', zIndex: 1000 }}
                                         allowEscapeViewBox={{ x: false, y: false }}
                                         position={{ x: undefined, y: undefined }}
@@ -697,7 +708,7 @@ export function OptimizedWellbeingCard({ user, isMobile = false }: OptimizedWell
                                     <Line
                                         type="monotone"
                                         dataKey="score"
-                                        stroke="#fff"
+                                        stroke="#3B82F6"
                                         strokeWidth={3}
                                         dot={(props: any) => {
                                             const { cx, cy, payload } = props;
@@ -707,24 +718,24 @@ export function OptimizedWellbeingCard({ user, isMobile = false }: OptimizedWell
                                                     cx={cx}
                                                     cy={cy}
                                                     r={4}
-                                                    fill={hasNote ? "#FFD700" : "#fff"}
-                                                    stroke={hasNote ? "#FFA500" : "#fff"}
+                                                    fill={hasNote ? "#FFD700" : "#3B82F6"}
+                                                    stroke={hasNote ? "#FFA500" : "#3B82F6"}
                                                     strokeWidth={1}
                                                 />
                                             );
                                         }}
-                                        activeDot={{ r: 7, fill: "#fff", stroke: "#fff", strokeWidth: 2 }}
+                                        activeDot={{ r: 7, fill: "#3B82F6", stroke: "#3B82F6", strokeWidth: 2 }}
                                         connectNulls={false}
                                     />
-                                    <ReferenceLine y={50} stroke="rgba(255,255,255,0.3)" strokeDasharray="3 3" />
+                                    <ReferenceLine y={50} stroke="rgba(59, 130, 246, 0.3)" strokeDasharray="3 3" />
                                 </LineChart>
                             </ResponsiveContainer>
                         ) : (
                             <div className="flex items-center justify-center h-full text-center">
                                 <div>
-                                    <HeartPulse className="h-12 w-12 mx-auto mb-3 text-white/50" />
-                                    <p className="text-white/70 text-base mb-2">No wellness data for this period</p>
-                                    <p className="text-white/60 text-sm">Start tracking your daily wellbeing to see your progress over time</p>
+                                    <HeartPulse className="h-12 w-12 mx-auto mb-3 text-gray-400 dark:text-gray-500" />
+                                    <p className="text-gray-600 dark:text-gray-400 text-base mb-2">No wellness data for this period</p>
+                                    <p className="text-gray-500 dark:text-gray-500 text-sm">Start tracking your daily wellbeing to see your progress over time</p>
                                 </div>
                             </div>
                         )}

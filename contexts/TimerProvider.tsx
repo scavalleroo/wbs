@@ -26,6 +26,7 @@ interface TimerContextProps {
     toggleMute: () => void;
     setVolume: (value: number) => void;
     setSound: (sound: string) => void;
+    updateSessionSound: (newSound: string) => void;
     resetTimer: () => void;
     initializeSession: (settings: TimerSettings) => void;
     endSession: (status?: 'completed' | 'abandoned') => void;
@@ -48,6 +49,7 @@ export function TimerProvider({ children, user }: { children: ReactNode; user: U
     const {
         startSession,
         endSession: endFocusSession,
+        updateSession,
         currentSession,
         cleanupOrphanedSessions
     } = useFocusSession({ user });
@@ -278,6 +280,29 @@ export function TimerProvider({ children, user }: { children: ReactNode; user: U
             // console.log('End sound autoplay prevented. User interaction required.');
         });
     };
+
+    // Update session sound during runtime
+    const updateSessionSound = async (newSound: string) => {
+        if (!sessionId || !isRunning) {
+            // If no active session, just update local state
+            setSound(newSound);
+            return;
+        }
+
+        try {
+            // Update the session in the database
+            const soundValue = newSound === 'Atmosphere' ? 'atmosphere' : newSound.toLowerCase();
+            await updateSession(sessionId, { sound: soundValue });
+
+            // Update local state
+            setSound(soundValue);
+        } catch (error) {
+            console.error('Failed to update session sound:', error);
+            // Still update local state even if database update fails
+            setSound(newSound === 'Atmosphere' ? 'atmosphere' : newSound.toLowerCase());
+        }
+    };
+
     return (
         <TimerContext.Provider
             value={{
@@ -300,6 +325,7 @@ export function TimerProvider({ children, user }: { children: ReactNode; user: U
                 toggleMute,
                 setVolume,
                 setSound,
+                updateSessionSound,
                 resetTimer,
                 initializeSession,
                 endSession

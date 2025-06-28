@@ -30,7 +30,7 @@ export default async function LandingPage() {
                                 <Link
                                     href={user ? "/dashboard" : "/signin"}
                                 >
-                                    {user ? "Go to Dashboard" : "Get Started"}
+                                    {user ? "Go to Home" : "Get Started"}
                                 </Link>
                             </Button>
                         </div>

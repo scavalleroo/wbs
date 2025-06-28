@@ -4,7 +4,7 @@ import { createClient } from '@/utils/supabase/server';
 import DashboardComponet from '@/components/dashboard/DashboardComponet';
 
 export const metadata = {
-    title: 'Dashboard | Weko',
+    title: 'Home | Weko',
     description: 'Your calm space for productivity, powered by AI',
 };
 

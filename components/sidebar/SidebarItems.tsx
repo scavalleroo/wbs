@@ -1,11 +1,12 @@
 "use client"
 
-import { Coffee, HomeIcon, Notebook, TreePalm } from "lucide-react"
+import { Coffee, HomeIcon, TreePalm } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { usePathname, useRouter } from "next/navigation"
 
 interface SidebarItemsProps {
-    className?: string
+    className?: string;
+    isCollapsed?: boolean;
 }
 
 // Define the type for navigation items
@@ -19,7 +20,7 @@ interface NavItem {
     isTimer?: boolean;
 }
 
-export function SidebarItems({ className }: SidebarItemsProps) {
+export function SidebarItems({ className, isCollapsed = false }: SidebarItemsProps) {
     const pathname = usePathname()
     const router = useRouter()
 
@@ -29,19 +30,13 @@ export function SidebarItems({ className }: SidebarItemsProps) {
     // Create our navigation items
     const navItems: NavItem[] = [
         {
-            name: "Dashboard",
+            name: "Home",
             href: "/dashboard",
             path: "dashboard",
             icon: HomeIcon,
             type: "report"
         },
-        {
-            name: "Notes",
-            href: "/notes",
-            path: "notes",
-            icon: Notebook,
-            type: "focus"
-        },
+        // Notes removed - now integrated into Home
         // {
         //     name: "Relax",
         //     href: "/break",
@@ -84,15 +79,9 @@ export function SidebarItems({ className }: SidebarItemsProps) {
                         "group flex items-center relative overflow-hidden",
                         "transition-all duration-300 ease-out",
                         "transform hover:scale-[1.02] active:scale-[0.98]",
-                        // Base styling for all sizes with modern rounded corners
                         "rounded-xl backdrop-blur-sm",
-                        // Icon-only mode for sm-md breakpoints
-                        "sm:justify-center sm:px-3 sm:py-4",
-                        "md:justify-center md:px-3 md:py-4",
-                        // Full sidebar mode for lg+ breakpoints 
-                        "lg:justify-start lg:px-4 lg:py-3.5",
-                        // Default padding for all other cases
-                        "px-4 py-3.5",
+                        "px-3 py-3 mx-1 mb-1",
+                        isCollapsed ? "justify-center" : "justify-start",
                         // Modern shadow effects with smooth transitions
                         "shadow-sm hover:shadow-lg hover:shadow-black/5 dark:hover:shadow-black/20",
                         "transition-shadow duration-300 ease-out",
@@ -120,8 +109,7 @@ export function SidebarItems({ className }: SidebarItemsProps) {
                 >
                     <item.icon className={cn(
                         "size-5 transition-all duration-300 ease-out",
-                        // Remove margin when text is hidden (sm and md)
-                        "sm:mr-0 md:mr-0 lg:mr-3 mr-3",
+                        !isCollapsed && "mr-3",
                         // Icon color transitions
                         currentPath === item.path
                             ? "text-blue-600 dark:text-blue-400"
@@ -129,17 +117,17 @@ export function SidebarItems({ className }: SidebarItemsProps) {
                         // Subtle transform on hover
                         "group-hover:scale-110 group-active:scale-95"
                     )} />
-                    <span className={cn(
-                        "text-sm font-medium transition-all duration-300 ease-out",
-                        // Hide text on sm and md screens, show on lg+
-                        "sm:hidden md:hidden lg:inline",
-                        // Text color transitions
-                        currentPath === item.path
-                            ? "text-blue-700 dark:text-blue-300"
-                            : "text-neutral-600 dark:text-neutral-300 group-hover:text-neutral-900 dark:group-hover:text-white"
-                    )}>
-                        {item.name}
-                    </span>
+                    {!isCollapsed && (
+                        <span className={cn(
+                            "text-sm font-medium transition-all duration-300 ease-out",
+                            // Text color transitions
+                            currentPath === item.path
+                                ? "text-blue-700 dark:text-blue-300"
+                                : "text-neutral-600 dark:text-neutral-300 group-hover:text-neutral-900 dark:group-hover:text-white"
+                        )}>
+                            {item.name}
+                        </span>
+                    )}
                 </a>
             ))}
         </nav>

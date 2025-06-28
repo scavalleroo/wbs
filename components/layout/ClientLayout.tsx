@@ -8,12 +8,11 @@ import {
 } from '@/contexts/layout';
 import { useEffect, useState } from 'react';
 import Analytics from '../analytics';
-import { Navbar } from '../navbar/Navbar';
 import { TimerProvider } from '@/contexts/TimerProvider';
-import Footer from '../footer/Footer';
 import { useTimerUI } from '@/contexts/TimerUIProvider';
 import { FullScreenTimer } from '../timer/FullScreenTimer';
 import { Sidebar } from '../sidebar/Sidebar';
+import { TopNavbar } from '../navbar/TopNavbar';
 import { useTimer } from '@/contexts/TimerProvider';
 
 // Define props interface for InnerLayout component
@@ -28,54 +27,66 @@ interface InnerLayoutProps {
 function InnerLayout({ children, user, userDetails, isMobile }: InnerLayoutProps) {
   const { showFullScreenTimer } = useTimerUI();
   const { sound, isRunning, flowMode, timeElapsed, timeRemaining } = useTimer();
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(isMobile);
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
 
-  // Now this is safe because we're inside TimerProvider
-  const isTopFooterVisible = isMobile &&
-    ((flowMode && timeElapsed > 0) || (!flowMode && timeRemaining > 0 && isRunning)) &&
-    !showFullScreenTimer;
+  // Update sidebar state when mobile changes
+  useEffect(() => {
+    setIsSidebarCollapsed(isMobile);
+    setIsMobileSidebarOpen(false); // Close mobile sidebar when switching to desktop
+  }, [isMobile]);
 
-  // Determine height based on session status
-  const contentHeight = sound === 'none' && isMobile ?
-    'h-[calc(100vh-44px)] max-h-[calc(100vh-44px)]' :
-    'h-[calc(100vh-112px)] max-h-[calc(100vh-112px)]';
+  const toggleSidebar = () => {
+    if (isMobile) {
+      setIsMobileSidebarOpen(!isMobileSidebarOpen);
+    } else {
+      setIsSidebarCollapsed(!isSidebarCollapsed);
+    }
+  };
+
+  const closeMobileSidebar = () => {
+    setIsMobileSidebarOpen(false);
+  };
 
   return (
     <>
       <Toaster />
-      <main className='mx-auto h-screen bg-neutral-50 dark:bg-neutral-900 flex'>
+      <div className="h-screen bg-neutral-50 dark:bg-neutral-900 flex flex-col">
         <Analytics />
 
-        {/* Desktop Sidebar (hidden on mobile) */}
-        {!isMobile && (
-          <Sidebar user={user} userDetails={userDetails} />
-        )}
+        {/* Fixed Top Navigation Bar */}
+        <TopNavbar
+          user={user}
+          userDetails={userDetails}
+          onToggleSidebar={toggleSidebar}
+          isSidebarCollapsed={isSidebarCollapsed}
+        />
 
-        {/* Main content container */}
-        <div className='flex flex-col w-full'>
-          {/* Mobile layout (Footer at top, only when visible) */}
-          {isMobile && isTopFooterVisible && (
-            <div className="footer-container order-first">
-              <Footer position="top" />
-            </div>
-          )}
+        {/* Main content area with sidebar */}
+        <div className="flex flex-1 pt-16 overflow-hidden">
+          {/* Sidebar - Desktop and Mobile */}
+          <Sidebar
+            user={user}
+            userDetails={userDetails}
+            isCollapsed={isSidebarCollapsed}
+            isMobile={isMobile}
+            isOpen={isMobileSidebarOpen}
+            onClose={closeMobileSidebar}
+          />
 
-          {/* Content area - conditionally apply top margin and adjust height */}
-          <div className={`flex flex-col w-full ${isTopFooterVisible ? 'mt-16' : 'mt-0'} sm:mt-0 pb-4 ${isMobile ? contentHeight : 'h-screen'} flex-grow overflow-y-auto overflow-x-hidden`}>
-            <div className="space-y-6 max-w-screen-lg mx-auto px-1 sm:px-4 w-full pt-6">
+          {/* Main content - scrollable */}
+          <div
+            className={`flex-1 overflow-y-auto transition-all duration-300 ease-in-out ${!isMobile ? (isSidebarCollapsed ? 'ml-16' : 'ml-64') : 'ml-0'
+              }`}
+          >
+            <div className="min-h-full">
               {children}
             </div>
           </div>
-
-          {/* Mobile layout (Navbar at bottom) */}
-          {isMobile && (
-            <div className="navbar-container order-last">
-              <Navbar user={user} userDetails={userDetails} position="bottom" />
-            </div>
-          )}
         </div>
 
         {showFullScreenTimer && <FullScreenTimer />}
-      </main>
+      </div>
     </>
   );
 }

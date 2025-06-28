@@ -35,28 +35,22 @@ export default function NavbarUser({ user, userDetails, condensed, className }: 
 
     return (
         <div className={cn(
-            // Match navbar items styling for consistency
-            "flex flex-col items-center justify-center h-full transition-all duration-300 ease-out pt-3 pb-2 px-2 sm:pt-2 sm:pb-2 sm:px-4",
-            "hover:bg-gradient-to-b hover:from-neutral-100/80 hover:via-neutral-50/60 hover:to-neutral-100/80",
-            "dark:hover:from-neutral-800/50 dark:hover:via-neutral-700/40 dark:hover:to-neutral-800/50",
-            "hover:backdrop-blur-sm transform active:scale-95",
+            // For top navbar - simple flex layout
+            "flex items-center justify-center transition-all duration-300 ease-out",
             className
         )}>
             <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" className="p-0 m-0 h-auto w-auto flex justify-center items-center hover:bg-transparent group">
-                        <div className="flex flex-col items-center space-y-1.5 transition-all duration-300 ease-out">
+                    <Button variant="ghost" className="p-1 m-0 h-auto w-auto flex justify-center items-center hover:bg-transparent group">
+                        <div className="flex items-center space-x-2 transition-all duration-300 ease-out">
                             <div className="relative">
-                                <Avatar className="h-5 w-5 transition-all duration-300 ease-out group-hover:scale-110 group-active:scale-95">
+                                <Avatar className="h-8 w-8 transition-all duration-300 ease-out group-hover:scale-110 group-active:scale-95">
                                     <AvatarImage src={user?.user_metadata.avatar_url} />
-                                    <AvatarFallback className="text-[8px] font-bold dark:text-zinc-950">
+                                    <AvatarFallback className="text-xs font-bold dark:text-zinc-950">
                                         {userInitials}
                                     </AvatarFallback>
                                 </Avatar>
                             </div>
-                            <span className="text-xs font-medium transition-all duration-300 ease-out text-neutral-600 dark:text-neutral-400 group-hover:text-neutral-900 dark:group-hover:text-neutral-200 group-hover:font-semibold">
-                                Profile
-                            </span>
                         </div>
                     </Button>
                 </DropdownMenuTrigger>

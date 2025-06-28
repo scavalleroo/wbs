@@ -30,7 +30,7 @@ export function NavbarItems({ className }: NavbarItemsProps) {
     // Create our navigation items - recalculate when timer state changes
     const navItems: NavItem[] = [
         {
-            name: "Dashboard",
+            name: "Home",
             href: "/dashboard",
             path: "dashboard",
             icon: HomeIcon,

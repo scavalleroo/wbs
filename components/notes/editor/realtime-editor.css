@@ -3,12 +3,40 @@
     background: linear-gradient(135deg, #3b82f6 0%, #6366f1 50%, #8b5cf6 100%);
     min-height: 80px;
     /* Consistent height across all breakpoints */
+    flex-shrink: 0;
+    /* Prevent header from shrinking */
 }
 
 /* Compact navigation section */
 .navigation-section {
     min-height: 50px;
     max-height: 70px;
+}
+
+/* Ensure editor content area scrolls properly */
+.ProseMirror {
+    min-height: 100%;
+    padding: 1rem;
+    outline: none;
+}
+
+/* Custom scrollbar for editor content */
+.ProseMirror::-webkit-scrollbar {
+    width: 8px;
+}
+
+.ProseMirror::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.05);
+    border-radius: 4px;
+}
+
+.ProseMirror::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 4px;
+}
+
+.ProseMirror::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 0, 0, 0.3);
 }
 
 /* Responsive breakpoints */

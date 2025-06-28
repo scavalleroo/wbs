@@ -15,6 +15,7 @@ import { OptimizedDistractionsCard } from './cards/OptimizedDistractionsCard';
 import { OptimizedWellbeingCard } from './cards/OptimizedWellbeingCard';
 import { useBlockedSite } from '@/hooks/use-blocked-site';
 import useMood from '@/hooks/use-mood';
+import { NotesPageComponent } from '@/components/notes/NotesPageComponent';
 
 interface DashboardComponetProps {
     user: User | null | undefined;
@@ -170,8 +171,8 @@ const DashboardComponet = ({ user }: DashboardComponetProps) => {
 
     return (
         <div className="space-y-4 py-3">
-            {/* Header Section with improved visual hierarchy */}
-            <div className="mb-8 px-4 sm:px-0">
+            {/* Header Section with improved visual hierarchy - FIRST ELEMENT */}
+            <div className="mb-8 px-4">
                 {/* Mobile: Stacked vertically */}
                 <div className="flex flex-col gap-4 lg:hidden">
                     <div>
@@ -237,57 +238,78 @@ const DashboardComponet = ({ user }: DashboardComponetProps) => {
                         </div>
                     </div>
                 </div>
-            </div>
+            </div>            {/* Main Content Section */}
+            <div className="px-4">
+                {/* Mobile: Stacked vertically */}
+                <div className="block lg:hidden space-y-4">
+                    {/* Notes Section */}
+                    <div className="h-[700px]">
+                        <NotesPageComponent user={user} />
+                    </div>
 
-            {/* Mobile View - Improved Layout */}
-            <div className="block lg:hidden space-y-4 px-4 sm:px-0">
-                {/* Focus Card - Most Important, Goes First */}
-                <OptimizedFocusTimeCard
-                    user={user}
-                    isMobile={true}
-                />
+                    {/* Focus Card */}
+                    <div className="w-full max-w-xs mx-auto">
+                        <OptimizedFocusTimeCard
+                            user={user}
+                            isMobile={true}
+                        />
+                    </div>
 
-                {/* Side by side for secondary features */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <OptimizedWellbeingCard
-                        user={user}
-                        isMobile={true}
-                    />
-                    <OptimizedDistractionsCard
-                        key={`mobile-${distractionsKey}`}
-                        user={user}
-                        onManageDistractionsClick={() => setDistDialogOpen(true)}
-                        formatMinutesToHoursMinutes={formatMinutesToHoursMinutes}
-                        isMobile={true}
-                    />
-                </div>
-            </div>
-
-            {/* Desktop View - Improved Layout */}
-            <div className="hidden lg:grid lg:grid-cols-3 gap-4 px-4 sm:px-0">
-                {/* Focus takes full width to emphasize its importance */}
-                <div className="lg:col-span-3">
-                    <OptimizedFocusTimeCard
-                        user={user}
-                        isMobile={false}
-                    />
+                    {/* Wellbeing and Distractions side by side */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <OptimizedWellbeingCard
+                            user={user}
+                            isMobile={true}
+                        />
+                        <OptimizedDistractionsCard
+                            key={`mobile-${distractionsKey}`}
+                            user={user}
+                            onManageDistractionsClick={() => setDistDialogOpen(true)}
+                            formatMinutesToHoursMinutes={formatMinutesToHoursMinutes}
+                            isMobile={true}
+                        />
+                    </div>
                 </div>
 
-                {/* Wellbeing takes 2 columns for chart visibility */}
-                <div className="lg:col-span-2">
-                    <OptimizedWellbeingCard
-                        user={user}
-                        isMobile={false}
-                    />
-                </div>
+                {/* Desktop: All components in 2x2 grid layout */}
+                <div className="hidden lg:block space-y-6">
+                    {/* Top Row: Notes and Focus side by side */}
+                    <div className="flex gap-6">
+                        {/* Notes Section */}
+                        <div className="flex-1 h-[400px]">
+                            <NotesPageComponent user={user} />
+                        </div>
 
-                {/* Distractions in remaining column */}
-                <OptimizedDistractionsCard
-                    key={`desktop-${distractionsKey}`}
-                    user={user}
-                    onManageDistractionsClick={() => setDistDialogOpen(true)}
-                    formatMinutesToHoursMinutes={formatMinutesToHoursMinutes}
-                />
+                        {/* Focus Card */}
+                        <div className="w-80 flex-shrink-0">
+                            <OptimizedFocusTimeCard
+                                user={user}
+                                isMobile={false}
+                            />
+                        </div>
+                    </div>
+
+                    {/* Bottom Row: Wellbeing and Distractions side by side */}
+                    <div className="flex gap-6">
+                        {/* Wellbeing Card */}
+                        <div className="flex-1">
+                            <OptimizedWellbeingCard
+                                user={user}
+                                isMobile={false}
+                            />
+                        </div>
+
+                        {/* Distractions Card */}
+                        <div className="w-80 flex-shrink-0">
+                            <OptimizedDistractionsCard
+                                key={`desktop-${distractionsKey}`}
+                                user={user}
+                                onManageDistractionsClick={() => setDistDialogOpen(true)}
+                                formatMinutesToHoursMinutes={formatMinutesToHoursMinutes}
+                            />
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <ManageDistractionsDialog

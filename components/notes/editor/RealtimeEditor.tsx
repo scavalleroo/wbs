@@ -202,299 +202,260 @@ export const RealtimeEditor: React.FC<RealtimeEditorProps> = ({
 
   return (
     <EditorRoot>
-      <div className="flex flex-col w-full h-full bg-neutral-100 dark:bg-neutral-800 rounded-lg border border-gray-200 dark:border-gray-700 relative">        {onTabChange && (
-        <div className="border-b border-gray-200 dark:border-gray-700 header-gradient shadow-lg">
-          {/* Unified Header with Tab Selection */}
-          <div className="px-3 sm:px-4 py-4">
-            <div className="flex flex-col lg:flex-row lg:items-start gap-4">
-              {/* Tab selection - vertical on desktop, horizontal on mobile */}
-              <div className="flex items-center justify-center lg:justify-start flex-shrink-0">
-                <div className="tab-container-vertical flex flex-row lg:flex-col">
-                  <button
-                    onClick={() => !disabled && onTabChange('daily')}
-                    disabled={disabled}
-                    className={`tab-button-vertical flex items-center px-3 sm:px-4 py-2 text-sm font-medium transition-all ${activeTab === 'daily' ? 'active' : ''
-                      } ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
-                  >
-                    <Calendar className="h-4 w-4 mr-2" />
-                    <span className="hidden xs:inline">Daily Notes</span>
-                    <span className="xs:hidden">Daily</span>
-                  </button>
-                  <button
-                    onClick={() => !disabled && onTabChange('project')}
-                    disabled={disabled}
-                    className={`tab-button-vertical flex items-center px-3 sm:px-4 py-2 text-sm font-medium transition-all ${activeTab === 'project' ? 'active' : ''
-                      } ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
-                  >
-                    <Book className="h-4 w-4 mr-2" />
-                    <span>Pages</span>
-                  </button>
+      <div className="flex flex-col w-full h-full bg-neutral-100 dark:bg-neutral-800 rounded-lg border border-gray-200 dark:border-gray-700 relative">
+        {/* Fixed Header */}
+        {onTabChange && (
+          <div className="border-b border-gray-200 dark:border-gray-700 header-gradient shadow-lg flex-shrink-0">
+            {/* Unified Header with Tab Selection */}
+            <div className="px-3 sm:px-4 py-4">
+              <div className="flex flex-col lg:flex-row lg:items-start gap-4">
+                {/* Tab selection - vertical on desktop, horizontal on mobile */}
+                <div className="flex items-center justify-center lg:justify-start flex-shrink-0">
+                  <div className="tab-container-vertical flex flex-row lg:flex-col">
+                    <button
+                      onClick={() => !disabled && onTabChange('daily')}
+                      disabled={disabled}
+                      className={`tab-button-vertical flex items-center px-3 sm:px-4 py-2 text-sm font-medium transition-all ${activeTab === 'daily' ? 'active' : ''
+                        } ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    >
+                      <Calendar className="h-4 w-4 mr-2" />
+                      <span className="hidden xs:inline">Daily Notes</span>
+                      <span className="xs:hidden">Daily</span>
+                    </button>
+                    <button
+                      onClick={() => !disabled && onTabChange('project')}
+                      disabled={disabled}
+                      className={`tab-button-vertical flex items-center px-3 sm:px-4 py-2 text-sm font-medium transition-all ${activeTab === 'project' ? 'active' : ''
+                        } ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    >
+                      <Book className="h-4 w-4 mr-2" />
+                      <span>Pages</span>
+                    </button>
+                  </div>
                 </div>
-              </div>
 
-              {/* Navigation content - takes remaining space */}
-              <div className="flex-1 min-w-0">
-                {/* Daily Notes Navigation */}
-                {activeTab === 'daily' && onDateChange && days.length > 0 && (
-                  <div className="flex flex-col sm:flex-row sm:items-end gap-3 sm:gap-4 w-full">
-                    {/* Date carousel navigation */}
-                    <div className="flex flex-col gap-1 flex-1 min-w-0">
-                      <span className="navigation-label text-white/70 px-1">Daily Notes</span>
-                      <div className={`flex items-center justify-center ${disabled ? 'opacity-50' : ''}`}>
-                        <div className="flex items-center gap-1 w-full">
-                          <button
-                            disabled={disabled}
-                            className={`p-1 sm:p-2 text-white/90 hover:bg-white/20 rounded-lg transition-all flex-shrink-0 ${disabled ? 'cursor-not-allowed' : ''
-                              }`}
-                            onClick={() => {
-                              if (onDaysChange && !disabled) {
-                                const newDate = new Date(selectedDate);
-                                newDate.setDate(newDate.getDate() - 1);
-                                onDateChange(newDate);
+                {/* Navigation content - takes remaining space */}
+                <div className="flex-1 min-w-0">
+                  {/* Daily Notes Navigation */}
+                  {activeTab === 'daily' && onDateChange && days.length > 0 && (
+                    <div className="flex flex-col sm:flex-row sm:items-end gap-3 sm:gap-4 w-full">
+                      {/* Date carousel navigation */}
+                      <div className="flex flex-col gap-1 flex-1 min-w-0">
+                        <span className="navigation-label text-white/70 px-1">Daily Notes</span>
+                        <div className={`flex items-center justify-center ${disabled ? 'opacity-50' : ''}`}>
+                          <div className="flex items-center gap-1 w-full">
+                            <button
+                              disabled={disabled}
+                              className={`p-1 sm:p-2 text-white/90 hover:bg-white/20 rounded-lg transition-all flex-shrink-0 ${disabled ? 'cursor-not-allowed' : ''
+                                }`}
+                              onClick={() => {
+                                if (onDaysChange && !disabled) {
+                                  const newDate = new Date(selectedDate);
+                                  newDate.setDate(newDate.getDate() - 1);
+                                  onDateChange(newDate);
 
-                                // Center the new selected date in the days array
-                                const numberOfDays = days.length;
-                                const middleIndex = Math.floor(numberOfDays / 2);
-                                const newDays = Array.from({ length: numberOfDays }, (_, i) => {
-                                  const dayDate = new Date(newDate);
-                                  dayDate.setDate(dayDate.getDate() + (i - middleIndex));
-                                  return dayDate;
-                                });
-                                onDaysChange(newDays);
-                              }
-                            }}
-                            title="Previous day"
-                          >
-                            <ChevronLeft className="h-4 w-4 sm:h-5 sm:w-5" />
-                          </button>
-
-                          <div className="flex date-carousel-buttons flex-1 justify-center px-1">
-                            {/* Mobile: Show only 3 days (selected ± 1) */}
-                            <div className="flex w-full justify-center sm:hidden gap-1">
-                              {(() => {
-                                const selectedIndex = days.findIndex(d => d.toDateString() === selectedDate.toDateString());
-
-                                // If selectedDate is not found in days array, default to middle
-                                const safeSelectedIndex = selectedIndex !== -1 ? selectedIndex : Math.floor(days.length / 2);
-
-                                // Calculate start and end indices to always show 3 days
-                                let startIndex = Math.max(0, safeSelectedIndex - 1);
-                                let endIndex = Math.min(days.length - 1, safeSelectedIndex + 1);
-
-                                // Adjust if we're at the edges to ensure 3 days when possible
-                                if (endIndex - startIndex < 2 && days.length >= 3) {
-                                  if (startIndex === 0) {
-                                    endIndex = Math.min(days.length - 1, startIndex + 2);
-                                  } else if (endIndex === days.length - 1) {
-                                    startIndex = Math.max(0, endIndex - 2);
-                                  }
+                                  // Center the new selected date in the days array
+                                  const numberOfDays = days.length;
+                                  const middleIndex = Math.floor(numberOfDays / 2);
+                                  const newDays = Array.from({ length: numberOfDays }, (_, i) => {
+                                    const dayDate = new Date(newDate);
+                                    dayDate.setDate(dayDate.getDate() + (i - middleIndex));
+                                    return dayDate;
+                                  });
+                                  onDaysChange(newDays);
                                 }
+                              }}
+                              title="Previous day"
+                            >
+                              <ChevronLeft className="h-4 w-4 sm:h-5 sm:w-5" />
+                            </button>
 
-                                // Get the 3 days to show
-                                const mobileDays = days.slice(startIndex, endIndex + 1);
+                            <div className="flex date-carousel-buttons flex-1 justify-center px-1">
+                              {/* Mobile: Show only 3 days (selected ± 1) */}
+                              <div className="flex w-full justify-center sm:hidden gap-1">
+                                {(() => {
+                                  const selectedIndex = days.findIndex(d => d.toDateString() === selectedDate.toDateString());
 
-                                return mobileDays.map((day) => {
-                                  const isToday = day.toDateString() === new Date().toDateString();
-                                  const isSelected = day.toDateString() === selectedDate.toDateString();
-                                  const dayOfWeek = day.toLocaleDateString('en-US', { weekday: 'short' });
-                                  const dayNumber = day.getDate();
-                                  const month = day.toLocaleDateString('en-US', { month: 'short' });
-                                  const year = day.getFullYear().toString().slice(-2);
+                                  // If selectedDate is not found in days array, default to middle
+                                  const safeSelectedIndex = selectedIndex !== -1 ? selectedIndex : Math.floor(days.length / 2);
 
-                                  return (
-                                    <button
-                                      key={day.toISOString()}
-                                      disabled={disabled}
-                                      onClick={() => {
-                                        if (!disabled) {
-                                          onDateChange(day);
-                                          // Center the clicked date in the days array
-                                          if (onDaysChange) {
-                                            const numberOfDays = days.length;
-                                            const middleIndex = Math.floor(numberOfDays / 2);
-                                            const newDays = Array.from({ length: numberOfDays }, (_, i) => {
-                                              const newDate = new Date(day);
-                                              newDate.setDate(newDate.getDate() + (i - middleIndex));
-                                              return newDate;
-                                            });
-                                            onDaysChange(newDays);
+                                  // Calculate start and end indices to always show 3 days
+                                  let startIndex = Math.max(0, safeSelectedIndex - 1);
+                                  let endIndex = Math.min(days.length - 1, safeSelectedIndex + 1);
+
+                                  // Adjust if we're at the edges to ensure 3 days when possible
+                                  if (endIndex - startIndex < 2 && days.length >= 3) {
+                                    if (startIndex === 0) {
+                                      endIndex = Math.min(days.length - 1, startIndex + 2);
+                                    } else if (endIndex === days.length - 1) {
+                                      startIndex = Math.max(0, endIndex - 2);
+                                    }
+                                  }
+
+                                  // Get the 3 days to show
+                                  const mobileDays = days.slice(startIndex, endIndex + 1);
+
+                                  return mobileDays.map((day) => {
+                                    const isToday = day.toDateString() === new Date().toDateString();
+                                    const isSelected = day.toDateString() === selectedDate.toDateString();
+                                    const dayOfWeek = day.toLocaleDateString('en-US', { weekday: 'short' });
+                                    const dayNumber = day.getDate();
+                                    const month = day.toLocaleDateString('en-US', { month: 'short' });
+                                    const year = day.getFullYear().toString().slice(-2);
+
+                                    return (
+                                      <button
+                                        key={day.toISOString()}
+                                        disabled={disabled}
+                                        onClick={() => {
+                                          if (!disabled) {
+                                            onDateChange(day);
+                                            // Center the clicked date in the days array
+                                            if (onDaysChange) {
+                                              const numberOfDays = days.length;
+                                              const middleIndex = Math.floor(numberOfDays / 2);
+                                              const newDays = Array.from({ length: numberOfDays }, (_, i) => {
+                                                const newDate = new Date(day);
+                                                newDate.setDate(newDate.getDate() + (i - middleIndex));
+                                                return newDate;
+                                              });
+                                              onDaysChange(newDays);
+                                            }
                                           }
-                                        }
-                                      }}
-                                      className={`date-carousel-item px-1 py-2 rounded-lg flex-1 min-w-[2.5rem] text-center relative transition-all ${isSelected
-                                        ? 'bg-white text-blue-600 shadow-md font-medium'
-                                        : 'bg-white/10 text-white/90 hover:bg-white/20'
-                                        } ${isToday && !isSelected ? 'ring-1 ring-yellow-400/50' : ''} ${disabled ? 'cursor-not-allowed' : ''}`}
-                                      title={`${dayOfWeek}, ${month} ${dayNumber}, ${day.getFullYear()}${isToday ? ' (Today)' : ''}`}
-                                    >
-                                      {isToday && (
-                                        <div className="text-xs font-medium leading-tight mb-0.5">Today</div>
-                                      )}
-                                      <div className="text-sm font-medium leading-tight">{dayOfWeek} {dayNumber}</div>
-                                      <div className="text-xs opacity-75 leading-tight">{month} {year}</div>
-                                    </button>
-                                  );
-                                });
-                              })()}
+                                        }}
+                                        className={`date-carousel-item px-1 py-2 rounded-lg flex-1 min-w-[2.5rem] text-center relative transition-all ${isSelected
+                                          ? 'bg-white text-blue-600 shadow-md font-medium'
+                                          : 'bg-white/10 text-white/90 hover:bg-white/20'
+                                          } ${isToday && !isSelected ? 'ring-1 ring-yellow-400/50' : ''} ${disabled ? 'cursor-not-allowed' : ''}`}
+                                        title={`${dayOfWeek}, ${month} ${dayNumber}, ${day.getFullYear()}${isToday ? ' (Today)' : ''}`}
+                                      >
+                                        {isToday && (
+                                          <div className="text-xs font-medium leading-tight mb-0.5">Today</div>
+                                        )}
+                                        <div className="text-sm font-medium leading-tight">{dayOfWeek} {dayNumber}</div>
+                                        <div className="text-xs opacity-75 leading-tight">{month} {year}</div>
+                                      </button>
+                                    );
+                                  });
+                                })()}
+                              </div>
+
+                              {/* Desktop: Show 5 days with selected day in the middle (3rd position) */}
+                              <div className="hidden sm:flex w-full justify-center gap-1">
+                                {(() => {
+                                  const selectedIndex = days.findIndex(d => d.toDateString() === selectedDate.toDateString());
+
+                                  // If selectedDate is not found in days array, default to middle
+                                  const safeSelectedIndex = selectedIndex !== -1 ? selectedIndex : Math.floor(days.length / 2);
+
+                                  // Calculate start and end indices to show 5 days with selected in the middle
+                                  let startIndex = Math.max(0, safeSelectedIndex - 2);
+                                  let endIndex = Math.min(days.length - 1, safeSelectedIndex + 2);
+
+                                  // Adjust if we're at the edges to ensure 5 days when possible
+                                  if (endIndex - startIndex < 4 && days.length >= 5) {
+                                    if (startIndex === 0) {
+                                      endIndex = Math.min(days.length - 1, startIndex + 4);
+                                    } else if (endIndex === days.length - 1) {
+                                      startIndex = Math.max(0, endIndex - 4);
+                                    }
+                                  }
+
+                                  // Get the 5 days to show
+                                  const desktopDays = days.slice(startIndex, endIndex + 1);
+
+                                  return desktopDays.map((day) => {
+                                    const isToday = day.toDateString() === new Date().toDateString();
+                                    const isSelected = day.toDateString() === selectedDate.toDateString();
+                                    const dayOfWeek = day.toLocaleDateString('en-US', { weekday: 'short' });
+                                    const dayNumber = day.getDate();
+                                    const month = day.toLocaleDateString('en-US', { month: 'short' });
+                                    const year = day.getFullYear().toString().slice(-2);
+
+                                    return (
+                                      <button
+                                        key={day.toISOString()}
+                                        disabled={disabled}
+                                        onClick={() => {
+                                          if (!disabled) {
+                                            onDateChange(day);
+                                            // Center the clicked date in the days array
+                                            if (onDaysChange) {
+                                              const numberOfDays = days.length;
+                                              const middleIndex = Math.floor(numberOfDays / 2);
+                                              const newDays = Array.from({ length: numberOfDays }, (_, i) => {
+                                                const newDate = new Date(day);
+                                                newDate.setDate(newDate.getDate() + (i - middleIndex));
+                                                return newDate;
+                                              });
+                                              onDaysChange(newDays);
+                                            }
+                                          }
+                                        }}
+                                        className={`date-carousel-item px-2 py-2 rounded-lg flex-1 min-w-[3.5rem] text-center relative transition-all ${isSelected
+                                          ? 'bg-white text-blue-600 shadow-md font-medium'
+                                          : 'bg-white/10 text-white/90 hover:bg-white/20'
+                                          } ${isToday && !isSelected ? 'ring-2 ring-yellow-400/50' : ''} ${disabled ? 'cursor-not-allowed' : ''}`}
+                                        title={`${dayOfWeek}, ${month} ${dayNumber}, ${day.getFullYear()}${isToday ? ' (Today)' : ''}`}
+                                      >
+                                        {isToday && (
+                                          <div className="text-xs font-medium leading-tight mb-0.5">Today</div>
+                                        )}
+                                        <div className="text-xs font-medium leading-tight">{dayOfWeek} {dayNumber}</div>
+                                        <div className="text-xs opacity-75 leading-tight">{month} {year}</div>
+                                      </button>
+                                    );
+                                  });
+                                })()}
+                              </div>
                             </div>
 
-                            {/* Desktop: Show 5 days with selected day in the middle (3rd position) */}
-                            <div className="hidden sm:flex w-full justify-center gap-1">
-                              {(() => {
-                                const selectedIndex = days.findIndex(d => d.toDateString() === selectedDate.toDateString());
+                            <button
+                              disabled={disabled}
+                              className={`p-1 sm:p-2 text-white/90 hover:bg-white/20 rounded-lg transition-all flex-shrink-0 ${disabled ? 'cursor-not-allowed' : ''
+                                }`}
+                              onClick={() => {
+                                if (onDaysChange && !disabled) {
+                                  const newDate = new Date(selectedDate);
+                                  newDate.setDate(newDate.getDate() + 1);
+                                  onDateChange(newDate);
 
-                                // If selectedDate is not found in days array, default to middle
-                                const safeSelectedIndex = selectedIndex !== -1 ? selectedIndex : Math.floor(days.length / 2);
-
-                                // Calculate start and end indices to show 5 days with selected in the middle
-                                let startIndex = Math.max(0, safeSelectedIndex - 2);
-                                let endIndex = Math.min(days.length - 1, safeSelectedIndex + 2);
-
-                                // Adjust if we're at the edges to ensure 5 days when possible
-                                if (endIndex - startIndex < 4 && days.length >= 5) {
-                                  if (startIndex === 0) {
-                                    endIndex = Math.min(days.length - 1, startIndex + 4);
-                                  } else if (endIndex === days.length - 1) {
-                                    startIndex = Math.max(0, endIndex - 4);
-                                  }
+                                  // Center the new selected date in the days array
+                                  const numberOfDays = days.length;
+                                  const middleIndex = Math.floor(numberOfDays / 2);
+                                  const newDays = Array.from({ length: numberOfDays }, (_, i) => {
+                                    const dayDate = new Date(newDate);
+                                    dayDate.setDate(dayDate.getDate() + (i - middleIndex));
+                                    return dayDate;
+                                  });
+                                  onDaysChange(newDays);
                                 }
-
-                                // Get the 5 days to show
-                                const desktopDays = days.slice(startIndex, endIndex + 1);
-
-                                return desktopDays.map((day) => {
-                                  const isToday = day.toDateString() === new Date().toDateString();
-                                  const isSelected = day.toDateString() === selectedDate.toDateString();
-                                  const dayOfWeek = day.toLocaleDateString('en-US', { weekday: 'short' });
-                                  const dayNumber = day.getDate();
-                                  const month = day.toLocaleDateString('en-US', { month: 'short' });
-                                  const year = day.getFullYear().toString().slice(-2);
-
-                                  return (
-                                    <button
-                                      key={day.toISOString()}
-                                      disabled={disabled}
-                                      onClick={() => {
-                                        if (!disabled) {
-                                          onDateChange(day);
-                                          // Center the clicked date in the days array
-                                          if (onDaysChange) {
-                                            const numberOfDays = days.length;
-                                            const middleIndex = Math.floor(numberOfDays / 2);
-                                            const newDays = Array.from({ length: numberOfDays }, (_, i) => {
-                                              const newDate = new Date(day);
-                                              newDate.setDate(newDate.getDate() + (i - middleIndex));
-                                              return newDate;
-                                            });
-                                            onDaysChange(newDays);
-                                          }
-                                        }
-                                      }}
-                                      className={`date-carousel-item px-2 py-2 rounded-lg flex-1 min-w-[3.5rem] text-center relative transition-all ${isSelected
-                                        ? 'bg-white text-blue-600 shadow-md font-medium'
-                                        : 'bg-white/10 text-white/90 hover:bg-white/20'
-                                        } ${isToday && !isSelected ? 'ring-2 ring-yellow-400/50' : ''} ${disabled ? 'cursor-not-allowed' : ''}`}
-                                      title={`${dayOfWeek}, ${month} ${dayNumber}, ${day.getFullYear()}${isToday ? ' (Today)' : ''}`}
-                                    >
-                                      {isToday && (
-                                        <div className="text-xs font-medium leading-tight mb-0.5">Today</div>
-                                      )}
-                                      <div className="text-xs font-medium leading-tight">{dayOfWeek} {dayNumber}</div>
-                                      <div className="text-xs opacity-75 leading-tight">{month} {year}</div>
-                                    </button>
-                                  );
-                                });
-                              })()}
-                            </div>
+                              }}
+                              title="Next day"
+                            >
+                              <ChevronRight className="h-4 w-4 sm:h-5 sm:w-5" />
+                            </button>
                           </div>
-
-                          <button
-                            disabled={disabled}
-                            className={`p-1 sm:p-2 text-white/90 hover:bg-white/20 rounded-lg transition-all flex-shrink-0 ${disabled ? 'cursor-not-allowed' : ''
-                              }`}
-                            onClick={() => {
-                              if (onDaysChange && !disabled) {
-                                const newDate = new Date(selectedDate);
-                                newDate.setDate(newDate.getDate() + 1);
-                                onDateChange(newDate);
-
-                                // Center the new selected date in the days array
-                                const numberOfDays = days.length;
-                                const middleIndex = Math.floor(numberOfDays / 2);
-                                const newDays = Array.from({ length: numberOfDays }, (_, i) => {
-                                  const dayDate = new Date(newDate);
-                                  dayDate.setDate(dayDate.getDate() + (i - middleIndex));
-                                  return dayDate;
-                                });
-                                onDaysChange(newDays);
-                              }
-                            }}
-                            title="Next day"
-                          >
-                            <ChevronRight className="h-4 w-4 sm:h-5 sm:w-5" />
-                          </button>
                         </div>
                       </div>
-                    </div>
 
-                    {/* Date navigation actions - Pick Date and Today buttons */}
-                    <div className="flex sm:flex-col gap-1 sm:gap-2 flex-shrink-0 pb-[1px] sm:w-[110px]">
-                      {/* Today button or spacer - always reserve space on desktop */}
-                      {selectedDate.toDateString() !== new Date().toDateString() ? (
-                        <button
-                          disabled={disabled}
-                          className={`flex items-center justify-center gap-1 sm:gap-2 px-2 sm:px-3 py-2 text-xs sm:text-sm font-medium rounded-lg bg-white/15 text-white hover:bg-white/25 border border-white/20 transition-all sm:w-full whitespace-nowrap ${disabled ? 'cursor-not-allowed opacity-50' : ''
-                            }`}
-                          onClick={() => {
-                            if (!disabled) {
-                              const today = new Date();
-                              onDateChange(today);
-                              if (onDaysChange) {
-                                const numberOfDays = days.length;
-                                const middleIndex = Math.floor(numberOfDays / 2);
-                                const newDays = Array.from({ length: numberOfDays }, (_, i) => {
-                                  const newDate = new Date(today);
-                                  newDate.setDate(newDate.getDate() + (i - middleIndex));
-                                  return newDate;
-                                });
-                                onDaysChange(newDays);
-                              }
-                            }
-                          }}
-                          title="Go to today's notes"
-                        >
-                          <Calendar className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
-                          <span className="text-xs sm:text-sm">Today</span>
-                        </button>
-                      ) : (
-                        <div className="hidden sm:block h-[36px]"></div> // Invisible spacer to maintain layout on desktop only
-                      )}
-
-                      {/* Pick Date button - always in second position on desktop, first/alongside on mobile */}
-                      <Popover>
-                        <PopoverTrigger asChild>
+                      {/* Date navigation actions - Pick Date and Today buttons */}
+                      <div className="flex sm:flex-col gap-1 sm:gap-2 flex-shrink-0 pb-[1px] sm:w-[110px]">
+                        {/* Today button or spacer - always reserve space on desktop */}
+                        {selectedDate.toDateString() !== new Date().toDateString() ? (
                           <button
                             disabled={disabled}
                             className={`flex items-center justify-center gap-1 sm:gap-2 px-2 sm:px-3 py-2 text-xs sm:text-sm font-medium rounded-lg bg-white/15 text-white hover:bg-white/25 border border-white/20 transition-all sm:w-full whitespace-nowrap ${disabled ? 'cursor-not-allowed opacity-50' : ''
                               }`}
-                            title="Pick a specific date"
-                          >
-                            <CalendarDays className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
-                            <span className="text-xs sm:text-sm">Pick Date</span>
-                          </button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" align="end">
-                          <CalendarComponent
-                            mode="single"
-                            selected={selectedDate}
-                            onSelect={(date) => {
-                              if (date && onDateChange && !disabled) {
-                                onDateChange(date);
+                            onClick={() => {
+                              if (!disabled) {
+                                const today = new Date();
+                                onDateChange(today);
                                 if (onDaysChange) {
                                   const numberOfDays = days.length;
                                   const middleIndex = Math.floor(numberOfDays / 2);
                                   const newDays = Array.from({ length: numberOfDays }, (_, i) => {
-                                    const newDate = new Date(date);
+                                    const newDate = new Date(today);
                                     newDate.setDate(newDate.getDate() + (i - middleIndex));
                                     return newDate;
                                   });
@@ -502,130 +463,171 @@ export const RealtimeEditor: React.FC<RealtimeEditorProps> = ({
                                 }
                               }
                             }}
-                            initialFocus
-                          />
-                        </PopoverContent>
-                      </Popover>
-                    </div>
-                  </div>
-                )}
+                            title="Go to today's notes"
+                          >
+                            <Calendar className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
+                            <span className="text-xs sm:text-sm">Today</span>
+                          </button>
+                        ) : (
+                          <div className="hidden sm:block h-[36px]"></div> // Invisible spacer to maintain layout on desktop only
+                        )}
 
-                {/* Pages Navigation */}
-                {activeTab === 'project' && onProjectSelect && (
-                  <div className="flex flex-col sm:flex-row sm:items-end gap-3 sm:gap-4 w-full">
-                    {/* Current page selector */}
-                    <div className="flex flex-col gap-1 flex-1 min-w-0">
-                      <span className="navigation-label text-white/70 px-1">Current Page</span>
-                      {projectNotes.length === 0 ? (
-                        <div className="flex flex-col gap-2">
-                          <div className="text-sm text-white/70 font-medium px-3 py-2 bg-white/10 rounded-lg border border-white/20">
-                            No pages yet
-                          </div>
-                          {onCreateProject && (
-                            <CreateProjectDialog
-                              onCreateProject={onCreateProject}
-                              disabled={disabled}
-                            />
-                          )}
-                        </div>
-                      ) : (
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
+                        {/* Pick Date button - always in second position on desktop, first/alongside on mobile */}
+                        <Popover>
+                          <PopoverTrigger asChild>
                             <button
                               disabled={disabled}
-                              className={`flex items-center px-3 py-2 text-sm font-medium rounded-lg bg-white/15 text-white hover:bg-white/25 border border-white/20 transition-all justify-between min-w-0 ${disabled ? 'cursor-not-allowed opacity-50' : ''
+                              className={`flex items-center justify-center gap-1 sm:gap-2 px-2 sm:px-3 py-2 text-xs sm:text-sm font-medium rounded-lg bg-white/15 text-white hover:bg-white/25 border border-white/20 transition-all sm:w-full whitespace-nowrap ${disabled ? 'cursor-not-allowed opacity-50' : ''
                                 }`}
-                              title={`Select a page to edit${selectedProject?.title ? ` - Currently: ${selectedProject.title}` : ''}`}
+                              title="Pick a specific date"
                             >
-                              <span className="truncate text-left max-w-[200px] sm:max-w-[250px]">
-                                {selectedProject?.title || "Select a page"}
-                              </span>
-                              <ChevronLeft className="h-4 w-4 ml-2 rotate-[-90deg] flex-shrink-0" />
+                              <CalendarDays className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
+                              <span className="text-xs sm:text-sm">Pick Date</span>
                             </button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent className="w-80 bg-white dark:bg-neutral-800 border-gray-200 dark:border-gray-700 shadow-xl" align="start">
-                            <div className="p-2 border-b border-gray-200 dark:border-gray-700">
-                              <div className="relative">
-                                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                                <Input
-                                  placeholder="Search pages..."
-                                  value={projectSearchTerm}
-                                  onChange={(e) => !disabled && setProjectSearchTerm(e.target.value)}
-                                  disabled={disabled}
-                                  className="pl-10 text-sm"
-                                />
-                              </div>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-auto p-0" align="end">
+                            <CalendarComponent
+                              mode="single"
+                              selected={selectedDate}
+                              onSelect={(date) => {
+                                if (date && onDateChange && !disabled) {
+                                  onDateChange(date);
+                                  if (onDaysChange) {
+                                    const numberOfDays = days.length;
+                                    const middleIndex = Math.floor(numberOfDays / 2);
+                                    const newDays = Array.from({ length: numberOfDays }, (_, i) => {
+                                      const newDate = new Date(date);
+                                      newDate.setDate(newDate.getDate() + (i - middleIndex));
+                                      return newDate;
+                                    });
+                                    onDaysChange(newDays);
+                                  }
+                                }
+                              }}
+                              initialFocus
+                            />
+                          </PopoverContent>
+                        </Popover>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Pages Navigation */}
+                  {activeTab === 'project' && onProjectSelect && (
+                    <div className="flex flex-col sm:flex-row sm:items-end gap-3 sm:gap-4 w-full">
+                      {/* Current page selector */}
+                      <div className="flex flex-col gap-1 flex-1 min-w-0">
+                        <span className="navigation-label text-white/70 px-1">Current Page</span>
+                        {projectNotes.length === 0 ? (
+                          <div className="flex flex-col gap-2">
+                            <div className="text-sm text-white/70 font-medium px-3 py-2 bg-white/10 rounded-lg border border-white/20">
+                              No pages yet
                             </div>
-                            <div className="max-h-60 overflow-y-auto">
-                              {projectNotes
-                                .filter(project =>
+                            {onCreateProject && (
+                              <CreateProjectDialog
+                                onCreateProject={onCreateProject}
+                                disabled={disabled}
+                              />
+                            )}
+                          </div>
+                        ) : (
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <button
+                                disabled={disabled}
+                                className={`flex items-center px-3 py-2 text-sm font-medium rounded-lg bg-white/15 text-white hover:bg-white/25 border border-white/20 transition-all justify-between min-w-0 ${disabled ? 'cursor-not-allowed opacity-50' : ''
+                                  }`}
+                                title={`Select a page to edit${selectedProject?.title ? ` - Currently: ${selectedProject.title}` : ''}`}
+                              >
+                                <span className="truncate text-left max-w-[200px] sm:max-w-[250px]">
+                                  {selectedProject?.title || "Select a page"}
+                                </span>
+                                <ChevronLeft className="h-4 w-4 ml-2 rotate-[-90deg] flex-shrink-0" />
+                              </button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent className="w-80 bg-white dark:bg-neutral-800 border-gray-200 dark:border-gray-700 shadow-xl" align="start">
+                              <div className="p-2 border-b border-gray-200 dark:border-gray-700">
+                                <div className="relative">
+                                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                                  <Input
+                                    placeholder="Search pages..."
+                                    value={projectSearchTerm}
+                                    onChange={(e) => !disabled && setProjectSearchTerm(e.target.value)}
+                                    disabled={disabled}
+                                    className="pl-10 text-sm"
+                                  />
+                                </div>
+                              </div>
+                              <div className="max-h-60 overflow-y-auto">
+                                {projectNotes
+                                  .filter(project =>
+                                    (project.title || "Untitled")
+                                      .toLowerCase()
+                                      .includes(projectSearchTerm.toLowerCase())
+                                  )
+                                  .map(project => (
+                                    <DropdownMenuItem
+                                      key={project.id}
+                                      onClick={() => {
+                                        if (!disabled) {
+                                          onProjectSelect(project);
+                                          setProjectSearchTerm('');
+                                        }
+                                      }}
+                                      className={`flex items-center p-3 cursor-pointer ${selectedProject?.id === project.id
+                                        ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-300'
+                                        : 'text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700'
+                                        }`}
+                                    >
+                                      <Book className="h-4 w-4 mr-3 flex-shrink-0" />
+                                      <span className="truncate">{project.title || "Untitled"}</span>
+                                    </DropdownMenuItem>
+                                  ))}
+                                {projectNotes.filter(project =>
                                   (project.title || "Untitled")
                                     .toLowerCase()
                                     .includes(projectSearchTerm.toLowerCase())
-                                )
-                                .map(project => (
-                                  <DropdownMenuItem
-                                    key={project.id}
-                                    onClick={() => {
-                                      if (!disabled) {
-                                        onProjectSelect(project);
-                                        setProjectSearchTerm('');
-                                      }
-                                    }}
-                                    className={`flex items-center p-3 cursor-pointer ${selectedProject?.id === project.id
-                                      ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-300'
-                                      : 'text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700'
-                                      }`}
-                                  >
-                                    <Book className="h-4 w-4 mr-3 flex-shrink-0" />
-                                    <span className="truncate">{project.title || "Untitled"}</span>
-                                  </DropdownMenuItem>
-                                ))}
-                              {projectNotes.filter(project =>
-                                (project.title || "Untitled")
-                                  .toLowerCase()
-                                  .includes(projectSearchTerm.toLowerCase())
-                              ).length === 0 && projectSearchTerm && (
-                                  <div className="p-3 text-sm text-gray-500 text-center">
-                                    No pages found
-                                  </div>
-                                )}
-                            </div>
-
-                            {/* Add new page button at the bottom of dropdown */}
-                            {onCreateProject && (
-                              <div className="border-t border-gray-200 dark:border-gray-700 p-2">
-                                <CreateProjectDialog
-                                  onCreateProject={onCreateProject}
-                                  disabled={disabled}
-                                  variant="dropdown"
-                                />
+                                ).length === 0 && projectSearchTerm && (
+                                    <div className="p-3 text-sm text-gray-500 text-center">
+                                      No pages found
+                                    </div>
+                                  )}
                               </div>
-                            )}
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      )}
-                    </div>
 
-                    {/* Page actions - only rename and delete buttons */}
-                    <div className="flex items-center gap-2 flex-shrink-0 pb-[1px]">
-                      {selectedProject && handleRenameProject && handleDeleteProject && (
-                        <ProjectDialogs
-                          project={selectedProject}
-                          onRenameProject={handleRenameProject}
-                          onDeleteProject={handleDeleteProject}
-                        />
-                      )}
+                              {/* Add new page button at the bottom of dropdown */}
+                              {onCreateProject && (
+                                <div className="border-t border-gray-200 dark:border-gray-700 p-2">
+                                  <CreateProjectDialog
+                                    onCreateProject={onCreateProject}
+                                    disabled={disabled}
+                                    variant="dropdown"
+                                  />
+                                </div>
+                              )}
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        )}
+                      </div>
+
+                      {/* Page actions - only rename and delete buttons */}
+                      <div className="flex items-center gap-2 flex-shrink-0 pb-[1px]">
+                        {selectedProject && handleRenameProject && handleDeleteProject && (
+                          <ProjectDialogs
+                            project={selectedProject}
+                            onRenameProject={handleRenameProject}
+                            onDeleteProject={handleDeleteProject}
+                          />
+                        )}
+                      </div>
                     </div>
-                  </div>
-                )}
+                  )}
+                </div>
               </div>
             </div>
-          </div>
-        </div>
-      )}
+          </div>)}
 
-        <div className="flex flex-col flex-grow overflow-auto relative">
+        {/* Scrollable Content Area */}
+        <div className="flex flex-col flex-1 min-h-0 relative">
           {/* Loading overlay */}
           {disabled && (
             <div className="absolute inset-0 bg-white/50 dark:bg-neutral-800/50 z-10 flex items-center justify-center backdrop-blur-sm">
@@ -637,7 +639,7 @@ export const RealtimeEditor: React.FC<RealtimeEditorProps> = ({
           )}
 
           <EditorContent
-            className={`w-full break-words radius-lg h-full ${disabled ? 'pointer-events-none' : ''}`}
+            className={`w-full break-words radius-lg flex-1 overflow-y-auto ${disabled ? 'pointer-events-none' : ''}`}
             extensions={extensions}
             editorProps={{
               handleDOMEvents: {
@@ -700,8 +702,8 @@ export const RealtimeEditor: React.FC<RealtimeEditorProps> = ({
           </EditorContent>
         </div>
 
-        {/* Enhanced Footer */}
-        <div className="flex justify-between items-center border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-neutral-900/50 px-4 py-3">
+        {/* Fixed Footer */}
+        <div className="flex justify-between items-center border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-neutral-900/50 px-4 py-3 flex-shrink-0">
           <div className="flex items-center gap-3">
             {isSaving && (
               <div className="flex items-center gap-2 text-sm text-blue-600 dark:text-blue-400">

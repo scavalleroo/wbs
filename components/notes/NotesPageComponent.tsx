@@ -171,8 +171,8 @@ export const NotesPageComponent: React.FC<NotesPageComponentProps> = ({
   };
 
   return (
-    <div className="w-full h-full py-2">
-      <div className="max-w-screen-lg mx-auto w-full h-full">
+    <div className="w-full h-full">
+      <div className="w-full h-full">
         <Card className="rounded-lg bg-transparent text-card-foreground h-full overflow-auto border-none">
           {activeTab === 'daily' ? (
             <RealtimeEditor

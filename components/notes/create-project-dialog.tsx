@@ -66,7 +66,7 @@ const CreateProjectDialog: React.FC<CreateProjectDialogProps> = ({
                         variant="ghost"
                         size="sm"
                         disabled={disabled}
-                        className={`flex items-center gap-2 px-3 py-2 text-xs sm:text-sm font-medium rounded-lg bg-white/20 text-white hover:bg-white/30 backdrop-blur-sm border border-white/20 transition-all shadow-sm ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+                        className={`flex items-center gap-2 px-3 py-2 text-xs sm:text-sm font-medium rounded-lg bg-white/10 backdrop-blur-md border border-white/20 text-white hover:bg-white/20 transition-all duration-200 shadow-sm ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
                     >
                         <PlusCircle className="h-4 w-4" />
                         <span className="hidden sm:inline">Add Page</span>

@@ -246,7 +246,7 @@ export const RealtimeEditor: React.FC<RealtimeEditorProps> = ({
                           <div className="flex items-center gap-1 w-full">
                             <button
                               disabled={disabled}
-                              className={`p-1 sm:p-2 text-white/90 hover:bg-white/20 rounded-lg transition-all flex-shrink-0 ${disabled ? 'cursor-not-allowed' : ''
+                              className={`p-1 sm:p-2 text-white/90 bg-white/10 backdrop-blur-md border border-white/20 hover:bg-white/20 rounded-lg transition-all duration-200 flex-shrink-0 ${disabled ? 'cursor-not-allowed' : ''
                                 }`}
                               onClick={() => {
                                 if (onDaysChange && !disabled) {
@@ -323,9 +323,9 @@ export const RealtimeEditor: React.FC<RealtimeEditorProps> = ({
                                             }
                                           }
                                         }}
-                                        className={`date-carousel-item px-1 py-2 rounded-lg flex-1 min-w-[2.5rem] text-center relative transition-all ${isSelected
+                                        className={`date-carousel-item px-1 py-2 rounded-lg flex-1 min-w-[2.5rem] text-center relative transition-all duration-200 ${isSelected
                                           ? 'bg-white text-blue-600 shadow-md font-medium'
-                                          : 'bg-white/10 text-white/90 hover:bg-white/20'
+                                          : 'bg-white/10 backdrop-blur-md border border-white/20 text-white/90 hover:bg-white/20'
                                           } ${isToday && !isSelected ? 'ring-1 ring-yellow-400/50' : ''} ${disabled ? 'cursor-not-allowed' : ''}`}
                                         title={`${dayOfWeek}, ${month} ${dayNumber}, ${day.getFullYear()}${isToday ? ' (Today)' : ''}`}
                                       >
@@ -392,9 +392,9 @@ export const RealtimeEditor: React.FC<RealtimeEditorProps> = ({
                                             }
                                           }
                                         }}
-                                        className={`date-carousel-item px-2 py-2 rounded-lg flex-1 min-w-[3.5rem] text-center relative transition-all ${isSelected
+                                        className={`date-carousel-item px-2 py-2 rounded-lg flex-1 min-w-[3.5rem] text-center relative transition-all duration-200 ${isSelected
                                           ? 'bg-white text-blue-600 shadow-md font-medium'
-                                          : 'bg-white/10 text-white/90 hover:bg-white/20'
+                                          : 'bg-white/10 backdrop-blur-md border border-white/20 text-white/90 hover:bg-white/20'
                                           } ${isToday && !isSelected ? 'ring-2 ring-yellow-400/50' : ''} ${disabled ? 'cursor-not-allowed' : ''}`}
                                         title={`${dayOfWeek}, ${month} ${dayNumber}, ${day.getFullYear()}${isToday ? ' (Today)' : ''}`}
                                       >
@@ -412,7 +412,7 @@ export const RealtimeEditor: React.FC<RealtimeEditorProps> = ({
 
                             <button
                               disabled={disabled}
-                              className={`p-1 sm:p-2 text-white/90 hover:bg-white/20 rounded-lg transition-all flex-shrink-0 ${disabled ? 'cursor-not-allowed' : ''
+                              className={`p-1 sm:p-2 text-white/90 bg-white/10 backdrop-blur-md border border-white/20 hover:bg-white/20 rounded-lg transition-all duration-200 flex-shrink-0 ${disabled ? 'cursor-not-allowed' : ''
                                 }`}
                               onClick={() => {
                                 if (onDaysChange && !disabled) {
@@ -445,7 +445,7 @@ export const RealtimeEditor: React.FC<RealtimeEditorProps> = ({
                         {selectedDate.toDateString() !== new Date().toDateString() ? (
                           <button
                             disabled={disabled}
-                            className={`flex items-center justify-center gap-1 sm:gap-2 px-2 sm:px-3 py-2 text-xs sm:text-sm font-medium rounded-lg bg-white/15 text-white hover:bg-white/25 border border-white/20 transition-all sm:w-full whitespace-nowrap ${disabled ? 'cursor-not-allowed opacity-50' : ''
+                            className={`flex items-center justify-center gap-1 sm:gap-2 px-2 sm:px-3 py-2 text-xs sm:text-sm font-medium rounded-lg bg-white/10 backdrop-blur-md border border-white/20 text-white hover:bg-white/20 transition-all duration-200 sm:w-full whitespace-nowrap ${disabled ? 'cursor-not-allowed opacity-50' : ''
                               }`}
                             onClick={() => {
                               if (!disabled) {
@@ -477,7 +477,7 @@ export const RealtimeEditor: React.FC<RealtimeEditorProps> = ({
                           <PopoverTrigger asChild>
                             <button
                               disabled={disabled}
-                              className={`flex items-center justify-center gap-1 sm:gap-2 px-2 sm:px-3 py-2 text-xs sm:text-sm font-medium rounded-lg bg-white/15 text-white hover:bg-white/25 border border-white/20 transition-all sm:w-full whitespace-nowrap ${disabled ? 'cursor-not-allowed opacity-50' : ''
+                              className={`flex items-center justify-center gap-1 sm:gap-2 px-2 sm:px-3 py-2 text-xs sm:text-sm font-medium rounded-lg bg-white/10 backdrop-blur-md border border-white/20 text-white hover:bg-white/20 transition-all duration-200 sm:w-full whitespace-nowrap ${disabled ? 'cursor-not-allowed opacity-50' : ''
                                 }`}
                               title="Pick a specific date"
                             >
@@ -520,7 +520,7 @@ export const RealtimeEditor: React.FC<RealtimeEditorProps> = ({
                         <span className="navigation-label text-white/70 px-1">Current Page</span>
                         {projectNotes.length === 0 ? (
                           <div className="flex flex-col gap-2">
-                            <div className="text-sm text-white/70 font-medium px-3 py-2 bg-white/10 rounded-lg border border-white/20">
+                            <div className="text-sm text-white/70 font-medium px-3 py-2 bg-white/10 backdrop-blur-md border border-white/20 rounded-lg">
                               No pages yet
                             </div>
                             {onCreateProject && (
@@ -535,7 +535,7 @@ export const RealtimeEditor: React.FC<RealtimeEditorProps> = ({
                             <DropdownMenuTrigger asChild>
                               <button
                                 disabled={disabled}
-                                className={`flex items-center px-3 py-2 text-sm font-medium rounded-lg bg-white/15 text-white hover:bg-white/25 border border-white/20 transition-all justify-between min-w-0 ${disabled ? 'cursor-not-allowed opacity-50' : ''
+                                className={`flex items-center px-3 py-2 text-sm font-medium rounded-lg bg-white/10 backdrop-blur-md border border-white/20 text-white hover:bg-white/20 transition-all duration-200 justify-between min-w-0 ${disabled ? 'cursor-not-allowed opacity-50' : ''
                                   }`}
                                 title={`Select a page to edit${selectedProject?.title ? ` - Currently: ${selectedProject.title}` : ''}`}
                               >
@@ -700,32 +700,6 @@ export const RealtimeEditor: React.FC<RealtimeEditorProps> = ({
             </GenerativeMenuSwitch>
 
           </EditorContent>
-        </div>
-
-        {/* Fixed Footer */}
-        <div className="flex justify-between items-center border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-neutral-900/50 px-4 py-3 flex-shrink-0">
-          <div className="flex items-center gap-3">
-            {isSaving && (
-              <div className="flex items-center gap-2 text-sm text-blue-600 dark:text-blue-400">
-                <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-                <span className="font-medium">Saving...</span>
-              </div>
-            )}
-            {!isSaving && lastSaved && (
-              <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
-                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                <span>
-                  Last saved: <span className="font-medium">{formatLocalRelativeTime(lastSaved)}</span>
-                </span>
-              </div>
-            )}
-            {!isSaving && !lastSaved && (
-              <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-500">
-                <div className="w-2 h-2 bg-gray-400 rounded-full"></div>
-                <span>Not saved yet</span>
-              </div>
-            )}
-          </div>
         </div>
       </div>
     </EditorRoot>

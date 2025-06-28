@@ -103,9 +103,10 @@ export function OptimizedDistractionsCard({
 
     if (isLoading) {
         return (
-            <div className="rounded-2xl p-4 bg-gradient-to-br from-orange-400 via-red-500 to-pink-600 text-white flex items-center justify-center min-h-[240px]">
-                <div className="text-center">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white mx-auto mb-2"></div>
+            <div className="rounded-2xl p-4 bg-gradient-to-br from-blue-500 via-indigo-600 to-purple-700 shadow-xl text-white flex items-center justify-center min-h-[240px] relative overflow-hidden">
+                <div className="absolute inset-0 bg-black/10 backdrop-blur-md z-0 rounded-2xl"></div>
+                <div className="relative z-10 flex items-center gap-2">
+                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
                     <p>Loading your blocked sites...</p>
                 </div>
             </div>
@@ -113,11 +114,9 @@ export function OptimizedDistractionsCard({
     }
 
     return (
-        <div className="rounded-2xl p-4 bg-gradient-to-br from-orange-400 via-red-500 to-pink-600 shadow-xl text-white relative overflow-hidden flex flex-col">
-            {/* Decorative elements */}
-            <div className="absolute -left-8 -bottom-8 w-32 h-32 rounded-full bg-white/10 z-0"></div>
-            <div className="absolute -left-16 -bottom-16 w-32 h-32 rounded-full bg-white/5 z-0"></div>
-            <div className="absolute inset-0 bg-black/10 z-0"></div>
+        <div className="rounded-2xl p-4 bg-gradient-to-br from-blue-500 via-indigo-600 to-purple-700 shadow-xl text-white relative overflow-hidden flex flex-col">
+            {/* Glassmorphic overlay */}
+            <div className="absolute inset-0 bg-black/10 backdrop-blur-md z-0 rounded-2xl"></div>
 
             <div className="relative z-10 flex flex-col flex-grow">
                 {/* Header with better explanation */}
@@ -138,7 +137,7 @@ export function OptimizedDistractionsCard({
                     </div>
 
                     {blockedSitesCount === 0 && (
-                        <div className="bg-white/10 rounded-lg p-3 mb-4">
+                        <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-lg p-3 mb-4">
                             <p className="text-sm text-white/90 mb-2">
                                 📱 Get started in 2 easy steps:
                             </p>
@@ -166,12 +165,12 @@ export function OptimizedDistractionsCard({
                                 <div
                                     key={site.id}
                                     className={cn(
-                                        "flex items-center justify-between text-sm px-3 py-2 rounded-lg transition-all duration-200",
+                                        "flex items-center justify-between text-sm px-3 py-2 rounded-lg transition-all duration-200 backdrop-blur-md border",
                                         site.accessedToday
                                             ? isViolatingLimits
-                                                ? "bg-red-500/20 border border-red-400/30"
-                                                : "bg-amber-500/20"
-                                            : "bg-white/10"
+                                                ? "bg-red-500/20 border-red-400/30"
+                                                : "bg-amber-500/20 border-amber-400/30"
+                                            : "bg-white/10 border-white/20"
                                     )}
                                 >
                                     {/* Site Name and Status */}
@@ -238,7 +237,7 @@ export function OptimizedDistractionsCard({
                             variant="ghost"
                             size="sm"
                             onClick={() => setIsExpanded(!isExpanded)}
-                            className="text-white/70 hover:text-white hover:bg-white/10 text-xs h-7 px-3 rounded-lg"
+                            className="text-white/70 hover:text-white bg-white/10 backdrop-blur-md border border-white/20 hover:bg-white/30 text-xs h-7 px-3 rounded-lg transition-all duration-200"
                         >
                             {isExpanded ? 'Show Less' : `Show ${combinedSiteData.length - 4} More`}
                             {isExpanded ? <ChevronUp className="w-3 h-3 ml-1" /> : <ChevronDown className="w-3 h-3 ml-1" />}
@@ -251,14 +250,14 @@ export function OptimizedDistractionsCard({
                     <div className="grid grid-cols-2 gap-2">
                         <Button
                             onClick={onManageDistractionsClick}
-                            className="flex items-center justify-center h-10 bg-white/20 hover:bg-white/30 border-none text-white font-medium rounded-lg transition-all duration-200"
+                            className="flex items-center justify-center h-10 bg-white/10 backdrop-blur-md border border-white/20 hover:bg-white/30 text-white font-medium rounded-lg transition-all duration-200"
                         >
                             <ShieldBan className="h-4 w-4 mr-2" />
                             {blockedSitesCount > 0 ? 'Manage Sites' : 'Add Sites'}
                         </Button>
                         <Button
                             onClick={handleDownloadExtension}
-                            className="flex items-center justify-center h-10 bg-white/20 hover:bg-white/30 border-none text-white font-medium rounded-lg transition-all duration-200"
+                            className="flex items-center justify-center h-10 bg-white/10 backdrop-blur-md border border-white/20 hover:bg-white/30 text-white font-medium rounded-lg transition-all duration-200"
                         >
                             <Download className="h-4 w-4 mr-2" />
                             Extension

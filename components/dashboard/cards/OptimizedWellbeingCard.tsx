@@ -266,9 +266,12 @@ export function OptimizedWellbeingCard({ user, isMobile = false }: OptimizedWell
 
     if (isLoading) {
         return (
-            <div className={cn("rounded-xl p-3 shadow-lg text-white relative overflow-hidden flex items-center justify-center min-h-[240px]", isMobile ? "bg-gradient-to-r from-purple-400 to-pink-500" : "bg-gradient-to-br from-purple-400 via-fuchsia-500 to-pink-600")}>
-                <div className="absolute inset-0 bg-black/20 z-0"></div>
-                <div className="relative z-10"><p>Loading Wellbeing...</p></div>
+            <div className="rounded-2xl p-4 bg-gradient-to-br from-blue-500 via-indigo-600 to-purple-700 shadow-xl text-white relative overflow-hidden flex items-center justify-center min-h-[240px]">
+                <div className="absolute inset-0 bg-black/10 backdrop-blur-md z-0 rounded-2xl"></div>
+                <div className="relative z-10 flex items-center gap-2">
+                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                    <p>Loading Wellbeing...</p>
+                </div>
             </div>
         );
     }
@@ -276,8 +279,8 @@ export function OptimizedWellbeingCard({ user, isMobile = false }: OptimizedWell
     if (showQuestionnaire) {
         if (isMobile) {
             return (
-                <div className="wellbeing-card-container rounded-2xl p-4 pb-3 bg-gradient-to-r from-purple-500 to-pink-600 shadow-lg text-white relative">
-                    <div className="absolute inset-0 bg-black/10 z-0 rounded-2xl"></div>
+                <div className="wellbeing-card-container rounded-2xl p-4 pb-3 bg-gradient-to-br from-blue-500 via-indigo-600 to-purple-700 shadow-xl text-white relative overflow-hidden">
+                    <div className="absolute inset-0 bg-black/10 backdrop-blur-md z-0 rounded-2xl"></div>
                     <div className="relative z-10 flex flex-col h-full">
                         {/* Header matching chart mode */}
                         <div className="flex items-start justify-between mb-3">
@@ -285,7 +288,7 @@ export function OptimizedWellbeingCard({ user, isMobile = false }: OptimizedWell
                                 <h2 className="font-bold text-lg">Daily Wellness Check</h2>
                             </div>
                             {hasRecentMoodData && (
-                                <Button variant="ghost" size="icon" onClick={() => setShowQuestionnaire(false)} className="text-white/70 hover:text-white hover:bg-white/10 h-6 w-6 ml-2">
+                                <Button variant="ghost" size="icon" onClick={() => setShowQuestionnaire(false)} className="text-white/70 hover:text-white bg-white/10 backdrop-blur-md border border-white/20 hover:bg-white/30 transition-all duration-200 h-6 w-6 ml-2 rounded-lg">
                                     <ArrowLeft className="h-4 w-4" />
                                 </Button>
                             )}
@@ -302,7 +305,7 @@ export function OptimizedWellbeingCard({ user, isMobile = false }: OptimizedWell
                                 ) : (
                                     <motion.div key="notes" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }} className="flex flex-col justify-center">
                                         <Label htmlFor="mood-description" className="mb-2 text-sm font-medium">Additional notes? (optional)</Label>
-                                        <Textarea id="mood-description" placeholder="Share anything else about your day..." value={description} onChange={(e) => setDescription(e.target.value)} rows={2} className="bg-white/10 border-white/30 placeholder-white/50 text-white resize-none rounded-md" />
+                                        <Textarea id="mood-description" placeholder="Share anything else about your day..." value={description} onChange={(e) => setDescription(e.target.value)} rows={2} className="bg-white/10 backdrop-blur-md border border-white/20 placeholder-white/50 text-white resize-none rounded-lg" />
                                     </motion.div>
                                 )}
                             </AnimatePresence>
@@ -311,11 +314,11 @@ export function OptimizedWellbeingCard({ user, isMobile = false }: OptimizedWell
                         {/* Footer controls - compact */}
                         <div className="pt-2">
                             <div className="flex justify-between items-center mb-2">
-                                {(currentStep > 0 || showNotes) && (<Button variant="ghost" onClick={handleBack} className="text-white/80 hover:text-white hover:bg-white/10 px-2 py-1 text-xs" size="sm"><ArrowLeft className="mr-1 h-3 w-3" /> Back</Button>)}
+                                {(currentStep > 0 || showNotes) && (<Button variant="ghost" onClick={handleBack} className="text-white/80 hover:text-white bg-white/10 backdrop-blur-md border border-white/20 hover:bg-white/30 transition-all duration-200 px-2 py-1 text-xs rounded-lg" size="sm"><ArrowLeft className="mr-1 h-3 w-3" /> Back</Button>)}
                                 <div className="flex-grow"></div>
-                                {!showNotes && currentStep < wellnessQuestionSteps.length - 1 && (<Button variant="ghost" onClick={handleSkipStep} className="text-white/80 hover:text-white hover:bg-white/10 px-2 py-1 text-xs" size="sm">Skip</Button>)}
+                                {!showNotes && currentStep < wellnessQuestionSteps.length - 1 && (<Button variant="ghost" onClick={handleSkipStep} className="text-white/80 hover:text-white bg-white/10 backdrop-blur-md border border-white/20 hover:bg-white/30 transition-all duration-200 px-2 py-1 text-xs rounded-lg" size="sm">Skip</Button>)}
                             </div>
-                            {showNotes && (<Button onClick={handleInlineWellnessSubmit} disabled={isSubmitting} className="w-full bg-white/25 hover:bg-white/35 text-white font-semibold h-8" size="sm">{isSubmitting ? 'Submitting...' : (hasRecentMoodData ? 'Update Wellness' : 'Submit Wellness')} <Check className="ml-1 h-3 w-3" /></Button>)}
+                            {showNotes && (<Button onClick={handleInlineWellnessSubmit} disabled={isSubmitting} className="w-full bg-white/10 backdrop-blur-md border border-white/20 hover:bg-white/30 transition-all duration-200 text-white font-semibold h-8 rounded-lg" size="sm">{isSubmitting ? 'Submitting...' : (hasRecentMoodData ? 'Update Wellness' : 'Submit Wellness')} <Check className="ml-1 h-3 w-3" /></Button>)}
                             <div className="flex justify-center space-x-1.5 mt-2">
                                 {wellnessQuestionSteps.map((_, idx) => (<div key={idx} className={cn("h-1.5 rounded-full transition-all duration-300", idx === currentStep && !showNotes ? 'w-4 bg-white' : 'w-1.5 bg-white/50')} />))}
                                 <div className={cn("h-1.5 rounded-full transition-all duration-300", showNotes ? 'w-4 bg-white' : 'w-1.5 bg-white/50')} />
@@ -326,7 +329,8 @@ export function OptimizedWellbeingCard({ user, isMobile = false }: OptimizedWell
             );
         } else {
             return (
-                <div className="wellbeing-card-container rounded-2xl p-6 pb-4 bg-gradient-to-br from-purple-500 via-fuchsia-600 to-pink-700 shadow-xl text-white relative">
+                <div className="wellbeing-card-container rounded-2xl p-6 pb-4 bg-gradient-to-br from-blue-500 via-indigo-600 to-purple-700 shadow-xl text-white relative overflow-hidden">
+                    <div className="absolute inset-0 bg-black/10 backdrop-blur-md z-0 rounded-2xl"></div>
                     <div className="relative z-10 flex flex-col h-full">
                         {/* Header matching chart mode */}
                         <div className="flex justify-between items-start mb-4">
@@ -334,7 +338,7 @@ export function OptimizedWellbeingCard({ user, isMobile = false }: OptimizedWell
                                 <h2 className="font-bold text-xl">Daily Wellness Check</h2>
                             </div>
                             {hasRecentMoodData && (
-                                <Button variant="ghost" size="icon" onClick={() => setShowQuestionnaire(false)} className="text-white/70 hover:text-white hover:bg-white/10 h-7 w-7 ml-3">
+                                <Button variant="ghost" size="icon" onClick={() => setShowQuestionnaire(false)} className="text-white/70 hover:text-white bg-white/10 backdrop-blur-md border border-white/20 hover:bg-white/30 transition-all duration-200 h-7 w-7 ml-3 rounded-lg">
                                     <ArrowLeft className="h-4 w-4" />
                                 </Button>
                             )}
@@ -351,7 +355,7 @@ export function OptimizedWellbeingCard({ user, isMobile = false }: OptimizedWell
                                 ) : (
                                     <motion.div key="notes" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }} className="flex flex-col justify-center">
                                         <Label htmlFor="mood-description" className="mb-2 text-sm font-medium">Additional notes? (optional)</Label>
-                                        <Textarea id="mood-description" placeholder="Share anything else about your day..." value={description} onChange={(e) => setDescription(e.target.value)} rows={3} className="bg-white/10 border-white/30 placeholder-white/50 text-white resize-none rounded-md" />
+                                        <Textarea id="mood-description" placeholder="Share anything else about your day..." value={description} onChange={(e) => setDescription(e.target.value)} rows={3} className="bg-white/10 backdrop-blur-md border border-white/20 placeholder-white/50 text-white resize-none rounded-lg" />
                                     </motion.div>
                                 )}
                             </AnimatePresence>
@@ -360,11 +364,11 @@ export function OptimizedWellbeingCard({ user, isMobile = false }: OptimizedWell
                         {/* Footer controls - optimized spacing */}
                         <div className="pt-3">
                             <div className="flex justify-between items-center mb-2">
-                                {(currentStep > 0 || showNotes) && (<Button variant="ghost" onClick={handleBack} className="text-white/80 hover:text-white hover:bg-white/10 px-3 py-1.5 text-sm"><ArrowLeft className="mr-1 h-4 w-4" /> Back</Button>)}
+                                {(currentStep > 0 || showNotes) && (<Button variant="ghost" onClick={handleBack} className="text-white/80 hover:text-white bg-white/10 backdrop-blur-md border border-white/20 hover:bg-white/30 transition-all duration-200 px-3 py-1.5 text-sm rounded-lg"><ArrowLeft className="mr-1 h-4 w-4" /> Back</Button>)}
                                 <div className="flex-grow"></div>
-                                {!showNotes && currentStep < wellnessQuestionSteps.length - 1 && (<Button variant="ghost" onClick={handleSkipStep} className="text-white/80 hover:text-white hover:bg-white/10 px-3 py-1.5 text-sm">Skip</Button>)}
+                                {!showNotes && currentStep < wellnessQuestionSteps.length - 1 && (<Button variant="ghost" onClick={handleSkipStep} className="text-white/80 hover:text-white bg-white/10 backdrop-blur-md border border-white/20 hover:bg-white/30 transition-all duration-200 px-3 py-1.5 text-sm rounded-lg">Skip</Button>)}
                             </div>
-                            {showNotes && (<Button onClick={handleInlineWellnessSubmit} disabled={isSubmitting} className="w-full bg-white/25 hover:bg-white/35 text-white font-semibold h-9">{isSubmitting ? 'Submitting...' : (hasRecentMoodData ? 'Update Wellness' : 'Submit Wellness')} <Check className="ml-2 h-4 w-4" /></Button>)}
+                            {showNotes && (<Button onClick={handleInlineWellnessSubmit} disabled={isSubmitting} className="w-full bg-white/10 backdrop-blur-md border border-white/20 hover:bg-white/30 transition-all duration-200 text-white font-semibold h-9 rounded-lg">{isSubmitting ? 'Submitting...' : (hasRecentMoodData ? 'Update Wellness' : 'Submit Wellness')} <Check className="ml-2 h-4 w-4" /></Button>)}
                             <div className="flex justify-center space-x-1.5 mt-3">
                                 {wellnessQuestionSteps.map((_, idx) => (<div key={idx} className={cn("h-2 rounded-full transition-all duration-300", idx === currentStep && !showNotes ? 'w-5 bg-white' : 'w-2 bg-white/50')} />))}
                                 <div className={cn("h-2 rounded-full transition-all duration-300", showNotes ? 'w-5 bg-white' : 'w-2 bg-white/50')} />
@@ -419,9 +423,9 @@ export function OptimizedWellbeingCard({ user, isMobile = false }: OptimizedWell
         };
 
         return (
-            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onClick={closeTooltip}>
+            <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50" onClick={closeTooltip}>
                 <div
-                    className="bg-white/95 backdrop-blur-sm text-gray-900 p-6 rounded-xl shadow-2xl border border-white/30 text-left max-w-sm w-full mx-4 relative"
+                    className="bg-white/95 backdrop-blur-md text-gray-900 p-6 rounded-xl shadow-2xl border border-white/30 text-left max-w-sm w-full mx-4 relative"
                     onClick={(e) => e.stopPropagation()}
                     role="dialog"
                     aria-modal="true"
@@ -530,8 +534,8 @@ export function OptimizedWellbeingCard({ user, isMobile = false }: OptimizedWell
     if (isMobile) {
         return (
             <>
-                <div className="wellbeing-card-container rounded-2xl p-4 pb-3 bg-gradient-to-r from-purple-500 to-pink-600 shadow-lg text-white relative">
-                    <div className="absolute inset-0 bg-black/10 z-0 rounded-2xl"></div>
+                <div className="wellbeing-card-container rounded-2xl p-4 pb-3 bg-gradient-to-br from-blue-500 via-indigo-600 to-purple-700 shadow-xl text-white relative overflow-hidden">
+                    <div className="absolute inset-0 bg-black/10 backdrop-blur-md z-0 rounded-2xl"></div>
                     <div className="relative z-10">
                         {/* Header with Period Selector */}
                         <div className="flex items-start justify-between mb-4">
@@ -543,10 +547,9 @@ export function OptimizedWellbeingCard({ user, isMobile = false }: OptimizedWell
                                     <div className="flex items-center gap-2">
                                         <p className="text-sm text-white/90">
                                             {wellnessScore} today {getWellnessEmoji(wellnessScore)}
-                                        </p>
-                                        <button
+                                        </p>                        <button
                                             onClick={() => setShowQuestionnaire(true)}
-                                            className="text-xs text-white/80 hover:text-white bg-white/10 hover:bg-white/20 px-2 py-1 rounded transition-colors"
+                                            className="text-xs text-white/80 hover:text-white bg-white/10 backdrop-blur-md border border-white/20 hover:bg-white/30 px-2 py-1 rounded-lg transition-all duration-200"
                                         >
                                             Update score
                                         </button>
@@ -558,7 +561,7 @@ export function OptimizedWellbeingCard({ user, isMobile = false }: OptimizedWell
                                     <span className="text-white/50 text-xs uppercase tracking-wider">Period</span>
                                 </div>
                                 <Select value={chartPeriod} onValueChange={(value: ChartPeriod) => handlePeriodChange(value)}>
-                                    <SelectTrigger className="w-20 mx-auto bg-white/20 border-white/30 text-white text-xs h-6 backdrop-blur-sm">
+                                    <SelectTrigger className="w-20 mx-auto bg-white/10 backdrop-blur-md border border-white/20 text-white text-xs h-6 rounded-lg">
                                         <SelectValue placeholder="Select" />
                                     </SelectTrigger>
                                     <SelectContent>
@@ -618,7 +621,7 @@ export function OptimizedWellbeingCard({ user, isMobile = false }: OptimizedWell
                                         {chartPeriod === 'week' && !hasRecentMoodData && (
                                             <button
                                                 onClick={() => setShowQuestionnaire(true)}
-                                                className="text-xs text-white/90 underline mt-1 hover:text-white"
+                                                className="text-xs text-white/90 underline mt-1 hover:text-white bg-white/10 backdrop-blur-md border border-white/20 hover:bg-white/30 px-2 py-1 rounded-lg transition-all duration-200"
                                             >
                                                 Track today
                                             </button>
@@ -636,7 +639,8 @@ export function OptimizedWellbeingCard({ user, isMobile = false }: OptimizedWell
 
     return (
         <>
-            <div className="wellbeing-card-container rounded-2xl p-6 pb-4 bg-gradient-to-br from-purple-500 via-fuchsia-600 to-pink-700 shadow-xl text-white relative">
+            <div className="wellbeing-card-container rounded-2xl p-6 pb-4 bg-gradient-to-br from-blue-500 via-indigo-600 to-purple-700 shadow-xl text-white relative overflow-hidden">
+                <div className="absolute inset-0 bg-black/10 backdrop-blur-md z-0 rounded-2xl"></div>
                 <div className="relative z-10">
                     {/* Header with Period Selector */}
                     <div className="flex justify-between items-start mb-6">
@@ -651,7 +655,7 @@ export function OptimizedWellbeingCard({ user, isMobile = false }: OptimizedWell
                                     </p>
                                     <button
                                         onClick={() => setShowQuestionnaire(true)}
-                                        className="text-sm text-white/80 hover:text-white bg-white/10 hover:bg-white/20 px-3 py-1.5 rounded-md transition-colors"
+                                        className="text-sm text-white/80 hover:text-white bg-white/10 backdrop-blur-md border border-white/20 hover:bg-white/30 px-3 py-1.5 rounded-lg transition-all duration-200"
                                     >
                                         Update score
                                     </button>
@@ -663,7 +667,7 @@ export function OptimizedWellbeingCard({ user, isMobile = false }: OptimizedWell
                                 <span className="text-white/50 text-xs uppercase tracking-wider">Period</span>
                             </div>
                             <Select value={chartPeriod} onValueChange={(value: ChartPeriod) => handlePeriodChange(value)}>
-                                <SelectTrigger className="w-28 mx-auto bg-white/20 border-white/30 text-white text-xs h-7 backdrop-blur-sm">
+                                <SelectTrigger className="w-28 mx-auto bg-white/10 backdrop-blur-md border border-white/20 text-white text-xs h-7 rounded-lg">
                                     <SelectValue placeholder="Select" />
                                 </SelectTrigger>
                                 <SelectContent>

@@ -19,10 +19,10 @@ export function HeroSection() {
                 <source src="/videos/next.mp4" type="video/mp4" />
                 Your browser does not support the video tag.
             </video>
-            <div className="absolute inset-0 z-10 bg-background/50 backdrop-blur-sm" />
+            <div className="absolute inset-0 z-10 bg-background/30 dark:bg-background/40 backdrop-blur-md" />
 
             <div className="relative z-20 px-4 text-center">
-                <h1 className="mx-auto max-w-4xl text-4xl font-bold text-white md:text-5xl lg:text-7xl">
+                <h1 className="mx-auto max-w-4xl text-4xl font-bold text-white md:text-5xl lg:text-7xl drop-shadow-lg">
                     {"What matters most, everyday."
                         .split(" ")
                         .map((word, index) => (
@@ -45,7 +45,7 @@ export function HeroSection() {
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ duration: 0.5, delay: 0.8 }}
-                    className="mx-auto mt-6 max-w-2xl text-lg font-normal text-slate-200"
+                    className="mx-auto mt-6 max-w-2xl text-lg font-normal text-slate-200 drop-shadow-md"
                 >
                     Weko is your calm space for productivity. An AI-powered platform that reduces digital overwhelm and helps you focus.
                 </motion.p>
@@ -55,7 +55,7 @@ export function HeroSection() {
                     transition={{ duration: 0.5, delay: 1 }}
                     className="mt-8 flex justify-center"
                 >
-                    <Button size="lg" asChild>
+                    <Button size="lg" asChild className="bg-white/10 backdrop-blur-md border border-white/20 text-white hover:bg-white/20 transition-all duration-200 shadow-xl">
                         <Link href="/signin">
                             Get Started for Free
                         </Link>

@@ -17,7 +17,7 @@ export default async function LandingPage() {
 
     return (
         <div className="dark bg-background text-foreground">
-            <header className="sticky top-0 w-full bg-gradient-to-b from-background/90 to-transparent backdrop-blur-sm z-50">
+            <header className="sticky top-0 w-full bg-white/80 dark:bg-background/80 backdrop-blur-md border-b border-white/20 dark:border-white/10 shadow-lg z-50">
                 <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex items-center justify-between h-16">
                         <div className="flex items-center">
@@ -26,7 +26,7 @@ export default async function LandingPage() {
                             </Link>
                         </div>
                         <div className="flex items-center gap-2">
-                            <Button asChild>
+                            <Button asChild className="bg-white/10 backdrop-blur-md border border-white/20 text-white hover:bg-white/20 transition-all duration-200">
                                 <Link
                                     href={user ? "/dashboard" : "/signin"}
                                 >
@@ -64,7 +64,7 @@ export default async function LandingPage() {
                                         <p className="text-sm text-muted-foreground">5-star rating on the Chrome Web Store.</p>
                                     </div>
                                     <div className="mt-10">
-                                        <Button size="lg" asChild>
+                                        <Button size="lg" asChild className="bg-white/10 backdrop-blur-md border border-white/20 text-white hover:bg-white/20 transition-all duration-200 shadow-lg">
                                             <Link href="https://chromewebstore.google.com/detail/weko-mindful-browsing/dhooahmpdcmdnjbdedfhhopjdboeniih" target="_blank" rel="noopener noreferrer">
                                                 Add to Chrome
                                             </Link>
@@ -174,8 +174,8 @@ export default async function LandingPage() {
                                     width={1000}
                                     height={1500}
                                 />
-                                <div className="absolute -right-4 -bottom-4 w-72 rounded-2xl bg-gradient-to-br from-purple-400 via-fuchsia-500 to-pink-600 p-5 text-white shadow-2xl ring-1 ring-black/10 backdrop-blur-lg sm:right-4">
-                                    <div className="absolute inset-0 rounded-2xl bg-black/20"></div>
+                                <div className="absolute -right-4 -bottom-4 w-72 rounded-2xl bg-white/10 dark:bg-white/5 backdrop-blur-md border border-white/20 dark:border-white/10 p-5 text-white shadow-2xl sm:right-4">
+                                    <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-purple-500/20 via-fuchsia-500/20 to-pink-600/20"></div>
                                     <div className="relative z-10">
                                         <p className="text-lg font-semibold">How's your mood today?</p>
                                         <div className="mt-4 flex justify-between">
@@ -237,7 +237,7 @@ export default async function LandingPage() {
                     className="relative bg-cover bg-center bg-no-repeat min-h-screen flex items-center"
                     style={{ backgroundImage: "url('/images/hero.jpg')" }}
                 >
-                    <div className="absolute inset-0 bg-background/70 backdrop-blur-sm" />
+                    <div className="absolute inset-0 bg-background/60 dark:bg-background/70 backdrop-blur-md" />
                     <div className="relative z-10 mx-auto max-w-7xl px-6 lg:px-8">
                         <div className="mx-auto max-w-2xl text-center">
                             <h2 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
@@ -247,7 +247,7 @@ export default async function LandingPage() {
                                 Weko is currently in beta, and this is just the beginning. We're constantly building new features to help you maximize productivity while optimizing your health. Sign up now to be the first to know what's next.
                             </p>
                             <div className="mt-10 flex items-center justify-center gap-x-6">
-                                <Button size="lg" asChild>
+                                <Button size="lg" asChild className="bg-white/10 backdrop-blur-md border border-white/20 text-white hover:bg-white/20 transition-all duration-200 shadow-lg">
                                     <Link href="/signin">
                                         Join the Beta & Get Notified
                                     </Link>
@@ -258,7 +258,7 @@ export default async function LandingPage() {
                 </section>
             </main>
 
-            <footer className="bg-muted text-muted-foreground">
+            <footer className="bg-white/80 dark:bg-muted/80 backdrop-blur-md border-t border-white/20 dark:border-white/10 text-muted-foreground">
                 <div className="mx-auto max-w-7xl px-6 lg:px-8 py-16">
                     <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-8">
                         <div className="col-span-2 lg:col-span-1">
@@ -304,7 +304,7 @@ export default async function LandingPage() {
                         </div>
                     </div>
                 </div>
-                <div className="border-t">
+                <div className="border-t border-white/20 dark:border-white/10">
                     <div className="mx-auto max-w-7xl px-6 lg:px-8 py-6 text-center text-sm">
                         <p>© 2025 Weko. All rights reserved.</p>
                     </div>

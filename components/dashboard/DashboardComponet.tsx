@@ -276,7 +276,7 @@ const DashboardComponet = ({ user }: DashboardComponetProps) => {
 
                     {/* Bottom Row: Wellbeing and Distractions side by side */}
                     <div className="flex gap-6">
-                        {/* Wellbeing Card */}
+                        {/* Wellbeing Card - 50% width */}
                         <div className="flex-1">
                             <OptimizedWellbeingCard
                                 user={user}
@@ -284,8 +284,8 @@ const DashboardComponet = ({ user }: DashboardComponetProps) => {
                             />
                         </div>
 
-                        {/* Distractions Card */}
-                        <div className="w-80 flex-shrink-0">
+                        {/* Distractions Card - 50% width */}
+                        <div className="flex-1">
                             <OptimizedDistractionsCard
                                 key={`desktop-${distractionsKey}`}
                                 user={user}

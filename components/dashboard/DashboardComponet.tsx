@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { User } from '@supabase/supabase-js';
 import 'react-circular-progressbar/dist/styles.css';
 import { useUserGoals } from '@/hooks/use-user-goals';
@@ -16,6 +16,7 @@ import { OptimizedWellbeingCard } from './cards/OptimizedWellbeingCard';
 import { useBlockedSite } from '@/hooks/use-blocked-site';
 import useMood from '@/hooks/use-mood';
 import { NotesPageComponent } from '@/components/notes/NotesPageComponent';
+import { ChevronDown } from 'lucide-react';
 
 interface DashboardComponetProps {
     user: User | null | undefined;
@@ -38,6 +39,20 @@ const DashboardComponet = ({ user }: DashboardComponetProps) => {
     const { fetchMood } = useMood({ user });
     const [distDialogOpen, setDistDialogOpen] = useState(false);
     const [distractionsKey, setDistractionsKey] = useState(0);
+    const [mobileFocusSound, setMobileFocusSound] = useState('Atmosphere');
+    const [showAtmosphereDropdown, setShowAtmosphereDropdown] = useState(false);
+    const mobileVideoRef = useRef<HTMLVideoElement>(null);
+    const atmosphereDropdownRef = useRef<HTMLDivElement>(null);
+
+    // Atmosphere options for the dropdown
+    const atmosphereOptions = [
+        { value: 'Atmosphere', label: 'Atmosphere' },
+        { value: 'Rain', label: 'Rain' },
+        { value: 'Waves', label: 'Ocean Waves' },
+        { value: 'Nature', label: 'Nature' },
+        { value: 'Forest', label: 'Forest' },
+        { value: 'Coffee', label: 'Coffee Shop' }
+    ];
 
     // Dashboard summary data
     const [todayFocusTime, setTodayFocusTime] = useState(0);
@@ -52,9 +67,64 @@ const DashboardComponet = ({ user }: DashboardComponetProps) => {
         isRunning,
         flowMode,
         sessionId,
+        endSession,
+        updateSessionSound,
+        sound: currentSound
     } = useTimer();
 
     const { setShowFullScreenTimer } = useTimerUI();
+
+    // Video mapping for mobile header
+    const videoMapping: { [key: string]: string } = {
+        'Atmosphere': '/focus/none.mp4',
+        'Rain': '/focus/rain.mp4',
+        'Waves': '/focus/waves.mp4',
+        'Nature': '/focus/forest.mp4',
+        'Forest': '/focus/forest.mp4',
+        'Coffee': '/focus/cafe.mp4'
+    };
+
+    // Sync mobile sound with timer context sound
+    useEffect(() => {
+        if (currentSound && currentSound !== 'none') {
+            const displaySound = currentSound === 'atmosphere' ? 'Atmosphere' :
+                currentSound.charAt(0).toUpperCase() + currentSound.slice(1);
+            setMobileFocusSound(displaySound);
+        }
+    }, [currentSound]);
+
+    // Close atmosphere dropdown when clicking outside
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (atmosphereDropdownRef.current && !atmosphereDropdownRef.current.contains(event.target as Node)) {
+                setShowAtmosphereDropdown(false);
+            }
+        };
+
+        if (showAtmosphereDropdown) {
+            document.addEventListener('mousedown', handleClickOutside);
+            return () => document.removeEventListener('mousedown', handleClickOutside);
+        }
+    }, [showAtmosphereDropdown]);
+
+    // Handle mobile video
+    useEffect(() => {
+        if (mobileVideoRef.current) {
+            mobileVideoRef.current.muted = true;
+            mobileVideoRef.current.loop = true;
+            mobileVideoRef.current.playsInline = true;
+
+            const playVideo = async () => {
+                try {
+                    await mobileVideoRef.current?.play();
+                } catch (error) {
+                    console.log('Video autoplay prevented:', error);
+                }
+            };
+
+            playVideo();
+        }
+    }, [mobileFocusSound]);
 
     useEffect(() => {
         if (user) {
@@ -169,45 +239,153 @@ const DashboardComponet = ({ user }: DashboardComponetProps) => {
         return 'there';
     };
 
+    const handleMobileFocusStart = () => {
+        const soundValue = mobileFocusSound === 'Atmosphere' ? 'atmosphere' : mobileFocusSound.toLowerCase();
+
+        initializeSession({
+            activity: 'focus',
+            sound: soundValue,
+            duration: 0,
+            volume: 50,
+            flowMode: true
+        });
+    };
+
+    const handleMobileFocusEnd = () => {
+        endSession();
+    };
+
+    const formatTime = (seconds: number) => {
+        const totalSeconds = Math.floor(seconds);
+        const hours = Math.floor(totalSeconds / 3600);
+        const minutes = Math.floor((totalSeconds % 3600) / 60);
+        const secs = totalSeconds % 60;
+        return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    };
+
+    const handleAtmosphereChange = (newAtmosphere: string) => {
+        setMobileFocusSound(newAtmosphere);
+        setShowAtmosphereDropdown(false);
+
+        // If a session is running, update the sound
+        if (isRunning) {
+            const soundValue = newAtmosphere === 'Atmosphere' ? 'atmosphere' : newAtmosphere.toLowerCase();
+            updateSessionSound(soundValue);
+        }
+    };
+
     return (
         <div className="space-y-4 py-3">
-            {/* Header Section with improved visual hierarchy - FIRST ELEMENT */}
-            <div className="mb-8 px-4">
-                {/* Mobile: Stacked vertically */}
-                <div className="flex flex-col gap-4 lg:hidden">
-                    <div>
-                        <h1 className="text-2xl font-medium text-foreground">
+            {/* Mobile Header Section with Focus Integration */}
+            <div className="lg:hidden relative overflow-hidden rounded-b-3xl shadow-lg -mt-12 pt-16">
+                {/* Video Background for Mobile */}
+                <video
+                    ref={mobileVideoRef}
+                    className="absolute inset-0 w-full h-full object-cover rounded-b-3xl"
+                    src={videoMapping[mobileFocusSound]}
+                    autoPlay
+                    muted
+                    loop
+                    playsInline
+                />
+
+                {/* Glass Overlay */}
+                <div className="absolute inset-0 bg-black/20 backdrop-blur-[1px] rounded-b-3xl" />
+
+                {/* Mobile Header Content */}
+                <div className="relative z-10 px-6 pt-16 pb-8">
+                    {/* Greeting and Date - Centered */}
+                    <div className="text-center mb-6">
+                        <h1 className="text-2xl font-medium text-white mb-1">
                             {getTimeBasedGreeting()}, {getFirstName(user)}
                         </h1>
-                        <p className="text-sm text-muted-foreground mt-0.5">
+                        <p className="text-sm text-white/80">
                             {format(new Date(), 'EEEE, MMMM d')}
                         </p>
                     </div>
 
-                    <div className="flex items-center gap-6">
-                        <div className="text-left">
-                            <div className="text-lg font-medium text-foreground">
+                    {/* Stats Row - Centered */}
+                    <div className="flex items-center justify-center gap-8 mb-6">
+                        <div className="text-center">
+                            <div className="text-lg font-medium text-white">
                                 {isLoadingSummary ? '—' : formatMinutesToHoursMinutes(todayFocusTime)}
                             </div>
-                            <div className="text-xs text-muted-foreground">Focus</div>
+                            <div className="text-xs text-white/70">Focus</div>
                         </div>
-                        <div className="text-left">
-                            <div className="text-lg font-medium text-foreground">
+                        <div className="text-center">
+                            <div className="text-lg font-medium text-white">
                                 {isLoadingSummary ? '—' : (todayWellbeingScore ? `${todayWellbeingScore}` : '—')}
                             </div>
-                            <div className="text-xs text-muted-foreground">Wellbeing</div>
+                            <div className="text-xs text-white/70">Wellbeing</div>
                         </div>
-                        <div className="text-left">
-                            <div className="text-lg font-medium text-foreground">
+                        <div className="text-center">
+                            <div className="text-lg font-medium text-white">
                                 {isLoadingSummary ? '—' : formatMinutesToHoursMinutes(todayDistractionTime)}
                             </div>
-                            <div className="text-xs text-muted-foreground">Distractions</div>
+                            <div className="text-xs text-white/70">Distractions</div>
+                        </div>
+                    </div>
+
+                    {/* Focus Controls - Centered */}
+                    <div className="flex flex-col items-center space-y-4">
+                        {!isRunning ? (
+                            /* Start Focus Button */
+                            <button
+                                onClick={handleMobileFocusStart}
+                                className="mt-20 px-6 py-3 bg-white/10 backdrop-blur-md border border-white/20 rounded-full text-white font-medium text-sm tracking-wide hover:bg-white/20 transition-all duration-200 shadow-lg"
+                            >
+                                Start Focus
+                            </button>
+                        ) : (
+                            /* Running state - Timer and End button */
+                            <>
+                                <div className="px-6 py-4 bg-white/10 backdrop-blur-md border border-white/20 rounded-full">
+                                    <div className="text-white/90 font-mono text-2xl font-medium tracking-wider text-center">
+                                        {formatTime(timeElapsed || 0)}
+                                    </div>
+                                </div>
+                                <button
+                                    onClick={handleMobileFocusEnd}
+                                    className="px-6 py-3 bg-white/10 backdrop-blur-md border border-white/20 rounded-full text-white font-medium text-sm tracking-wide hover:bg-white/20 transition-all duration-200 shadow-lg"
+                                >
+                                    Finish Session
+                                </button>
+                            </>
+                        )}
+
+                        {/* Atmosphere Dropdown - Centered under controls */}
+                        <div className="relative" ref={atmosphereDropdownRef}>
+                            <button
+                                onClick={() => setShowAtmosphereDropdown(!showAtmosphereDropdown)}
+                                className="flex items-center space-x-1 px-2 py-1 bg-white/10 backdrop-blur-md border border-white/20 rounded-full text-white text-xs font-medium hover:bg-white/20 transition-all duration-200 shadow-lg"
+                            >
+                                <span>{mobileFocusSound}</span>
+                                <ChevronDown className={`h-3 w-3 transition-transform duration-200 ${showAtmosphereDropdown ? 'rotate-180' : ''}`} />
+                            </button>
+
+                            {/* Dropdown Menu */}
+                            {showAtmosphereDropdown && (
+                                <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-32 max-h-[150px] overflow-y-auto bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl shadow-lg scrollbar-thin scrollbar-thumb-white/30 scrollbar-track-white/10 hover:scrollbar-thumb-white/50">
+                                    {atmosphereOptions.map((option) => (
+                                        <button
+                                            key={option.value}
+                                            onClick={() => handleAtmosphereChange(option.value)}
+                                            className={`w-full px-3 py-2 text-left text-xs text-white hover:bg-white/20 transition-colors duration-150 ${mobileFocusSound === option.value ? 'bg-white/20' : ''
+                                                }`}
+                                        >
+                                            {option.label}
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>
+            </div>
 
-                {/* Desktop: Horizontal layout */}
-                <div className="hidden lg:flex lg:items-center lg:justify-between">
+            {/* Desktop Header Section - Original Design */}
+            <div className="mb-8 px-4 hidden lg:block">
+                <div className="flex items-center justify-between">
                     <div>
                         <h1 className="text-2xl font-medium text-foreground">
                             {getTimeBasedGreeting()}, {getFirstName(user)}
@@ -302,7 +480,7 @@ const DashboardComponet = ({ user }: DashboardComponetProps) => {
                 isOpen={distDialogOpen}
                 onOpenChange={setDistDialogOpen}
                 onBlockedSitesUpdated={async () => setDistractionsKey(k => k + 1)} blockedSitesCount={0} />
-        </div>
+        </div >
     );
 };
 

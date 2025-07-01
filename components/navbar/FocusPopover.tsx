@@ -139,39 +139,33 @@ export function FocusPopover({ user }: FocusPopoverProps) {
 
     return (
         <div className="relative" ref={popoverRef}>
-            {/* Trigger Button */}
-            {isRunning && !isOpen ? (
-                // Show mini timer with background when session is running and popover is closed
-                <button
-                    onClick={() => setIsOpen(!isOpen)}
-                    className="relative rounded-lg overflow-hidden shadow-sm h-8 w-20 hover:scale-105 transition-transform duration-200 bg-white/10 backdrop-blur-md border border-white/20"
-                >
-                    {/* Mini video background */}
-                    <video
-                        className="absolute inset-0 w-full h-full object-cover"
-                        src={videoMapping[sound]}
-                        autoPlay
-                        muted
-                        loop
-                        playsInline
-                    />
-                    <div className="absolute inset-0 bg-black/50 backdrop-blur-[1px]" />
-                    <div className="absolute inset-0 flex items-center justify-center">
-                        <div className="text-white font-mono text-[11px] font-bold tracking-tight drop-shadow-lg">
-                            {Math.floor(displayTime / 60).toString().padStart(2, '0')}:
-                            {(displayTime % 60).toString().padStart(2, '0')}
+            {/* Trigger Button - Only show when session is running */}
+            {isRunning ? (
+                !isOpen ? (
+                    // Show mini timer with background when session is running and popover is closed
+                    <button
+                        onClick={() => setIsOpen(!isOpen)}
+                        className="relative rounded-lg overflow-hidden shadow-sm h-8 w-20 hover:scale-105 transition-transform duration-200 bg-white/10 backdrop-blur-md border border-white/20"
+                    >
+                        {/* Mini video background */}
+                        <video
+                            className="absolute inset-0 w-full h-full object-cover"
+                            src={videoMapping[sound]}
+                            autoPlay
+                            muted
+                            loop
+                            playsInline
+                        />
+                        <div className="absolute inset-0 bg-black/50 backdrop-blur-[1px]" />
+                        <div className="absolute inset-0 flex items-center justify-center">
+                            <div className="text-white font-mono text-[11px] font-bold tracking-tight drop-shadow-lg">
+                                {Math.floor(displayTime / 60).toString().padStart(2, '0')}:
+                                {(displayTime % 60).toString().padStart(2, '0')}
+                            </div>
                         </div>
-                    </div>
-                </button>
-            ) : (
-                // Default trigger button with glassmorphic design
-                <button
-                    onClick={() => setIsOpen(!isOpen)}
-                    className="px-3 py-2 bg-white/10 dark:bg-white/5 backdrop-blur-md border border-white/20 dark:border-white/10 rounded-lg text-gray-700 dark:text-white font-medium text-xs tracking-wide hover:bg-white/20 dark:hover:bg-white/10 transition-all duration-200 shadow-lg"
-                >
-                    Focus
-                </button>
-            )}
+                    </button>
+                ) : null
+            ) : null}
 
             {/* Popover Content */}
             {isOpen && (
@@ -225,13 +219,12 @@ export function FocusPopover({ user }: FocusPopoverProps) {
                         {/* Center Content */}
                         <div className="absolute inset-0 flex flex-col items-center justify-center space-y-3">
                             {!isRunning ? (
-                                /* Start Focus Button - Center when not running */
-                                <button
-                                    onClick={handleStartFocus}
-                                    className="px-5 py-2.5 bg-white/10 backdrop-blur-md border border-white/20 rounded-lg text-white font-medium text-sm tracking-wide hover:bg-white/20 transition-all duration-200 shadow-lg"
-                                >
-                                    Start Focus
-                                </button>
+                                /* No session message when not running */
+                                <div className="px-5 py-3 bg-white/10 backdrop-blur-md border border-white/20 rounded-lg">
+                                    <div className="text-white/90 text-sm font-medium text-center">
+                                        No active session
+                                    </div>
+                                </div>
                             ) : (
                                 /* Running state - Time in center, button at bottom */
                                 <>

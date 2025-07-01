@@ -26,7 +26,7 @@ interface InnerLayoutProps {
 // Create an internal layout component that can safely use the timer hooks
 function InnerLayout({ children, user, userDetails, isMobile }: InnerLayoutProps) {
   const { showFullScreenTimer } = useTimerUI();
-  const { sound, isRunning, flowMode, timeElapsed, timeRemaining } = useTimer();
+  const { sound, isRunning, flowMode, timeElapsed, timeRemaining, endSession } = useTimer();
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(isMobile);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
 
@@ -60,19 +60,25 @@ function InnerLayout({ children, user, userDetails, isMobile }: InnerLayoutProps
           userDetails={userDetails}
           onToggleSidebar={toggleSidebar}
           isSidebarCollapsed={isSidebarCollapsed}
+          isMobile={isMobile}
+          isRunning={isRunning}
+          timeElapsed={timeElapsed}
+          onEndSession={endSession}
         />
 
         {/* Main content area with sidebar */}
-        <div className="flex flex-1 pt-16 overflow-hidden">
-          {/* Sidebar - Desktop and Mobile */}
-          <Sidebar
-            user={user}
-            userDetails={userDetails}
-            isCollapsed={isSidebarCollapsed}
-            isMobile={isMobile}
-            isOpen={isMobileSidebarOpen}
-            onClose={closeMobileSidebar}
-          />
+        <div className={`flex flex-1 overflow-hidden ${isMobile ? 'pt-0' : 'pt-12'}`}>
+          {/* Sidebar - Desktop only */}
+          {!isMobile && (
+            <Sidebar
+              user={user}
+              userDetails={userDetails}
+              isCollapsed={isSidebarCollapsed}
+              isMobile={isMobile}
+              isOpen={isMobileSidebarOpen}
+              onClose={closeMobileSidebar}
+            />
+          )}
 
           {/* Main content - scrollable */}
           <div

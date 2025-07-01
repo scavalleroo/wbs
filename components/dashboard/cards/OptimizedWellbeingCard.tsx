@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { HeartPulse, ArrowLeft, Check } from 'lucide-react';
+import { HeartPulse, ArrowLeft, Check, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
@@ -10,9 +10,9 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { AnimatePresence, motion } from 'framer-motion';
 import { User } from '@supabase/supabase-js';
-import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceLine, BarChart, Bar, CartesianGrid, LabelList, Cell } from 'recharts';
 import useMood from '@/hooks/use-mood';
-import { format, subDays, eachDayOfInterval, isSameDay, addDays } from 'date-fns';
+import { format, subDays, eachDayOfInterval, isSameDay, addDays, isToday, parseISO } from 'date-fns';
 import '@/components/notes/editor/realtime-editor.css';
 
 export interface WellnessChartDataPoint {
@@ -25,6 +25,7 @@ export interface WellnessChartDataPoint {
     exercise_rating: number | null;
     social_rating: number | null;
     description: string | null;
+    barColor: string;
 }
 
 interface MoodEntry {
@@ -96,6 +97,14 @@ export function OptimizedWellbeingCard({ user, isMobile = false }: OptimizedWell
     const [showNotes, setShowNotes] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [showQuestionnaire, setShowQuestionnaire] = useState(false);
+    const [showConfirmation, setShowConfirmation] = useState(false);
+    const [submittedScore, setSubmittedScore] = useState<number | null>(null);
+    const [submittedData, setSubmittedData] = useState<{
+        ratings: WellnessRatings;
+        description: string;
+        score: number;
+        date: string;
+    } | null>(null);
 
     useEffect(() => {
         const loadWellbeingData = async () => {
@@ -131,6 +140,7 @@ export function OptimizedWellbeingCard({ user, isMobile = false }: OptimizedWell
                             exercise_rating: dayEntry.exercise_rating,
                             social_rating: dayEntry.social_rating,
                             description: dayEntry.description,
+                            barColor: dayEntry.description && dayEntry.description.trim() !== '' ? '#A855F7' : '#3B82F6'
                         };
                     }
                     return {
@@ -142,7 +152,8 @@ export function OptimizedWellbeingCard({ user, isMobile = false }: OptimizedWell
                         nutrition_rating: null,
                         exercise_rating: null,
                         social_rating: null,
-                        description: null
+                        description: null,
+                        barColor: '#3B82F6'
                     };
                 });
                 setWellnessChartData(chartDataPoints);
@@ -159,7 +170,8 @@ export function OptimizedWellbeingCard({ user, isMobile = false }: OptimizedWell
                     nutrition_rating: null,
                     exercise_rating: null,
                     social_rating: null,
-                    description: null
+                    description: null,
+                    barColor: '#3B82F6'
                 })));
             }
             setIsLoading(false);
@@ -215,10 +227,92 @@ export function OptimizedWellbeingCard({ user, isMobile = false }: OptimizedWell
         if (!user) return;
         setIsSubmitting(true);
         try {
-            await submitWellness(ratings, description, new Date());
+            const submissionDate = new Date();
+            await submitWellness(ratings, description, submissionDate);
+
+            // Calculate wellness score for confirmation using the same method as the chart
+            const calculatedScore = calculateDailyWellnessScore({
+                tracked_date: submissionDate.toISOString(),
+                ...ratings,
+                description
+            } as MoodEntry);
+
+            // Store submission data for confirmation
+            setSubmittedData({
+                ratings,
+                description,
+                score: calculatedScore || 0,
+                date: format(submissionDate, 'MMM d, yyyy')
+            });
+
+            // Show confirmation UI
+            setShowConfirmation(true);
+            setSubmittedScore(calculatedScore || 0);
+
+            // Auto-hide confirmation after 5 seconds
+            setTimeout(() => {
+                setShowConfirmation(false);
+                setSubmittedData(null);
+                setSubmittedScore(null);
+            }, 5000);
+
+            // Reset form and hide questionnaire
             resetFormState();
             setShowQuestionnaire(false);
-            setHasRecentMoodData(true); // Update to avoid full reload
+            setHasRecentMoodData(true);
+
+            // Add a small delay to ensure backend processing is complete before refreshing
+            setTimeout(async () => {
+                // Refresh chart data by reloading
+                const currentPeriod = CHART_PERIODS[chartPeriod];
+                const chartEndDate = new Date();
+                const chartStartDate = subDays(chartEndDate, currentPeriod.days - 1);
+                const moodHistory: MoodEntry[] = await getMoodHistory(subDays(chartStartDate, 1).toISOString(), addDays(chartEndDate, 1).toISOString());
+
+                if (moodHistory && moodHistory.length > 0) {
+                    const sortedHistory = [...moodHistory].sort((a, b) => new Date(b.tracked_date).getTime() - new Date(a.tracked_date).getTime());
+
+                    // Update today's wellness score with the calculated score
+                    const todayEntry = sortedHistory.find(entry => isSameDay(new Date(entry.tracked_date), new Date()));
+                    if (todayEntry) {
+                        const calculatedScore = calculateDailyWellnessScore(todayEntry);
+                        setWellnessScore(calculatedScore);
+                        setHasRecentMoodData(true);
+                    }
+
+                    const dateRangeForChart = eachDayOfInterval({ start: chartStartDate, end: chartEndDate });
+                    const chartDataPoints: WellnessChartDataPoint[] = dateRangeForChart.map(dateInInterval => {
+                        const dayEntry = sortedHistory.find(entry => isSameDay(new Date(entry.tracked_date), dateInInterval));
+                        if (dayEntry) {
+                            return {
+                                date: format(dateInInterval, 'E'),
+                                fullDate: format(dateInInterval, 'yyyy-MM-dd'),
+                                score: calculateDailyWellnessScore(dayEntry),
+                                mood_rating: dayEntry.mood_rating,
+                                sleep_rating: dayEntry.sleep_rating,
+                                nutrition_rating: dayEntry.nutrition_rating,
+                                exercise_rating: dayEntry.exercise_rating,
+                                social_rating: dayEntry.social_rating,
+                                description: dayEntry.description,
+                                barColor: dayEntry.description && dayEntry.description.trim() !== '' ? '#A855F7' : '#3B82F6'
+                            };
+                        }
+                        return {
+                            date: format(dateInInterval, 'E'),
+                            fullDate: format(dateInInterval, 'yyyy-MM-dd'),
+                            score: null,
+                            mood_rating: null,
+                            sleep_rating: null,
+                            nutrition_rating: null,
+                            exercise_rating: null,
+                            social_rating: null,
+                            description: null,
+                            barColor: '#3B82F6'
+                        };
+                    });
+                    setWellnessChartData(chartDataPoints);
+                }
+            }, 500); // 500ms delay to ensure backend processing
         } catch (error) {
             console.error('Error submitting inline wellness data:', error);
         } finally {
@@ -263,7 +357,7 @@ export function OptimizedWellbeingCard({ user, isMobile = false }: OptimizedWell
         return '😔';
     };
 
-    const chartMargins = isMobile ? { top: 5, right: 10, left: -35, bottom: 15 } : { top: 10, right: 15, left: -20, bottom: 20 };
+    const chartMargins = isMobile ? { top: 25, right: 10, left: -35, bottom: 15 } : { top: 35, right: 15, left: -20, bottom: 20 };
 
     if (isLoading) {
         return (
@@ -289,8 +383,8 @@ export function OptimizedWellbeingCard({ user, isMobile = false }: OptimizedWell
                                 <h2 className="font-bold text-lg">Daily Wellness Check</h2>
                             </div>
                             {hasRecentMoodData && (
-                                <Button variant="ghost" size="icon" onClick={() => setShowQuestionnaire(false)} className="text-white/70 hover:text-white bg-white/10 backdrop-blur-md border border-white/20 hover:bg-white/30 transition-all duration-200 h-6 w-6 ml-2 rounded-lg">
-                                    <ArrowLeft className="h-4 w-4" />
+                                <Button variant="ghost" onClick={() => setShowQuestionnaire(false)} className="text-white/70 hover:text-white bg-white/10 backdrop-blur-md border border-white/20 hover:bg-white/30 transition-all duration-200 px-2 py-1 text-xs ml-2 rounded-lg">
+                                    Cancel
                                 </Button>
                             )}
                         </div>
@@ -305,8 +399,8 @@ export function OptimizedWellbeingCard({ user, isMobile = false }: OptimizedWell
                                     </motion.div>
                                 ) : (
                                     <motion.div key="notes" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }} className="flex flex-col justify-center">
-                                        <Label htmlFor="mood-description" className="mb-2 text-sm font-medium">Additional notes? (optional)</Label>
-                                        <Textarea id="mood-description" placeholder="Share anything else about your day..." value={description} onChange={(e) => setDescription(e.target.value)} rows={2} className="bg-white/10 backdrop-blur-md border border-white/20 placeholder-white/50 text-white resize-none rounded-lg" />
+                                        {/* <Label htmlFor="mood-description" className="mb-2 text-sm font-medium">Additional notes? (optional)</Label> */}
+                                        <Textarea id="mood-description" placeholder="Share anything else about your day..." value={description} onChange={(e) => setDescription(e.target.value)} rows={4} className="bg-white/10 backdrop-blur-md border border-white/20 placeholder:text-white text-white resize-none rounded-lg pb-4" />
                                     </motion.div>
                                 )}
                             </AnimatePresence>
@@ -315,11 +409,15 @@ export function OptimizedWellbeingCard({ user, isMobile = false }: OptimizedWell
                         {/* Footer controls - compact */}
                         <div className="pt-2">
                             <div className="flex justify-between items-center mb-2">
-                                {(currentStep > 0 || showNotes) && (<Button variant="ghost" onClick={handleBack} className="text-white/80 hover:text-white bg-white/10 backdrop-blur-md border border-white/20 hover:bg-white/30 transition-all duration-200 px-2 py-1 text-xs rounded-lg" size="sm"><ArrowLeft className="mr-1 h-3 w-3" /> Back</Button>)}
+                                {(currentStep > 0 || showNotes) && (<Button variant="ghost" onClick={handleBack} className="text-white/80 hover:text-white bg-white/10 backdrop-blur-md border border-white/20 hover:bg-white/30 transition-all duration-200 px-1.5 py-0.5 text-xs rounded-md" size="sm"><ArrowLeft className="mr-1 h-2.5 w-2.5" /> Back</Button>)}
                                 <div className="flex-grow"></div>
-                                {!showNotes && currentStep < wellnessQuestionSteps.length - 1 && (<Button variant="ghost" onClick={handleSkipStep} className="text-white/80 hover:text-white bg-white/10 backdrop-blur-md border border-white/20 hover:bg-white/30 transition-all duration-200 px-2 py-1 text-xs rounded-lg" size="sm">Skip</Button>)}
+                                {!showNotes && currentStep < wellnessQuestionSteps.length && (<Button variant="ghost" onClick={handleSkipStep} className="text-white/80 hover:text-white bg-white/10 backdrop-blur-md border border-white/20 hover:bg-white/30 transition-all duration-200 px-1.5 py-0.5 text-xs rounded-md" size="sm">Skip <ArrowRight className="ml-1 h-2.5 w-2.5" /></Button>)}
+                                {showNotes && (
+                                    <Button onClick={handleInlineWellnessSubmit} disabled={isSubmitting} className="bg-white/10 backdrop-blur-md border border-white/20 hover:bg-white/30 transition-all duration-200 text-white px-3 py-1.5 text-xs rounded-lg">
+                                        {isSubmitting ? 'Calculating...' : 'Calculate Today\'s Score'}
+                                    </Button>
+                                )}
                             </div>
-                            {showNotes && (<Button onClick={handleInlineWellnessSubmit} disabled={isSubmitting} className="w-full bg-white/10 backdrop-blur-md border border-white/20 hover:bg-white/30 transition-all duration-200 text-white font-semibold h-8 rounded-lg" size="sm">{isSubmitting ? 'Submitting...' : (hasRecentMoodData ? 'Update Wellness' : 'Submit Wellness')} <Check className="ml-1 h-3 w-3" /></Button>)}
                             <div className="flex justify-center space-x-1.5 mt-2">
                                 {wellnessQuestionSteps.map((_, idx) => (<div key={idx} className={cn("h-1.5 rounded-full transition-all duration-300", idx === currentStep && !showNotes ? 'w-4 bg-white' : 'w-1.5 bg-white/50')} />))}
                                 <div className={cn("h-1.5 rounded-full transition-all duration-300", showNotes ? 'w-4 bg-white' : 'w-1.5 bg-white/50')} />
@@ -339,8 +437,8 @@ export function OptimizedWellbeingCard({ user, isMobile = false }: OptimizedWell
                                 <h2 className="font-bold text-xl">Daily Wellness Check</h2>
                             </div>
                             {hasRecentMoodData && (
-                                <Button variant="ghost" size="icon" onClick={() => setShowQuestionnaire(false)} className="text-white/70 hover:text-white bg-white/10 backdrop-blur-md border border-white/20 hover:bg-white/30 transition-all duration-200 h-7 w-7 ml-3 rounded-lg">
-                                    <ArrowLeft className="h-4 w-4" />
+                                <Button variant="ghost" onClick={() => setShowQuestionnaire(false)} className="text-white/70 hover:text-white bg-white/10 backdrop-blur-md border border-white/20 hover:bg-white/30 transition-all duration-200 px-3 py-1.5 text-sm ml-3 rounded-lg">
+                                    Cancel
                                 </Button>
                             )}
                         </div>
@@ -355,8 +453,8 @@ export function OptimizedWellbeingCard({ user, isMobile = false }: OptimizedWell
                                     </motion.div>
                                 ) : (
                                     <motion.div key="notes" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }} className="flex flex-col justify-center">
-                                        <Label htmlFor="mood-description" className="mb-2 text-sm font-medium">Additional notes? (optional)</Label>
-                                        <Textarea id="mood-description" placeholder="Share anything else about your day..." value={description} onChange={(e) => setDescription(e.target.value)} rows={3} className="bg-white/10 backdrop-blur-md border border-white/20 placeholder-white/50 text-white resize-none rounded-lg" />
+                                        {/* <Label htmlFor="mood-description" className="mb-2 text-sm font-medium">Additional notes? (optional)</Label> */}
+                                        <Textarea id="mood-description" placeholder="Share anything else about your day..." value={description} onChange={(e) => setDescription(e.target.value)} rows={5} className="bg-white/10 backdrop-blur-md border border-white/20 placeholder:text-white text-white resize-none rounded-lg pb-4" />
                                     </motion.div>
                                 )}
                             </AnimatePresence>
@@ -365,11 +463,15 @@ export function OptimizedWellbeingCard({ user, isMobile = false }: OptimizedWell
                         {/* Footer controls - optimized spacing */}
                         <div className="pt-3">
                             <div className="flex justify-between items-center mb-2">
-                                {(currentStep > 0 || showNotes) && (<Button variant="ghost" onClick={handleBack} className="text-white/80 hover:text-white bg-white/10 backdrop-blur-md border border-white/20 hover:bg-white/30 transition-all duration-200 px-3 py-1.5 text-sm rounded-lg"><ArrowLeft className="mr-1 h-4 w-4" /> Back</Button>)}
+                                {(currentStep > 0 || showNotes) && (<Button variant="ghost" onClick={handleBack} className="text-white/80 hover:text-white bg-white/10 backdrop-blur-md border border-white/20 hover:bg-white/30 transition-all duration-200 px-2 py-1 text-xs rounded-md"><ArrowLeft className="mr-1 h-3 w-3" /> Back</Button>)}
                                 <div className="flex-grow"></div>
-                                {!showNotes && currentStep < wellnessQuestionSteps.length - 1 && (<Button variant="ghost" onClick={handleSkipStep} className="text-white/80 hover:text-white bg-white/10 backdrop-blur-md border border-white/20 hover:bg-white/30 transition-all duration-200 px-3 py-1.5 text-sm rounded-lg">Skip</Button>)}
+                                {!showNotes && currentStep < wellnessQuestionSteps.length && (<Button variant="ghost" onClick={handleSkipStep} className="text-white/80 hover:text-white bg-white/10 backdrop-blur-md border border-white/20 hover:bg-white/30 transition-all duration-200 px-2 py-1 text-xs rounded-md">Skip <ArrowRight className="ml-1 h-3 w-3" /></Button>)}
+                                {showNotes && (
+                                    <Button onClick={handleInlineWellnessSubmit} disabled={isSubmitting} className="bg-white/10 backdrop-blur-md border border-white/20 hover:bg-white/30 transition-all duration-200 text-white px-4 py-2 text-xs rounded-lg">
+                                        {isSubmitting ? 'Calculating...' : 'Calculate Today\'s Score'}
+                                    </Button>
+                                )}
                             </div>
-                            {showNotes && (<Button onClick={handleInlineWellnessSubmit} disabled={isSubmitting} className="w-full bg-white/10 backdrop-blur-md border border-white/20 hover:bg-white/30 transition-all duration-200 text-white font-semibold h-9 rounded-lg">{isSubmitting ? 'Submitting...' : (hasRecentMoodData ? 'Update Wellness' : 'Submit Wellness')} <Check className="ml-2 h-4 w-4" /></Button>)}
                             <div className="flex justify-center space-x-1.5 mt-3">
                                 {wellnessQuestionSteps.map((_, idx) => (<div key={idx} className={cn("h-2 rounded-full transition-all duration-300", idx === currentStep && !showNotes ? 'w-5 bg-white' : 'w-2 bg-white/50')} />))}
                                 <div className={cn("h-2 rounded-full transition-all duration-300", showNotes ? 'w-5 bg-white' : 'w-2 bg-white/50')} />
@@ -392,16 +494,21 @@ export function OptimizedWellbeingCard({ user, isMobile = false }: OptimizedWell
             if (data.score === null) return null;
 
             const hasNote = data.description && data.description.trim() !== '';
+            const formattedDate = new Date(data.fullDate).toLocaleDateString('en-US', {
+                month: 'short',
+                day: '2-digit',
+                year: 'numeric'
+            });
 
             return (
-                <div className="bg-white/10 backdrop-blur-md text-white px-3 py-2 rounded-lg shadow-lg text-sm border border-white/20">
-                    <div className="flex items-center gap-2">
-                        <span className="font-medium">Score: {data.score}</span>
-                        {hasNote && (
-                            <span role="img" aria-label="has note" className="text-yellow-300">💭</span>
-                        )}
+                <div className="bg-white/95 dark:bg-white/10 backdrop-blur-md text-gray-900 dark:text-white px-3 py-2 rounded-lg shadow-lg text-sm border border-gray-200 dark:border-white/20">
+                    <div className="text-center">
+                        <div className="text-xs text-gray-600 dark:text-white/80 mb-1">{formattedDate}</div>
+                        <div className="flex items-center gap-2 justify-center">
+                            <span className="font-medium">Score: {data.score}</span>
+                        </div>
                     </div>
-                    <div className="text-xs text-white/80 mt-1">Click to see more</div>
+                    <div className="text-xs text-gray-600 dark:text-white/80 mt-1 text-center">Click to see more</div>
                 </div>
             );
         }
@@ -546,10 +653,10 @@ export function OptimizedWellbeingCard({ user, isMobile = false }: OptimizedWell
                                     <h2 className="font-bold text-lg">
                                         Wellbeing Score
                                     </h2>
-                                    {wellnessScore !== null && (
+                                    {(wellnessScore !== null || hasRecentMoodData) && (
                                         <div className="flex items-center gap-2 mt-1">
                                             <p className="text-sm text-white/90">
-                                                {wellnessScore} today {getWellnessEmoji(wellnessScore)}
+                                                {wellnessScore !== null ? `${wellnessScore} today ${getWellnessEmoji(wellnessScore)}` : 'Complete your wellness check'}
                                             </p>                        <button
                                                 onClick={() => setShowQuestionnaire(true)}
                                                 className="text-xs text-white/80 hover:text-white bg-white/10 backdrop-blur-md border border-white/20 hover:bg-white/30 px-1.5 py-0.5 rounded-md transition-all duration-200 ml-2"
@@ -581,43 +688,64 @@ export function OptimizedWellbeingCard({ user, isMobile = false }: OptimizedWell
 
                     {/* Chart area with neutral background */}
                     <div className="p-4 pt-3">
+                        {/* Legend */}
+                        <div className="flex justify-center gap-4 mb-3">
+                            <div className="flex items-center gap-1.5">
+                                <div className="w-3 h-3 rounded-sm bg-blue-500"></div>
+                                <span className="text-xs text-gray-600 dark:text-gray-400">Standard</span>
+                            </div>
+                            <div className="flex items-center gap-1.5">
+                                <div className="w-3 h-3 rounded-sm bg-purple-500"></div>
+                                <span className="text-xs text-gray-600 dark:text-gray-400">With notes</span>
+                            </div>
+                        </div>
+
                         <div className="wellbeing-chart-container h-48 relative">
                             {(wellnessChartData && wellnessChartData.length > 0) ? (
                                 <ResponsiveContainer width="100%" height="100%">
-                                    <LineChart data={wellnessChartData} margin={chartMargins} onClick={handleChartClick} style={{ cursor: 'pointer' }}>
-                                        <XAxis dataKey="date" stroke="currentColor" fontSize={12} tickLine={false} axisLine={true} />
-                                        <YAxis stroke="currentColor" fontSize={12} domain={[0, 100]} tickLine={false} axisLine={false} />
+                                    <BarChart data={wellnessChartData} margin={chartMargins} onClick={handleChartClick} style={{ cursor: 'pointer' }}>
+                                        <CartesianGrid vertical={false} stroke="rgba(156, 163, 175, 0.3)" />
+                                        <XAxis
+                                            dataKey="date"
+                                            stroke="currentColor"
+                                            fontSize={12}
+                                            tickLine={false}
+                                            axisLine={false}
+                                            tickMargin={10}
+                                        />
+                                        <YAxis
+                                            stroke="currentColor"
+                                            fontSize={12}
+                                            domain={[0, 100]}
+                                            tickLine={false}
+                                            axisLine={false}
+                                            tick={false}
+                                        />
                                         <Tooltip
                                             content={<SimpleTooltip />}
-                                            cursor={{ stroke: 'rgba(59, 130, 246, 0.5)', strokeWidth: 1 }}
+                                            cursor={false}
                                             wrapperStyle={{ outline: 'none', zIndex: 1000 }}
-                                            allowEscapeViewBox={{ x: false, y: false }}
-                                            position={{ x: undefined, y: undefined }}
                                         />
-                                        <Line
-                                            type="monotone"
+                                        <Bar
                                             dataKey="score"
-                                            stroke="#3B82F6"
-                                            strokeWidth={2}
-                                            dot={(props: any) => {
-                                                const { cx, cy, payload } = props;
-                                                const hasNote = payload?.description && payload.description.trim() !== '';
-                                                return (
-                                                    <circle
-                                                        cx={cx}
-                                                        cy={cy}
-                                                        r={3}
-                                                        fill={hasNote ? "#FFD700" : "#3B82F6"}
-                                                        stroke={hasNote ? "#FFA500" : "#3B82F6"}
-                                                        strokeWidth={1}
-                                                    />
-                                                );
-                                            }}
-                                            activeDot={{ r: 5, fill: "#3B82F6", stroke: "#3B82F6", strokeWidth: 2 }}
-                                            connectNulls={false}
-                                        />
+                                            radius={4}
+                                            fill="#3B82F6"
+                                        >
+                                            {wellnessChartData.map((entry, index) => (
+                                                <Cell key={`cell-${index}`} fill={entry.barColor} />
+                                            ))}
+                                            {chartPeriod === 'week' && (
+                                                <LabelList
+                                                    position="top"
+                                                    offset={8}
+                                                    className="fill-current text-gray-600 dark:text-gray-400"
+                                                    fontSize={10}
+                                                    formatter={(value: any) => value ? Math.round(value) : ''}
+                                                />
+                                            )}
+                                        </Bar>
                                         <ReferenceLine y={50} stroke="rgba(59, 130, 246, 0.3)" strokeDasharray="3 3" />
-                                    </LineChart>
+                                    </BarChart>
                                 </ResponsiveContainer>
                             ) : (
                                 <div className="flex items-center justify-center h-full text-center">
@@ -645,6 +773,131 @@ export function OptimizedWellbeingCard({ user, isMobile = false }: OptimizedWell
 
     return (
         <>
+            {/* Confirmation UI - Matching the tooltip modal style */}
+            {showConfirmation && submittedData && (
+                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50" onClick={() => {
+                    setShowConfirmation(false);
+                    setSubmittedData(null);
+                    setSubmittedScore(null);
+                }}>
+                    <div
+                        className="bg-white/10 backdrop-blur-md text-white p-6 rounded-xl shadow-2xl border border-white/20 text-left max-w-sm w-full mx-4 relative"
+                        onClick={(e) => e.stopPropagation()}
+                        role="dialog"
+                        aria-modal="true"
+                        aria-labelledby="confirmation-title"
+                    >
+                        {/* Close Button */}
+                        <button
+                            onClick={() => {
+                                setShowConfirmation(false);
+                                setSubmittedData(null);
+                                setSubmittedScore(null);
+                            }}
+                            className="absolute top-4 right-4 text-white/70 hover:text-white bg-white/10 backdrop-blur-md border border-white/20 hover:bg-white/20 transition-all duration-200 w-8 h-8 rounded-lg flex items-center justify-center"
+                            aria-label="Close"
+                        >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+
+                        {/* Success indicator */}
+                        <div className="text-center mb-4 pb-4 border-b border-white/20">
+                            <div className="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-3">
+                                <Check className="h-6 w-6 text-white" />
+                            </div>
+                            <div className="text-sm text-white/70 uppercase tracking-wider mb-2">Wellness Submitted</div>
+                        </div>
+
+                        {/* Overall Score - Most Prominent */}
+                        <div className="text-center mb-4 pb-4 border-b border-white/20">
+                            <div className="text-3xl font-bold mb-2" style={{ color: '#ffffff' }}>
+                                {submittedData.score}
+                            </div>
+                            <div id="confirmation-title" className="text-sm text-white/70 uppercase tracking-wider">Overall Score</div>
+                        </div>
+
+                        {/* Date */}
+                        <div className="text-center mb-4 pb-3 border-b border-white/20">
+                            <div className="text-base font-medium text-white/90">{submittedData.date}</div>
+                        </div>
+
+                        {/* Individual Ratings with Emojis - Standardized spacing */}
+                        <div className="space-y-3 mb-4">
+                            {submittedData.ratings.mood_rating !== null && (
+                                <div className="flex items-center justify-between">
+                                    <span className="flex items-center gap-3">
+                                        <span role="img" aria-label="mood" className="text-lg">😊</span>
+                                        <span className="text-sm text-white/80">Mood</span>
+                                    </span>
+                                    <span className="text-base font-medium text-white" aria-label={`Mood rating: ${submittedData.ratings.mood_rating} out of 5 stars`}>
+                                        {'★'.repeat(submittedData.ratings.mood_rating) + '☆'.repeat(5 - submittedData.ratings.mood_rating)}
+                                    </span>
+                                </div>
+                            )}
+                            {submittedData.ratings.sleep_rating !== null && (
+                                <div className="flex items-center justify-between">
+                                    <span className="flex items-center gap-3">
+                                        <span role="img" aria-label="sleep" className="text-lg">🌙</span>
+                                        <span className="text-sm text-white/80">Sleep</span>
+                                    </span>
+                                    <span className="text-base font-medium text-white" aria-label={`Sleep rating: ${submittedData.ratings.sleep_rating} out of 5 stars`}>
+                                        {'★'.repeat(submittedData.ratings.sleep_rating) + '☆'.repeat(5 - submittedData.ratings.sleep_rating)}
+                                    </span>
+                                </div>
+                            )}
+                            {submittedData.ratings.nutrition_rating !== null && (
+                                <div className="flex items-center justify-between">
+                                    <span className="flex items-center gap-3">
+                                        <span role="img" aria-label="nutrition" className="text-lg">🍎</span>
+                                        <span className="text-sm text-white/80">Nutrition</span>
+                                    </span>
+                                    <span className="text-base font-medium text-white" aria-label={`Nutrition rating: ${submittedData.ratings.nutrition_rating} out of 5 stars`}>
+                                        {'★'.repeat(submittedData.ratings.nutrition_rating) + '☆'.repeat(5 - submittedData.ratings.nutrition_rating)}
+                                    </span>
+                                </div>
+                            )}
+                            {submittedData.ratings.exercise_rating !== null && (
+                                <div className="flex items-center justify-between">
+                                    <span className="flex items-center gap-3">
+                                        <span role="img" aria-label="exercise" className="text-lg">🏃</span>
+                                        <span className="text-sm text-white/80">Exercise</span>
+                                    </span>
+                                    <span className="text-base font-medium text-white" aria-label={`Exercise rating: ${submittedData.ratings.exercise_rating} out of 5 stars`}>
+                                        {'★'.repeat(submittedData.ratings.exercise_rating) + '☆'.repeat(5 - submittedData.ratings.exercise_rating)}
+                                    </span>
+                                </div>
+                            )}
+                            {submittedData.ratings.social_rating !== null && (
+                                <div className="flex items-center justify-between">
+                                    <span className="flex items-center gap-3">
+                                        <span role="img" aria-label="social" className="text-lg">💬</span>
+                                        <span className="text-sm text-white/80">Social</span>
+                                    </span>
+                                    <span className="text-base font-medium text-white" aria-label={`Social rating: ${submittedData.ratings.social_rating} out of 5 stars`}>
+                                        {'★'.repeat(submittedData.ratings.social_rating) + '☆'.repeat(5 - submittedData.ratings.social_rating)}
+                                    </span>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Comments Section */}
+                        {submittedData.description && (
+                            <div className="pt-3 border-t border-white/20">
+                                <div className="flex items-start gap-3 mb-3">
+                                    <span role="img" aria-label="comments" className="text-lg">💭</span>
+                                    <span className="text-sm text-white/70 uppercase tracking-wider">Notes</span>
+                                </div>
+                                <p className="text-sm text-white/90 italic leading-relaxed" role="note">
+                                    "{submittedData.description}"
+                                </p>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            )}
+
             <div className="wellbeing-card-container rounded-2xl bg-neutral-100 dark:bg-neutral-800 shadow-xl text-gray-900 dark:text-white relative overflow-hidden border border-gray-200 dark:border-gray-700">
                 {/* Header with gradient background */}
                 <div className="text-white p-4 pb-2 relative overflow-hidden header-gradient">
@@ -656,10 +909,10 @@ export function OptimizedWellbeingCard({ user, isMobile = false }: OptimizedWell
                                 <h2 className="font-bold text-xl">
                                     Wellbeing Score
                                 </h2>
-                                {wellnessScore !== null && (
+                                {(wellnessScore !== null || hasRecentMoodData) && (
                                     <div className="flex items-center gap-3 mt-2">
                                         <p className="text-base text-white/90">
-                                            {wellnessScore} today {getWellnessEmoji(wellnessScore)}
+                                            {wellnessScore !== null ? `${wellnessScore} today ${getWellnessEmoji(wellnessScore)}` : 'Complete your wellness check'}
                                         </p>
                                         <button
                                             onClick={() => setShowQuestionnaire(true)}
@@ -692,43 +945,64 @@ export function OptimizedWellbeingCard({ user, isMobile = false }: OptimizedWell
 
                 {/* Chart area with neutral background */}
                 <div className="p-6 pt-4">
+                    {/* Legend */}
+                    <div className="flex justify-center gap-4 mb-3">
+                        <div className="flex items-center gap-1.5">
+                            <div className="w-3 h-3 rounded-sm bg-blue-500"></div>
+                            <span className="text-xs text-gray-600 dark:text-gray-400">Standard</span>
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                            <div className="w-3 h-3 rounded-sm bg-purple-500"></div>
+                            <span className="text-xs text-gray-600 dark:text-gray-400">With notes</span>
+                        </div>
+                    </div>
+
                     <div className="wellbeing-chart-container h-56 relative">
                         {(wellnessChartData && wellnessChartData.length > 0) ? (
                             <ResponsiveContainer width="100%" height="100%">
-                                <LineChart data={wellnessChartData} margin={chartMargins} onClick={handleChartClick} style={{ cursor: 'pointer' }}>
-                                    <XAxis dataKey="date" stroke="currentColor" fontSize={14} tickLine={false} axisLine={true} />
-                                    <YAxis stroke="currentColor" fontSize={14} domain={[0, 100]} tickLine={false} axisLine={false} />
+                                <BarChart data={wellnessChartData} margin={chartMargins} onClick={handleChartClick} style={{ cursor: 'pointer' }}>
+                                    <CartesianGrid vertical={false} stroke="rgba(156, 163, 175, 0.3)" />
+                                    <XAxis
+                                        dataKey="date"
+                                        stroke="currentColor"
+                                        fontSize={14}
+                                        tickLine={false}
+                                        axisLine={false}
+                                        tickMargin={10}
+                                    />
+                                    <YAxis
+                                        stroke="currentColor"
+                                        fontSize={14}
+                                        domain={[0, 100]}
+                                        tickLine={false}
+                                        axisLine={false}
+                                        tick={false}
+                                    />
                                     <Tooltip
                                         content={<SimpleTooltip />}
-                                        cursor={{ stroke: 'rgba(59, 130, 246, 0.5)', strokeWidth: 1 }}
+                                        cursor={false}
                                         wrapperStyle={{ outline: 'none', zIndex: 1000 }}
-                                        allowEscapeViewBox={{ x: false, y: false }}
-                                        position={{ x: undefined, y: undefined }}
                                     />
-                                    <Line
-                                        type="monotone"
+                                    <Bar
                                         dataKey="score"
-                                        stroke="#3B82F6"
-                                        strokeWidth={3}
-                                        dot={(props: any) => {
-                                            const { cx, cy, payload } = props;
-                                            const hasNote = payload?.description && payload.description.trim() !== '';
-                                            return (
-                                                <circle
-                                                    cx={cx}
-                                                    cy={cy}
-                                                    r={4}
-                                                    fill={hasNote ? "#FFD700" : "#3B82F6"}
-                                                    stroke={hasNote ? "#FFA500" : "#3B82F6"}
-                                                    strokeWidth={1}
-                                                />
-                                            );
-                                        }}
-                                        activeDot={{ r: 7, fill: "#3B82F6", stroke: "#3B82F6", strokeWidth: 2 }}
-                                        connectNulls={false}
-                                    />
+                                        fill="#3B82F6"
+                                        radius={6}
+                                    >
+                                        {wellnessChartData.map((entry, index) => (
+                                            <Cell key={`cell-${index}`} fill={entry.barColor} />
+                                        ))}
+                                        {chartPeriod === 'week' && (
+                                            <LabelList
+                                                position="top"
+                                                offset={12}
+                                                className="fill-current text-gray-600 dark:text-gray-400"
+                                                fontSize={12}
+                                                formatter={(value: any) => value ? Math.round(value) : ''}
+                                            />
+                                        )}
+                                    </Bar>
                                     <ReferenceLine y={50} stroke="rgba(59, 130, 246, 0.3)" strokeDasharray="3 3" />
-                                </LineChart>
+                                </BarChart>
                             </ResponsiveContainer>
                         ) : (
                             <div className="flex items-center justify-center h-full text-center">

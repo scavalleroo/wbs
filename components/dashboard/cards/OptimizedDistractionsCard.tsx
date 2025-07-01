@@ -196,7 +196,7 @@ export function OptimizedDistractionsCard({
 
     if (isMobile) {
         return (
-            <div className="distractions-card-container rounded-2xl bg-white/5 backdrop-blur-md shadow-xl text-white relative overflow-hidden border border-white/10">
+            <div className="distractions-card-container rounded-2xl bg-white/40 dark:bg-white/5 backdrop-blur-md shadow-xl text-gray-900 dark:text-white relative overflow-hidden border border-white/30 dark:border-white/10">
                 {/* Mobile Header with reversed gradient background - same as Wellbeing but mirrored */}
                 <div className="text-white p-4 pb-2 relative overflow-hidden header-gradient" style={{ background: 'linear-gradient(315deg, #3b82f6 0%, #6366f1 50%, #8b5cf6 100%)' }}>
                     <div className="absolute inset-0 bg-black/10 backdrop-blur-md z-0"></div>
@@ -245,7 +245,7 @@ export function OptimizedDistractionsCard({
                         {/* Description - Mobile */}
                         {blockedSitesCount === 0 && !showAddSite && (
                             <div className="mb-3">
-                                <p className="text-xs text-white/70 leading-relaxed text-center">
+                                <p className="text-xs text-gray-600 dark:text-white/70 leading-relaxed text-center">
                                     Install the Chrome extension and add distracting websites here to create mindful browsing habits with daily visit limits.
                                 </p>
                             </div>
@@ -257,34 +257,34 @@ export function OptimizedDistractionsCard({
                                     {/* Top row: URL input and Daily Openings controls */}
                                     <div className="flex gap-3 items-end">
                                         <div className="flex-1">
-                                            <label className="text-xs text-white/70 mb-1 block">Website URL</label>
+                                            <label className="text-xs text-gray-600 dark:text-white/70 mb-1 block">Website URL</label>
                                             <input
                                                 type="text"
                                                 value={newSiteUrl}
                                                 onChange={(e) => setNewSiteUrl(e.target.value)}
                                                 placeholder="instagram.com"
-                                                className="w-full px-2 py-1 text-xs bg-white/10 backdrop-blur-md border border-white/20 rounded-md text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+                                                className="w-full px-2 py-1 text-xs bg-white/30 dark:bg-white/10 backdrop-blur-md border border-white/40 dark:border-white/20 rounded-full text-gray-900 dark:text-white placeholder-gray-600 dark:placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
                                             />
                                         </div>
                                         <div className="flex flex-col items-center">
-                                            <label className="text-xs text-white/70 mb-1 block">Daily openings</label>
-                                            <div className="flex items-center bg-white/10 backdrop-blur-md rounded-md border border-white/20">
+                                            <label className="text-xs text-gray-600 dark:text-white/70 mb-1 block">Max daily opens</label>
+                                            <div className="flex items-center bg-white/30 dark:bg-white/10 backdrop-blur-md rounded-full border border-white/40 dark:border-white/20">
                                                 <Button
                                                     size="sm"
                                                     variant="ghost"
                                                     onClick={() => setNewSiteDailyLimit(Math.max(1, newSiteDailyLimit - 1))}
-                                                    className="h-6 w-6 p-0 text-white/70 hover:text-white hover:bg-white/20"
+                                                    className="h-6 w-6 p-0 text-gray-700 dark:text-white/70 hover:text-gray-900 dark:hover:text-white hover:bg-white/20 dark:hover:bg-white/20 rounded-full"
                                                 >
                                                     <Minus className="h-3 w-3" />
                                                 </Button>
-                                                <span className="px-2 text-xs text-white/90 min-w-[20px] text-center">
+                                                <span className="px-2 text-xs text-gray-900 dark:text-white/90 min-w-[20px] text-center">
                                                     {newSiteDailyLimit}
                                                 </span>
                                                 <Button
                                                     size="sm"
                                                     variant="ghost"
                                                     onClick={() => setNewSiteDailyLimit(newSiteDailyLimit + 1)}
-                                                    className="h-6 w-6 p-0 text-white/70 hover:text-white hover:bg-white/20"
+                                                    className="h-6 w-6 p-0 text-gray-700 dark:text-white/70 hover:text-gray-900 dark:hover:text-white hover:bg-white/20 dark:hover:bg-white/20 rounded-full"
                                                 >
                                                     <Plus className="h-3 w-3" />
                                                 </Button>
@@ -294,13 +294,13 @@ export function OptimizedDistractionsCard({
 
                                     {/* Common websites list - Mobile */}
                                     <div className="mt-2">
-                                        <p className="text-xs text-white/60 mb-1">Quick add:</p>
+                                        <p className="text-xs text-gray-600 dark:text-white/60 mb-1">Quick add:</p>
                                         <div className="grid grid-cols-3 gap-1">
                                             {['instagram.com', 'facebook.com', 'twitter.com', 'tiktok.com', 'youtube.com', 'reddit.com', 'netflix.com', 'twitch.tv', 'discord.com', 'linkedin.com'].map((site) => (
                                                 <button
                                                     key={site}
                                                     onClick={() => setNewSiteUrl(site)}
-                                                    className="text-xs text-white/70 hover:text-white bg-white/5 hover:bg-white/15 backdrop-blur-md border border-white/10 hover:border-white/20 px-1.5 py-0.5 rounded transition-all duration-200 truncate"
+                                                    className="text-xs text-gray-700 dark:text-white/70 hover:text-gray-900 dark:hover:text-white bg-white/20 dark:bg-white/5 hover:bg-white/40 dark:hover:bg-white/15 backdrop-blur-md border border-white/30 dark:border-white/10 hover:border-white/50 dark:hover:border-white/20 px-1.5 py-0.5 rounded-full transition-all duration-200 truncate"
                                                 >
                                                     {site.replace('.com', '')}
                                                 </button>
@@ -311,17 +311,18 @@ export function OptimizedDistractionsCard({
                                 {/* Bottom action buttons - moved to bottom of card */}
                                 <div className="mt-auto flex gap-2">
                                     <Button
-                                        onClick={handleAddSite}
-                                        disabled={!newSiteUrl.trim() || isAddingSite}
-                                        className="h-6 text-xs bg-white/10 backdrop-blur-md border border-white/20 hover:bg-white/20 text-white disabled:opacity-50 px-3"
-                                    >
-                                        {isAddingSite ? 'Adding...' : 'Add'}
-                                    </Button>
-                                    <Button
                                         onClick={cancelAddSite}
-                                        className="h-6 text-xs bg-white/10 backdrop-blur-md border border-white/20 hover:bg-white/20 text-white px-3"
+                                        className="h-6 text-xs bg-white/30 dark:bg-white/10 backdrop-blur-md border border-white/40 dark:border-white/20 hover:bg-white/50 dark:hover:bg-white/20 text-gray-700 dark:text-white px-3 rounded-full"
                                     >
                                         Cancel
+                                    </Button>
+                                    <Button
+                                        onClick={handleAddSite}
+                                        disabled={!newSiteUrl.trim() || isAddingSite}
+                                        className="h-6 text-xs backdrop-blur-md border-0 hover:opacity-90 text-white disabled:opacity-50 px-3 rounded-full"
+                                        style={{ background: 'linear-gradient(135deg, #8b5cf6 0%, #3b82f6 100%)' }}
+                                    >
+                                        {isAddingSite ? 'Adding...' : 'Add'}
                                     </Button>
                                 </div>
                             </>
@@ -332,7 +333,7 @@ export function OptimizedDistractionsCard({
                             <div className="flex items-center justify-center py-6 text-center">
                                 <button
                                     onClick={() => setShowAddSite(true)}
-                                    className="text-xs text-white/80 hover:text-white bg-white/10 backdrop-blur-md border border-white/20 hover:bg-white/30 px-3 py-2 rounded-md transition-all duration-200 flex items-center"
+                                    className="text-xs text-gray-700 dark:text-white/80 hover:text-gray-900 dark:hover:text-white bg-white/30 dark:bg-white/10 backdrop-blur-md border border-white/40 dark:border-white/20 hover:bg-white/50 dark:hover:bg-white/30 px-3 py-2 rounded-full transition-all duration-200 flex items-center"
                                 >
                                     <Plus className="h-3 w-3 mr-1" />
                                     Add your first site
@@ -354,62 +355,63 @@ export function OptimizedDistractionsCard({
                                             <div
                                                 key={site.id}
                                                 className={cn(
-                                                    "flex flex-col text-xs p-2 rounded-lg backdrop-blur-md border transition-all duration-200",
+                                                    "flex flex-col text-xs p-2 rounded-lg backdrop-blur-md border transition-all duration-200 relative",
                                                     site.accessedToday
                                                         ? isViolatingLimits
-                                                            ? "bg-purple-500/20 border-purple-400/30"
-                                                            : "bg-blue-500/20 border-blue-400/30"
-                                                        : "bg-white/10 border-white/20"
+                                                            ? "bg-purple-200/50 dark:bg-purple-500/20 border-purple-300/50 dark:border-purple-400/30"
+                                                            : "bg-blue-200/50 dark:bg-blue-500/20 border-blue-300/50 dark:border-blue-400/30"
+                                                        : "bg-white/30 dark:bg-white/10 border-white/40 dark:border-white/20"
                                                 )}
                                             >
+                                                {/* Delete button - top right */}
+                                                <Button
+                                                    size="sm"
+                                                    variant="ghost"
+                                                    onClick={() => handleDeleteSite(site.id.toString())}
+                                                    className="absolute top-1 right-1 h-4 w-4 p-0 text-gray-600 dark:text-white/70 hover:text-gray-900 dark:hover:text-white hover:bg-white/30 dark:hover:bg-white/20 bg-white/20 dark:bg-white/10 backdrop-blur-md border-0 rounded-full"
+                                                >
+                                                    <Trash2 className="h-2 w-2" />
+                                                </Button>
+
                                                 {/* Site name and stats */}
-                                                <div className="mb-2">
-                                                    <span className="font-medium text-white text-xs truncate block">{site.name}</span>
-                                                    <div className="flex flex-col gap-1 mt-1 text-xs text-white/70">
+                                                <div className="mb-2 pr-6">
+                                                    <span className="font-medium text-gray-900 dark:text-white text-xs truncate block">{site.name}</span>
+                                                    <div className="flex flex-col gap-1 mt-1 text-xs text-gray-600 dark:text-white/70">
                                                         <span className="flex items-center">
                                                             <Clock className="w-2 h-2 mr-1" />
                                                             {formatMinutesToHoursMinutes(timeSpentMinutes)}
                                                         </span>
                                                         <span className="flex items-center">
                                                             <Eye className="w-2 h-2 mr-1" />
-                                                            {site.todayCount} opens
+                                                            {site.todayCount}/{site.visitLimit || 0} opens today
                                                         </span>
                                                     </div>
                                                 </div>
 
                                                 {/* Controls */}
                                                 <div className="flex flex-col items-center gap-1 mt-auto">
-                                                    <span className="text-xs text-white/60">Daily openings</span>
-                                                    <div className="flex items-center bg-white/10 backdrop-blur-md rounded-md border border-white/20">
+                                                    <span className="text-xs text-gray-600 dark:text-white/60">Max daily opens</span>
+                                                    <div className="flex items-center bg-white/30 dark:bg-white/10 backdrop-blur-md rounded-full border border-white/40 dark:border-white/20">
                                                         <Button
                                                             size="sm"
                                                             variant="ghost"
                                                             onClick={() => handleVisitLimitChange(site.id.toString(), (site.visitLimit || 1) - 1)}
-                                                            className="h-5 w-5 p-0 text-white/70 hover:text-white hover:bg-white/20"
+                                                            className="h-5 w-5 p-0 text-gray-700 dark:text-white/70 hover:text-gray-900 dark:hover:text-white hover:bg-white/20 dark:hover:bg-white/20 rounded-full"
                                                         >
                                                             <Minus className="h-2 w-2" />
                                                         </Button>
-                                                        <span className="px-1 text-xs text-white/90 min-w-[15px] text-center">
+                                                        <span className="px-1 text-xs text-gray-900 dark:text-white/90 min-w-[15px] text-center">
                                                             {site.visitLimit || 0}
                                                         </span>
                                                         <Button
                                                             size="sm"
                                                             variant="ghost"
                                                             onClick={() => handleVisitLimitChange(site.id.toString(), (site.visitLimit || 0) + 1)}
-                                                            className="h-5 w-5 p-0 text-white/70 hover:text-white hover:bg-white/20"
+                                                            className="h-5 w-5 p-0 text-gray-700 dark:text-white/70 hover:text-gray-900 dark:hover:text-white hover:bg-white/20 dark:hover:bg-white/20 rounded-full"
                                                         >
                                                             <Plus className="h-2 w-2" />
                                                         </Button>
                                                     </div>
-                                                    {/* Delete button */}
-                                                    <Button
-                                                        size="sm"
-                                                        variant="ghost"
-                                                        onClick={() => handleDeleteSite(site.id.toString())}
-                                                        className="h-5 w-5 p-0 text-white/70 hover:text-white hover:bg-white/20 bg-white/10 backdrop-blur-md border border-white/20 rounded-md mt-1"
-                                                    >
-                                                        <Trash2 className="h-2 w-2" />
-                                                    </Button>
                                                 </div>
                                             </div>
                                         );
@@ -424,7 +426,7 @@ export function OptimizedDistractionsCard({
     }
 
     return (
-        <div className="distractions-card-container rounded-2xl bg-white/5 backdrop-blur-md shadow-xl text-white relative overflow-hidden border border-white/10">
+        <div className="distractions-card-container rounded-2xl bg-white/40 dark:bg-white/5 backdrop-blur-md shadow-xl text-gray-900 dark:text-white relative overflow-hidden border border-white/30 dark:border-white/10">
             {/* Header with reversed gradient background - same as Wellbeing but mirrored */}
             <div className="text-white p-4 pb-2 relative overflow-hidden header-gradient" style={{ background: 'linear-gradient(315deg, #3b82f6 0%, #6366f1 50%, #8b5cf6 100%)' }}>
                 <div className="absolute inset-0 bg-black/10 backdrop-blur-md z-0"></div>
@@ -459,7 +461,6 @@ export function OptimizedDistractionsCard({
                                 onClick={handleDownloadExtension}
                                 className="text-xs text-white/80 hover:text-white bg-white/10 backdrop-blur-md border border-white/20 hover:bg-white/30 px-2 py-1 rounded-md transition-all duration-200 flex items-center"
                             >
-                                <Plus className="h-4 w-4 mr-1" />
                                 Add to Browser
                             </button>
                         </div>
@@ -473,7 +474,7 @@ export function OptimizedDistractionsCard({
                     {/* Description - Desktop */}
                     {blockedSitesCount === 0 && !showAddSite && (
                         <div className="mb-4">
-                            <p className="text-sm text-white/70 leading-relaxed text-center">
+                            <p className="text-sm text-gray-600 dark:text-white/70 leading-relaxed text-center">
                                 Install the Chrome extension and add distracting websites here to create mindful browsing habits with daily visit limits.
                             </p>
                         </div>
@@ -485,34 +486,34 @@ export function OptimizedDistractionsCard({
                                 {/* Top row: URL input and Daily Openings controls */}
                                 <div className="flex gap-4 items-end">
                                     <div className="flex-1">
-                                        <label className="text-sm text-white/70 mb-2 block">Website URL</label>
+                                        <label className="text-sm text-gray-600 dark:text-white/70 mb-2 block">Website URL</label>
                                         <input
                                             type="text"
                                             value={newSiteUrl}
                                             onChange={(e) => setNewSiteUrl(e.target.value)}
                                             placeholder="instagram.com"
-                                            className="w-full px-3 py-2 text-sm bg-white/10 backdrop-blur-md border border-white/20 rounded-lg text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+                                            className="w-full px-3 py-2 text-sm bg-white/30 dark:bg-white/10 backdrop-blur-md border border-white/40 dark:border-white/20 rounded-full text-gray-900 dark:text-white placeholder-gray-600 dark:placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
                                         />
                                     </div>
                                     <div className="flex flex-col items-center">
-                                        <label className="text-sm text-white/70 mb-2 block">Daily openings</label>
-                                        <div className="flex items-center bg-white/10 backdrop-blur-md rounded-lg border border-white/20">
+                                        <label className="text-sm text-gray-600 dark:text-white/70 mb-2 block">Max daily opens</label>
+                                        <div className="flex items-center bg-white/30 dark:bg-white/10 backdrop-blur-md rounded-full border border-white/40 dark:border-white/20">
                                             <Button
                                                 size="sm"
                                                 variant="ghost"
                                                 onClick={() => setNewSiteDailyLimit(Math.max(1, newSiteDailyLimit - 1))}
-                                                className="h-7 w-7 p-0 text-white/70 hover:text-white hover:bg-white/20 rounded-l-lg rounded-r-none"
+                                                className="h-7 w-7 p-0 text-gray-700 dark:text-white/70 hover:text-gray-900 dark:hover:text-white hover:bg-white/20 dark:hover:bg-white/20 rounded-full"
                                             >
                                                 <Minus className="h-3 w-3" />
                                             </Button>
-                                            <span className="px-2 text-sm text-white/90 min-w-[30px] text-center border-x border-white/20">
+                                            <span className="px-2 text-sm text-gray-900 dark:text-white/90 min-w-[30px] text-center border-x border-white/40 dark:border-white/20">
                                                 {newSiteDailyLimit}
                                             </span>
                                             <Button
                                                 size="sm"
                                                 variant="ghost"
                                                 onClick={() => setNewSiteDailyLimit(newSiteDailyLimit + 1)}
-                                                className="h-7 w-7 p-0 text-white/70 hover:text-white hover:bg-white/20 rounded-r-lg rounded-l-none"
+                                                className="h-7 w-7 p-0 text-gray-700 dark:text-white/70 hover:text-gray-900 dark:hover:text-white hover:bg-white/20 dark:hover:bg-white/20 rounded-full"
                                             >
                                                 <Plus className="h-3 w-3" />
                                             </Button>
@@ -522,13 +523,13 @@ export function OptimizedDistractionsCard({
 
                                 {/* Common websites list - Desktop */}
                                 <div className="mt-2">
-                                    <p className="text-sm text-white/60 mb-1">Quick add:</p>
+                                    <p className="text-sm text-gray-600 dark:text-white/60 mb-1">Quick add:</p>
                                     <div className="grid grid-cols-5 gap-1">
                                         {['instagram.com', 'facebook.com', 'twitter.com', 'tiktok.com', 'youtube.com', 'reddit.com', 'netflix.com', 'twitch.tv', 'discord.com', 'linkedin.com'].map((site) => (
                                             <button
                                                 key={site}
                                                 onClick={() => setNewSiteUrl(site)}
-                                                className="text-xs text-white/70 hover:text-white bg-white/5 hover:bg-white/15 backdrop-blur-md border border-white/10 hover:border-white/20 px-2 py-1 rounded transition-all duration-200 truncate"
+                                                className="text-xs text-gray-700 dark:text-white/70 hover:text-gray-900 dark:hover:text-white bg-white/20 dark:bg-white/5 hover:bg-white/40 dark:hover:bg-white/15 backdrop-blur-md border border-white/30 dark:border-white/10 hover:border-white/50 dark:hover:border-white/20 px-2 py-1 rounded-full transition-all duration-200 truncate"
                                             >
                                                 {site.replace('.com', '')}
                                             </button>
@@ -539,17 +540,18 @@ export function OptimizedDistractionsCard({
                             {/* Bottom action buttons - moved to bottom of card */}
                             <div className="mt-auto flex gap-3">
                                 <Button
-                                    onClick={handleAddSite}
-                                    disabled={!newSiteUrl.trim() || isAddingSite}
-                                    className="px-4 py-2 text-sm bg-white/10 backdrop-blur-md border border-white/20 hover:bg-white/20 text-white disabled:opacity-50 rounded-lg"
-                                >
-                                    {isAddingSite ? 'Adding...' : 'Add'}
-                                </Button>
-                                <Button
                                     onClick={cancelAddSite}
-                                    className="px-4 py-2 text-sm bg-white/10 backdrop-blur-md border border-white/20 hover:bg-white/20 text-white rounded-lg"
+                                    className="px-4 py-2 text-sm bg-white/30 dark:bg-white/10 backdrop-blur-md border border-white/40 dark:border-white/20 hover:bg-white/50 dark:hover:bg-white/20 text-gray-700 dark:text-white rounded-full"
                                 >
                                     Cancel
+                                </Button>
+                                <Button
+                                    onClick={handleAddSite}
+                                    disabled={!newSiteUrl.trim() || isAddingSite}
+                                    className="px-4 py-2 text-sm backdrop-blur-md border-0 hover:opacity-90 text-white disabled:opacity-50 rounded-full"
+                                    style={{ background: 'linear-gradient(135deg, #8b5cf6 0%, #3b82f6 100%)' }}
+                                >
+                                    {isAddingSite ? 'Adding...' : 'Add'}
                                 </Button>
                             </div>
                         </>
@@ -560,7 +562,7 @@ export function OptimizedDistractionsCard({
                         <div className="flex items-center justify-center py-12 text-center">
                             <button
                                 onClick={() => setShowAddSite(true)}
-                                className="text-sm text-white/80 hover:text-white bg-white/10 backdrop-blur-md border border-white/20 hover:bg-white/30 px-4 py-2 rounded-lg transition-all duration-200 flex items-center"
+                                className="text-sm text-gray-700 dark:text-white/80 hover:text-gray-900 dark:hover:text-white bg-white/30 dark:bg-white/10 backdrop-blur-md border border-white/40 dark:border-white/20 hover:bg-white/50 dark:hover:bg-white/30 px-4 py-2 rounded-full transition-all duration-200 flex items-center"
                             >
                                 <Plus className="h-4 w-4 mr-1" />
                                 Add your first site
@@ -582,25 +584,35 @@ export function OptimizedDistractionsCard({
                                         <div
                                             key={site.id}
                                             className={cn(
-                                                "flex flex-col text-sm p-3 rounded-lg backdrop-blur-md border transition-all duration-200 min-h-[120px]",
+                                                "flex flex-col text-sm p-3 rounded-lg backdrop-blur-md border transition-all duration-200 min-h-[120px] relative",
                                                 site.accessedToday
                                                     ? isViolatingLimits
-                                                        ? "bg-purple-500/20 border-purple-400/30"
-                                                        : "bg-blue-500/20 border-blue-400/30"
-                                                    : "bg-white/10 border-white/20"
+                                                        ? "bg-purple-200/50 dark:bg-purple-500/20 border-purple-300/50 dark:border-purple-400/30"
+                                                        : "bg-blue-200/50 dark:bg-blue-500/20 border-blue-300/50 dark:border-blue-400/30"
+                                                    : "bg-white/30 dark:bg-white/10 border-white/40 dark:border-white/20"
                                             )}
                                         >
+                                            {/* Delete button - top right */}
+                                            <Button
+                                                size="sm"
+                                                variant="ghost"
+                                                onClick={() => handleDeleteSite(site.id.toString())}
+                                                className="absolute top-2 right-2 h-5 w-5 p-0 text-gray-600 dark:text-white/70 hover:text-gray-900 dark:hover:text-white hover:bg-white/30 dark:hover:bg-white/20 bg-white/20 dark:bg-white/10 backdrop-blur-md border-0 rounded-full"
+                                            >
+                                                <Trash2 className="h-3 w-3" />
+                                            </Button>
+
                                             {/* Site name and stats */}
-                                            <div className="flex-1 min-w-0 mb-3">
-                                                <span className="font-medium truncate block text-white text-sm">{site.name}</span>
+                                            <div className="flex-1 min-w-0 mb-3 pr-8">
+                                                <span className="font-medium truncate block text-gray-900 dark:text-white text-sm">{site.name}</span>
                                                 <div className="space-y-1 mt-2">
-                                                    <div className="flex items-center text-xs text-white/70">
+                                                    <div className="flex items-center text-xs text-gray-600 dark:text-white/70">
                                                         <Clock className="w-3 h-3 mr-1" />
                                                         <span className="truncate">{formatMinutesToHoursMinutes(timeSpentMinutes)}</span>
                                                     </div>
-                                                    <div className="flex items-center text-xs text-white/70">
+                                                    <div className="flex items-center text-xs text-gray-600 dark:text-white/70">
                                                         <Eye className="w-3 h-3 mr-1" />
-                                                        <span className="truncate">{site.todayCount} opens</span>
+                                                        <span className="truncate">{site.todayCount}/{site.visitLimit || 0} opens today</span>
                                                     </div>
                                                 </div>
                                             </div>
@@ -609,38 +621,29 @@ export function OptimizedDistractionsCard({
                                             <div className="flex flex-col space-y-2">
                                                 {/* Visit limit controls */}
                                                 <div className="flex items-center justify-between">
-                                                    <span className="text-xs text-white/60">Daily</span>
-                                                    <div className="flex items-center bg-white/10 backdrop-blur-md rounded border border-white/20">
+                                                    <span className="text-xs text-gray-600 dark:text-white/60">Max daily opens</span>
+                                                    <div className="flex items-center bg-white/30 dark:bg-white/10 backdrop-blur-md rounded-full border border-white/40 dark:border-white/20">
                                                         <Button
                                                             size="sm"
                                                             variant="ghost"
                                                             onClick={() => handleVisitLimitChange(site.id.toString(), (site.visitLimit || 1) - 1)}
-                                                            className="h-6 w-6 p-0 text-white/70 hover:text-white hover:bg-white/20"
+                                                            className="h-6 w-6 p-0 text-gray-700 dark:text-white/70 hover:text-gray-900 dark:hover:text-white hover:bg-white/20 dark:hover:bg-white/20 rounded-full"
                                                         >
                                                             <Minus className="h-2.5 w-2.5" />
                                                         </Button>
-                                                        <span className="px-1.5 text-xs text-white/90 min-w-[20px] text-center">
+                                                        <span className="px-1.5 text-xs text-gray-900 dark:text-white/90 min-w-[20px] text-center">
                                                             {site.visitLimit || 0}
                                                         </span>
                                                         <Button
                                                             size="sm"
                                                             variant="ghost"
                                                             onClick={() => handleVisitLimitChange(site.id.toString(), (site.visitLimit || 0) + 1)}
-                                                            className="h-6 w-6 p-0 text-white/70 hover:text-white hover:bg-white/20"
+                                                            className="h-6 w-6 p-0 text-gray-700 dark:text-white/70 hover:text-gray-900 dark:hover:text-white hover:bg-white/20 dark:hover:bg-white/20 rounded-full"
                                                         >
                                                             <Plus className="h-2.5 w-2.5" />
                                                         </Button>
                                                     </div>
                                                 </div>
-                                                {/* Delete button */}
-                                                <Button
-                                                    size="sm"
-                                                    variant="ghost"
-                                                    onClick={() => handleDeleteSite(site.id.toString())}
-                                                    className="h-6 w-full p-0 text-white/70 hover:text-white hover:bg-white/20 bg-white/10 backdrop-blur-md border border-white/20 rounded text-xs"
-                                                >
-                                                    <Trash2 className="h-3 w-3" />
-                                                </Button>
                                             </div>
                                         </div>
                                     );

@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { User } from '@supabase/supabase-js';
 import 'react-circular-progressbar/dist/styles.css';
+import '@/components/notes/editor/realtime-editor.css';
 import { useUserGoals } from '@/hooks/use-user-goals';
 import { useFocusSession } from '@/hooks/use-focus-session';
 import { useTimer } from '@/contexts/TimerProvider';
@@ -43,6 +44,8 @@ const DashboardComponet = ({ user }: DashboardComponetProps) => {
     const [showAtmosphereDropdown, setShowAtmosphereDropdown] = useState(false);
     const mobileVideoRef = useRef<HTMLVideoElement>(null);
     const atmosphereDropdownRef = useRef<HTMLDivElement>(null);
+    const mobileWellbeingCardRef = useRef<HTMLDivElement>(null);
+    const desktopWellbeingCardRef = useRef<HTMLDivElement>(null);
 
     // Atmosphere options for the dropdown
     const atmosphereOptions = [
@@ -304,28 +307,6 @@ const DashboardComponet = ({ user }: DashboardComponetProps) => {
                         </p>
                     </div>
 
-                    {/* Stats Row - Centered */}
-                    <div className="flex items-center justify-center gap-8 mb-6">
-                        <div className="text-center">
-                            <div className="text-lg font-medium text-white">
-                                {isLoadingSummary ? '—' : formatMinutesToHoursMinutes(todayFocusTime)}
-                            </div>
-                            <div className="text-xs text-white/70">Focus</div>
-                        </div>
-                        <div className="text-center">
-                            <div className="text-lg font-medium text-white">
-                                {isLoadingSummary ? '—' : (todayWellbeingScore ? `${todayWellbeingScore}` : '—')}
-                            </div>
-                            <div className="text-xs text-white/70">Wellbeing</div>
-                        </div>
-                        <div className="text-center">
-                            <div className="text-lg font-medium text-white">
-                                {isLoadingSummary ? '—' : formatMinutesToHoursMinutes(todayDistractionTime)}
-                            </div>
-                            <div className="text-xs text-white/70">Distractions</div>
-                        </div>
-                    </div>
-
                     {/* Focus Controls - Centered */}
                     <div className="flex flex-col items-center space-y-4">
                         {!isRunning ? (
@@ -383,6 +364,81 @@ const DashboardComponet = ({ user }: DashboardComponetProps) => {
                 </div>
             </div>
 
+            {/* Mobile Stats Section - Between video and content */}
+            <div className="lg:hidden px-4 -mt-2 mb-4">
+                <div className="header-gradient backdrop-blur-md border border-white/20 dark:border-white/10 rounded-3xl p-4 shadow-lg relative overflow-hidden">
+                    {/* Glass overlay for enhanced glassmorphic effect */}
+                    <div className="absolute inset-0 bg-white/5 backdrop-blur-sm rounded-3xl"></div>
+
+                    {/* Content */}
+                    <div className="relative z-10">
+                        {/* Title */}
+                        <div className="text-center mb-3">
+                            <h3 className="text-sm font-medium text-white/90">Today's Stats</h3>
+                        </div>
+
+                        {/* Stats Row */}
+                        <div className="flex items-center justify-center">
+                            {/* Focus - Left */}
+                            <div className="flex-1 text-center">
+                                <div className="text-lg font-semibold text-white">
+                                    {isLoadingSummary ? '—' : formatMinutesToHoursMinutes(todayFocusTime)}
+                                </div>
+                                <div className="text-xs text-white/70">Focus</div>
+                            </div>
+
+                            {/* Separator */}
+                            <div className="text-white/30 text-sm mx-2">|</div>
+
+                            {/* Wellbeing - Center */}
+                            <div className="flex-1 text-center">
+                                {isLoadingSummary ? (
+                                    <>
+                                        <div className="text-lg font-semibold text-white">—</div>
+                                        <div className="text-xs text-white/70">Wellbeing</div>
+                                    </>
+                                ) : todayWellbeingScore ? (
+                                    <>
+                                        <div className="text-lg font-semibold text-white">{todayWellbeingScore}</div>
+                                        <div className="text-xs text-white/70">Wellbeing</div>
+                                    </>
+                                ) : (
+                                    <div className="flex flex-col items-center">
+                                        <button
+                                            onClick={() => {
+                                                // Try mobile first, then desktop
+                                                const targetRef = mobileWellbeingCardRef.current || desktopWellbeingCardRef.current;
+                                                if (targetRef) {
+                                                    targetRef.scrollIntoView({
+                                                        behavior: 'smooth',
+                                                        block: 'center'
+                                                    });
+                                                }
+                                            }}
+                                            className="px-3 py-1 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full text-white text-xs font-medium hover:bg-white/20 transition-all duration-200"
+                                        >
+                                            Track
+                                        </button>
+                                        <div className="text-xs text-white/70 mt-1">Wellbeing</div>
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Separator */}
+                            <div className="text-white/30 text-sm mx-2">|</div>
+
+                            {/* Distractions - Right */}
+                            <div className="flex-1 text-center">
+                                <div className="text-lg font-semibold text-white">
+                                    {isLoadingSummary ? '—' : formatMinutesToHoursMinutes(todayDistractionTime)}
+                                </div>
+                                <div className="text-xs text-white/70">Distractions</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             {/* Desktop Header Section - Original Design */}
             <div className="mb-8 px-4 hidden lg:block">
                 <div className="flex items-center justify-between">
@@ -427,10 +483,12 @@ const DashboardComponet = ({ user }: DashboardComponetProps) => {
 
                     {/* Wellbeing only - Website block card removed on mobile */}
                     <div className="grid grid-cols-1 gap-4">
-                        <OptimizedWellbeingCard
-                            user={user}
-                            isMobile={true}
-                        />
+                        <div ref={mobileWellbeingCardRef}>
+                            <OptimizedWellbeingCard
+                                user={user}
+                                isMobile={true}
+                            />
+                        </div>
                     </div>
                 </div>
 
@@ -455,7 +513,7 @@ const DashboardComponet = ({ user }: DashboardComponetProps) => {
                     {/* Bottom Row: Wellbeing and Distractions side by side */}
                     <div className="flex gap-6">
                         {/* Wellbeing Card - 50% width */}
-                        <div className="flex-1">
+                        <div className="flex-1" ref={desktopWellbeingCardRef}>
                             <OptimizedWellbeingCard
                                 user={user}
                                 isMobile={false}

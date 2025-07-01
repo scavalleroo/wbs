@@ -361,8 +361,8 @@ export function OptimizedWellbeingCard({ user, isMobile = false }: OptimizedWell
 
     if (isLoading) {
         return (
-            <div className="rounded-2xl p-4 text-white relative overflow-hidden flex items-center justify-center min-h-[240px] header-gradient">
-                <div className="absolute inset-0 bg-black/10 backdrop-blur-md z-0 rounded-2xl"></div>
+            <div className="rounded-3xl p-4 text-white relative overflow-hidden flex items-center justify-center min-h-[240px] header-gradient">
+                <div className="absolute inset-0 bg-black/10 backdrop-blur-md z-0 rounded-3xl"></div>
                 <div className="relative z-10 flex items-center gap-2">
                     <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
                     <p>Loading Wellbeing...</p>
@@ -374,8 +374,8 @@ export function OptimizedWellbeingCard({ user, isMobile = false }: OptimizedWell
     if (showQuestionnaire) {
         if (isMobile) {
             return (
-                <div className="wellbeing-card-container rounded-2xl p-4 pb-3 text-white relative overflow-hidden header-gradient">
-                    <div className="absolute inset-0 bg-black/10 backdrop-blur-md z-0 rounded-2xl"></div>
+                <div className="wellbeing-card-container rounded-3xl p-4 pb-3 text-white relative overflow-hidden header-gradient">
+                    <div className="absolute inset-0 bg-black/10 backdrop-blur-md z-0 rounded-3xl"></div>
                     <div className="relative z-10 flex flex-col h-full">
                         {/* Header matching chart mode */}
                         <div className="flex items-start justify-between mb-3">
@@ -414,7 +414,7 @@ export function OptimizedWellbeingCard({ user, isMobile = false }: OptimizedWell
                                 {!showNotes && currentStep < wellnessQuestionSteps.length && (<Button variant="ghost" onClick={handleSkipStep} className="text-white/80 hover:text-white bg-white/10 backdrop-blur-md border border-white/20 hover:bg-white/30 transition-all duration-200 px-1.5 py-0.5 text-xs rounded-md" size="sm">Skip <ArrowRight className="ml-1 h-2.5 w-2.5" /></Button>)}
                                 {showNotes && (
                                     <Button onClick={handleInlineWellnessSubmit} disabled={isSubmitting} className="bg-white/10 backdrop-blur-md border border-white/20 hover:bg-white/30 transition-all duration-200 text-white px-3 py-1.5 text-xs rounded-lg">
-                                        {isSubmitting ? 'Calculating...' : 'Calculate Today\'s Score'}
+                                        {isSubmitting ? 'Calculating...' : 'Calculate Score'}
                                     </Button>
                                 )}
                             </div>
@@ -428,8 +428,8 @@ export function OptimizedWellbeingCard({ user, isMobile = false }: OptimizedWell
             );
         } else {
             return (
-                <div className="wellbeing-card-container rounded-2xl p-6 pb-4 text-white relative overflow-hidden header-gradient">
-                    <div className="absolute inset-0 bg-black/10 backdrop-blur-md z-0 rounded-2xl"></div>
+                <div className="wellbeing-card-container rounded-3xl p-6 pb-4 text-white relative overflow-hidden header-gradient">
+                    <div className="absolute inset-0 bg-black/10 backdrop-blur-md z-0 rounded-3xl"></div>
                     <div className="relative z-10 flex flex-col h-full">
                         {/* Header matching chart mode */}
                         <div className="flex justify-between items-start mb-4">
@@ -468,7 +468,7 @@ export function OptimizedWellbeingCard({ user, isMobile = false }: OptimizedWell
                                 {!showNotes && currentStep < wellnessQuestionSteps.length && (<Button variant="ghost" onClick={handleSkipStep} className="text-white/80 hover:text-white bg-white/10 backdrop-blur-md border border-white/20 hover:bg-white/30 transition-all duration-200 px-2 py-1 text-xs rounded-md">Skip <ArrowRight className="ml-1 h-3 w-3" /></Button>)}
                                 {showNotes && (
                                     <Button onClick={handleInlineWellnessSubmit} disabled={isSubmitting} className="bg-white/10 backdrop-blur-md border border-white/20 hover:bg-white/30 transition-all duration-200 text-white px-4 py-2 text-xs rounded-lg">
-                                        {isSubmitting ? 'Calculating...' : 'Calculate Today\'s Score'}
+                                        {isSubmitting ? 'Calculating...' : 'Calculate Score'}
                                     </Button>
                                 )}
                             </div>
@@ -642,7 +642,7 @@ export function OptimizedWellbeingCard({ user, isMobile = false }: OptimizedWell
     if (isMobile) {
         return (
             <>
-                <div className="wellbeing-card-container rounded-2xl bg-neutral-100 dark:bg-neutral-800 shadow-xl text-gray-900 dark:text-white relative overflow-hidden border border-gray-200 dark:border-gray-700">
+                <div className="wellbeing-card-container rounded-3xl bg-neutral-100 dark:bg-neutral-800 shadow-xl text-gray-900 dark:text-white relative overflow-hidden border border-gray-200 dark:border-gray-700">
                     {/* Header with gradient background */}
                     <div className="text-white p-4 pb-2 relative overflow-hidden header-gradient">
                         <div className="absolute inset-0 bg-black/10 backdrop-blur-md z-0"></div>
@@ -898,7 +898,7 @@ export function OptimizedWellbeingCard({ user, isMobile = false }: OptimizedWell
                 </div>
             )}
 
-            <div className="wellbeing-card-container rounded-2xl bg-neutral-100 dark:bg-neutral-800 shadow-xl text-gray-900 dark:text-white relative overflow-hidden border border-gray-200 dark:border-gray-700">
+            <div className="wellbeing-card-container rounded-3xl bg-neutral-100 dark:bg-neutral-800 shadow-xl text-gray-900 dark:text-white relative overflow-hidden border border-gray-200 dark:border-gray-700">
                 {/* Header with gradient background */}
                 <div className="text-white p-4 pb-2 relative overflow-hidden header-gradient">
                     <div className="absolute inset-0 bg-black/10 backdrop-blur-md z-0"></div>

@@ -23,14 +23,12 @@ import { uploadFn } from "./image-upload";
 import { defaultExtensions } from './extensions';
 import { createClient } from '@/utils/supabase/client';
 import { useDebounce } from '@/hooks/use-debounce';
-import ProjectDialogs from './project-dialogs';
+import { formatRelativeTime } from '@/lib/utils';
+import { Book, Calendar, ChevronLeft, ChevronRight, Plus, CalendarDays, Search, Trash2, Trash, ChevronDown, Check, X, PlusCircle, Pencil } from 'lucide-react';
 import { ProjectNote } from '@/lib/project';
 import GenerativeMenuSwitch from './generative/generative-menu-switch';
 import { MathSelector } from './selectors/math-selector';
 import { EventSelector } from './selectors/event-selector';
-import { formatRelativeTime } from '@/lib/utils';
-import { Book, Calendar, ChevronLeft, ChevronRight, Plus, CalendarDays, Search } from 'lucide-react';
-import CreateProjectDialog from '../create-project-dialog';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -104,6 +102,20 @@ export const RealtimeEditor: React.FC<RealtimeEditorProps> = ({
   const [openAI, setOpenAI] = useState(false);
   const [openEvent, setOpenEvent] = useState(false);
   const [projectSearchTerm, setProjectSearchTerm] = useState('');
+
+  // Inline action states
+  const [isCreatingProject, setIsCreatingProject] = useState(false);
+  const [newProjectTitle, setNewProjectTitle] = useState('');
+  const [isRenamingProject, setIsRenamingProject] = useState(false);
+  const [renameProjectTitle, setRenameProjectTitle] = useState('');
+  const [isDeletingProject, setIsDeletingProject] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+
+  // Loading states
+  const [createLoading, setCreateLoading] = useState(false);
+  const [renameLoading, setRenameLoading] = useState(false);
+  const [deleteLoading, setDeleteLoading] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
 
   const [isSaving, setIsSaving] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | undefined>(
@@ -200,47 +212,138 @@ export const RealtimeEditor: React.FC<RealtimeEditorProps> = ({
     onContentUpdate?.(newContent);
   }, []);
 
+  // Inline action handlers
+  const handleInlineCreateProject = async () => {
+    if (!newProjectTitle.trim() || !onCreateProject) return;
+
+    setIsProcessing(true);
+    try {
+      await onCreateProject(newProjectTitle.trim());
+      setNewProjectTitle('');
+      setIsCreatingProject(false);
+    } catch (error) {
+      console.error('Project creation failed', error);
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const handleInlineRenameProject = async () => {
+    if (!newProjectTitle.trim() || !selectedProject || !handleRenameProject || newProjectTitle === selectedProject.title) return;
+
+    setIsProcessing(true);
+    try {
+      await handleRenameProject(selectedProject.id, newProjectTitle.trim());
+      setNewProjectTitle('');
+      setIsRenamingProject(false);
+    } catch (error) {
+      console.error('Project rename failed', error);
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const handleInlineDeleteProject = async () => {
+    if (!selectedProject || !handleDeleteProject) return;
+
+    setIsProcessing(true);
+    try {
+      await handleDeleteProject(selectedProject.id);
+      setIsDeletingProject(false);
+    } catch (error) {
+      console.error('Project deletion failed', error);
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const cancelAllActions = () => {
+    setIsCreatingProject(false);
+    setIsRenamingProject(false);
+    setIsDeletingProject(false);
+    setNewProjectTitle('');
+  };
+
+  // Handle keyboard events for inline editing
+  const handleKeyDown = (e: React.KeyboardEvent, action: 'create' | 'rename') => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      if (action === 'create') {
+        handleInlineCreateProject();
+      } else if (action === 'rename') {
+        handleInlineRenameProject();
+      }
+    } else if (e.key === 'Escape') {
+      e.preventDefault();
+      cancelAllActions();
+    }
+  };
+
   return (
     <EditorRoot>
-      <div className="flex flex-col w-full h-full bg-neutral-100 dark:bg-neutral-800 rounded-lg border border-gray-200 dark:border-gray-700 relative">
+      <div className="flex flex-col w-full h-full bg-neutral-100 dark:bg-neutral-800 rounded-3xl border border-gray-200 dark:border-gray-700 relative">
         {/* Fixed Header */}
         {onTabChange && (
           <div className="border-b border-gray-200 dark:border-gray-700 header-gradient shadow-lg flex-shrink-0">
             {/* Unified Header with Tab Selection */}
             <div className="px-3 sm:px-4 py-2 sm:py-4">
               <div className="flex flex-col lg:flex-row lg:items-start gap-2 sm:gap-4">
-                {/* Mobile: All buttons in one row */}
-                <div className="flex sm:hidden items-center justify-between w-full gap-1">
-                  {/* Left side: Tab buttons */}
-                  <div className="flex items-center gap-1">
-                    <button
-                      onClick={() => !disabled && onTabChange('daily')}
-                      disabled={disabled}
-                      className={`tab-button-vertical flex items-center px-2 py-1.5 text-xs font-medium transition-all ${activeTab === 'daily' ? 'active' : ''
-                        } ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
-                    >
-                      <Calendar className="h-3 w-3 mr-1" />
-                      <span>Daily</span>
-                    </button>
-                    <button
-                      onClick={() => !disabled && onTabChange('project')}
-                      disabled={disabled}
-                      className={`tab-button-vertical flex items-center px-2 py-1.5 text-xs font-medium transition-all ${activeTab === 'project' ? 'active' : ''
-                        } ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
-                    >
-                      <Book className="h-3 w-3 mr-1" />
-                      <span>Pages</span>
-                    </button>
+                {/* Mobile: Compact dropdown layout */}
+                <div className="flex sm:hidden items-center justify-between w-full gap-2">
+                  {/* Left side: Tab dropdown selector - compact */}
+                  <div className="flex-shrink-0">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <button
+                          disabled={disabled}
+                          className={`flex items-center px-2 py-1.5 text-xs font-medium rounded-lg bg-white/10 backdrop-blur-md border border-white/20 text-white hover:bg-white/20 transition-all duration-200 gap-1 min-w-0 ${disabled ? 'cursor-not-allowed opacity-50' : ''}`}
+                        >
+                          {activeTab === 'daily' ? (
+                            <>
+                              <Calendar className="h-3 w-3 flex-shrink-0" />
+                              <span>Daily</span>
+                            </>
+                          ) : (
+                            <>
+                              <Book className="h-3 w-3 flex-shrink-0" />
+                              <span>Pages</span>
+                            </>
+                          )}
+                          <ChevronDown className="h-3 w-3 flex-shrink-0" />
+                        </button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent className="w-32 bg-white dark:bg-neutral-800 border-gray-200 dark:border-gray-700 shadow-xl" align="start">
+                        <DropdownMenuItem
+                          onClick={() => !disabled && onTabChange('daily')}
+                          className={`flex items-center p-2 cursor-pointer ${activeTab === 'daily'
+                            ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-300'
+                            : 'text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700'
+                            }`}
+                        >
+                          <Calendar className="h-3 w-3 mr-2" />
+                          <span className="text-xs">Daily Notes</span>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() => !disabled && onTabChange('project')}
+                          className={`flex items-center p-2 cursor-pointer ${activeTab === 'project'
+                            ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-300'
+                            : 'text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700'
+                            }`}
+                        >
+                          <Book className="h-3 w-3 mr-2" />
+                          <span className="text-xs">Pages</span>
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </div>
 
-                  {/* Right side: Date/Page action buttons */}
+                  {/* Right side: Action buttons - compact with icons only */}
                   {activeTab === 'daily' && onDateChange && (
-                    <div className="flex items-center gap-1">
+                    <div className="flex items-center gap-1 flex-shrink-0">
                       {selectedDate.toDateString() !== new Date().toDateString() && (
                         <button
                           disabled={disabled}
-                          className={`flex items-center justify-center gap-1 px-2 py-1.5 text-xs font-medium rounded-lg bg-white/10 backdrop-blur-md border border-white/20 text-white hover:bg-white/20 transition-all duration-200 whitespace-nowrap ${disabled ? 'cursor-not-allowed opacity-50' : ''
-                            }`}
+                          className={`flex items-center justify-center p-1.5 text-xs font-medium rounded-lg bg-white/10 backdrop-blur-md border border-white/20 text-white hover:bg-white/20 transition-all duration-200 ${disabled ? 'cursor-not-allowed opacity-50' : ''}`}
                           onClick={() => {
                             if (!disabled) {
                               const today = new Date();
@@ -260,19 +363,16 @@ export const RealtimeEditor: React.FC<RealtimeEditorProps> = ({
                           title="Go to today's notes"
                         >
                           <Calendar className="h-3 w-3" />
-                          <span>Today</span>
                         </button>
                       )}
                       <Popover>
                         <PopoverTrigger asChild>
                           <button
                             disabled={disabled}
-                            className={`flex items-center justify-center gap-1 px-2 py-1.5 text-xs font-medium rounded-lg bg-white/10 backdrop-blur-md border border-white/20 text-white hover:bg-white/20 transition-all duration-200 whitespace-nowrap ${disabled ? 'cursor-not-allowed opacity-50' : ''
-                              }`}
+                            className={`flex items-center justify-center p-1.5 text-xs font-medium rounded-lg bg-white/10 backdrop-blur-md border border-white/20 text-white hover:bg-white/20 transition-all duration-200 ${disabled ? 'cursor-not-allowed opacity-50' : ''}`}
                             title="Pick a specific date"
                           >
                             <CalendarDays className="h-3 w-3" />
-                            <span>Pick</span>
                           </button>
                         </PopoverTrigger>
                         <PopoverContent className="w-auto p-0" align="end">
@@ -301,25 +401,159 @@ export const RealtimeEditor: React.FC<RealtimeEditorProps> = ({
                     </div>
                   )}
 
-                  {activeTab === 'project' && onCreateProject && projectNotes.length === 0 && (
-                    <div className="flex items-center">
-                      <CreateProjectDialog
-                        onCreateProject={onCreateProject}
+                  {activeTab === 'project' && onCreateProject && projectNotes.length === 0 && !isCreatingProject && (
+                    <div className="flex items-center flex-shrink-0">
+                      <button
+                        onClick={() => {
+                          setIsCreatingProject(true);
+                          setNewProjectTitle('');
+                        }}
                         disabled={disabled}
-                      />
+                        className={`flex items-center gap-1 px-1.5 py-1.5 text-xs font-medium rounded-lg bg-white/10 backdrop-blur-md border border-white/20 text-white hover:bg-white/20 transition-all duration-200 ${disabled ? 'cursor-not-allowed opacity-50' : ''}`}
+                        title="Create new page"
+                      >
+                        <PlusCircle className="h-3 w-3" />
+                      </button>
                     </div>
                   )}
 
-                  {activeTab === 'project' && selectedProject && handleRenameProject && handleDeleteProject && (
-                    <div className="flex items-center gap-1">
-                      <ProjectDialogs
-                        project={selectedProject}
-                        onRenameProject={handleRenameProject}
-                        onDeleteProject={handleDeleteProject}
-                      />
+                  {activeTab === 'project' && selectedProject && handleRenameProject && handleDeleteProject && !isRenamingProject && !isDeletingProject && (
+                    <div className="flex items-center gap-1 flex-shrink-0">
+                      <button
+                        onClick={() => {
+                          setIsRenamingProject(true);
+                          setNewProjectTitle(selectedProject.title);
+                        }}
+                        disabled={disabled}
+                        className={`flex items-center gap-1 px-1.5 py-1.5 text-xs font-medium rounded-lg bg-white/10 backdrop-blur-md border border-white/20 text-white hover:bg-white/20 transition-all duration-200 ${disabled ? 'cursor-not-allowed opacity-50' : ''}`}
+                        title="Rename page"
+                      >
+                        <Pencil className="h-3 w-3" />
+                      </button>
+                      <button
+                        onClick={() => setIsDeletingProject(true)}
+                        disabled={disabled}
+                        className={`flex items-center gap-1 px-1.5 py-1.5 text-xs font-medium rounded-lg bg-white/10 backdrop-blur-md border border-white/20 text-white hover:bg-white/20 transition-all duration-200 ${disabled ? 'cursor-not-allowed opacity-50' : ''}`}
+                        title="Delete page"
+                      >
+                        <Trash2 className="h-3 w-3" />
+                      </button>
                     </div>
                   )}
                 </div>
+
+                {/* Mobile: Inline editing forms */}
+                {activeTab === 'project' && (isCreatingProject || isRenamingProject || isDeletingProject) && (
+                  <div className="flex sm:hidden mt-2 p-3 bg-white/10 backdrop-blur-md border border-white/20 rounded-lg">
+                    {isCreatingProject && (
+                      <div className="flex flex-col gap-2 w-full">
+                        <div className="text-xs text-white/80 font-medium">Create New Page</div>
+                        <div className="flex items-center gap-2">
+                          <Input
+                            value={newProjectTitle}
+                            onChange={(e) => setNewProjectTitle(e.target.value)}
+                            onKeyDown={(e) => handleKeyDown(e, 'create')}
+                            placeholder="Page title..."
+                            disabled={isProcessing}
+                            className="flex-1 h-8 text-xs bg-white/10 border-white/20 text-white placeholder:text-white/50"
+                            autoFocus
+                          />
+                          <button
+                            onClick={handleInlineCreateProject}
+                            disabled={!newProjectTitle.trim() || isProcessing}
+                            className="flex items-center justify-center p-1.5 rounded-md bg-white/30 text-white hover:bg-white/40 disabled:opacity-50 disabled:cursor-not-allowed"
+                            title="Confirm"
+                          >
+                            {isProcessing ? (
+                              <div className="w-3 h-3 border border-white border-t-transparent rounded-full animate-spin" />
+                            ) : (
+                              <Check className="h-3 w-3" />
+                            )}
+                          </button>
+                          <button
+                            onClick={cancelAllActions}
+                            disabled={isProcessing}
+                            className="flex items-center justify-center p-1.5 rounded-md bg-white/20 text-white/80 hover:bg-white/30 disabled:opacity-50"
+                            title="Cancel"
+                          >
+                            <X className="h-3 w-3" />
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
+                    {isRenamingProject && selectedProject && (
+                      <div className="flex flex-col gap-2 w-full">
+                        <div className="text-xs text-white/80 font-medium">Rename Page</div>
+                        <div className="flex items-center gap-2">
+                          <Input
+                            value={newProjectTitle}
+                            onChange={(e) => setNewProjectTitle(e.target.value)}
+                            onKeyDown={(e) => handleKeyDown(e, 'rename')}
+                            disabled={isProcessing}
+                            className="flex-1 h-8 text-xs bg-white/10 border-white/20 text-white placeholder:text-white/50"
+                            autoFocus
+                          />
+                          <button
+                            onClick={handleInlineRenameProject}
+                            disabled={!newProjectTitle.trim() || newProjectTitle === selectedProject.title || isProcessing}
+                            className="flex items-center justify-center p-1.5 rounded-md bg-white/30 text-white hover:bg-white/40 disabled:opacity-50 disabled:cursor-not-allowed"
+                            title="Save changes"
+                          >
+                            {isProcessing ? (
+                              <div className="w-3 h-3 border border-white border-t-transparent rounded-full animate-spin" />
+                            ) : (
+                              <Check className="h-3 w-3" />
+                            )}
+                          </button>
+                          <button
+                            onClick={cancelAllActions}
+                            disabled={isProcessing}
+                            className="flex items-center justify-center p-1.5 rounded-md bg-white/20 text-white/80 hover:bg-white/30 disabled:opacity-50"
+                            title="Cancel"
+                          >
+                            <X className="h-3 w-3" />
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
+                    {isDeletingProject && selectedProject && (
+                      <div className="flex flex-col gap-2 w-full">
+                        <div className="text-xs text-white/80 font-medium">Delete Page</div>
+                        <div className="text-xs text-white/60 mb-2">
+                          Are you sure you want to delete "<span className="font-medium text-white/80">{selectedProject.title}</span>"?
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={handleInlineDeleteProject}
+                            disabled={isProcessing}
+                            className="flex-1 flex items-center justify-center gap-1 py-1.5 text-xs font-medium rounded-md bg-orange-100/20 text-orange-200 hover:bg-orange-100/30 disabled:opacity-50 disabled:cursor-not-allowed"
+                            title="Confirm deletion"
+                          >
+                            {isProcessing ? (
+                              <div className="w-3 h-3 border border-orange-300 border-t-transparent rounded-full animate-spin" />
+                            ) : (
+                              <>
+                                <Trash2 className="h-3 w-3" />
+                                <span>Confirm</span>
+                              </>
+                            )}
+                          </button>
+                          <button
+                            onClick={cancelAllActions}
+                            disabled={isProcessing}
+                            className="flex-1 flex items-center justify-center gap-1 py-1.5 text-xs font-medium rounded-md bg-white/10 text-white/80 hover:bg-white/20 disabled:opacity-50"
+                            title="Cancel deletion"
+                          >
+                            <X className="h-3 w-3" />
+                            <span>Cancel</span>
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
 
                 {/* Mobile: Date carousel navigation for daily notes */}
                 {activeTab === 'daily' && onDateChange && days.length > 0 && (
@@ -515,11 +749,19 @@ export const RealtimeEditor: React.FC<RealtimeEditorProps> = ({
                         {/* Add new page button at the bottom of dropdown */}
                         {onCreateProject && (
                           <div className="border-t border-gray-200 dark:border-gray-700 p-2">
-                            <CreateProjectDialog
-                              onCreateProject={onCreateProject}
+                            <button
+                              onClick={() => {
+                                if (!disabled) {
+                                  setNewProjectTitle('');
+                                  setIsCreatingProject(true);
+                                }
+                              }}
                               disabled={disabled}
-                              variant="dropdown"
-                            />
+                              className={`flex items-center justify-center gap-2 w-full px-3 py-2 text-sm font-medium rounded-lg bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-all duration-200 ${disabled ? 'cursor-not-allowed opacity-50' : ''}`}
+                            >
+                              <Plus className="h-4 w-4" />
+                              <span>Create New Page</span>
+                            </button>
                           </div>
                         )}
                       </DropdownMenuContent>
@@ -772,11 +1014,51 @@ export const RealtimeEditor: React.FC<RealtimeEditorProps> = ({
                             <div className="text-sm text-white/70 font-medium px-3 py-2 bg-white/10 backdrop-blur-md border border-white/20 rounded-lg">
                               No pages yet
                             </div>
-                            {onCreateProject && (
-                              <CreateProjectDialog
-                                onCreateProject={onCreateProject}
+                            {onCreateProject && !isCreatingProject && (
+                              <button
+                                onClick={() => {
+                                  setIsCreatingProject(true);
+                                  setNewProjectTitle('');
+                                }}
                                 disabled={disabled}
-                              />
+                                className={`flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-lg bg-white/10 backdrop-blur-md border border-white/20 text-white hover:bg-white/20 transition-all duration-200 ${disabled ? 'cursor-not-allowed opacity-50' : ''}`}
+                              >
+                                <PlusCircle className="h-4 w-4" />
+                                <span>Create Page</span>
+                              </button>
+                            )}
+                            {isCreatingProject && (
+                              <div className="flex items-center gap-2 p-2 bg-white/5 rounded-lg border border-white/10">
+                                <Input
+                                  value={newProjectTitle}
+                                  onChange={(e) => setNewProjectTitle(e.target.value)}
+                                  onKeyDown={(e) => handleKeyDown(e, 'create')}
+                                  placeholder="Page title..."
+                                  disabled={isProcessing}
+                                  className="flex-1 h-8 text-sm bg-white/10 border-white/20 text-white placeholder:text-white/50"
+                                  autoFocus
+                                />
+                                <button
+                                  onClick={handleInlineCreateProject}
+                                  disabled={!newProjectTitle.trim() || isProcessing}
+                                  className="flex items-center justify-center p-1.5 rounded-md bg-white/20 text-white hover:bg-white/30 disabled:opacity-50 disabled:cursor-not-allowed"
+                                  title="Confirm"
+                                >
+                                  {isProcessing ? (
+                                    <div className="w-3 h-3 border border-white border-t-transparent rounded-full animate-spin" />
+                                  ) : (
+                                    <Check className="h-3 w-3" />
+                                  )}
+                                </button>
+                                <button
+                                  onClick={cancelAllActions}
+                                  disabled={isProcessing}
+                                  className="flex items-center justify-center p-1.5 rounded-md bg-white/20 text-white hover:bg-white/30 disabled:opacity-50"
+                                  title="Cancel"
+                                >
+                                  <X className="h-3 w-3" />
+                                </button>
+                              </div>
                             )}
                           </div>
                         ) : (
@@ -843,14 +1125,57 @@ export const RealtimeEditor: React.FC<RealtimeEditorProps> = ({
                                   )}
                               </div>
 
-                              {/* Add new page button at the bottom of dropdown */}
+                              {/* Add new page button/form at the bottom of dropdown */}
                               {onCreateProject && (
                                 <div className="border-t border-gray-200 dark:border-gray-700 p-2">
-                                  <CreateProjectDialog
-                                    onCreateProject={onCreateProject}
-                                    disabled={disabled}
-                                    variant="dropdown"
-                                  />
+                                  {!isCreatingProject ? (
+                                    <button
+                                      onClick={() => {
+                                        setIsCreatingProject(true);
+                                        setNewProjectTitle('');
+                                      }}
+                                      disabled={disabled}
+                                      className="w-full flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-lg bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-all duration-200"
+                                    >
+                                      <PlusCircle className="h-4 w-4" />
+                                      <span>Create New Page</span>
+                                    </button>
+                                  ) : (
+                                    <div className="flex flex-col gap-2">
+                                      <div className="text-xs text-gray-600 dark:text-gray-400 font-medium">Create New Page</div>
+                                      <div className="flex items-center gap-2">
+                                        <Input
+                                          value={newProjectTitle}
+                                          onChange={(e) => setNewProjectTitle(e.target.value)}
+                                          onKeyDown={(e) => handleKeyDown(e, 'create')}
+                                          placeholder="Page title..."
+                                          disabled={isProcessing}
+                                          className="flex-1 h-8 text-sm"
+                                          autoFocus
+                                        />
+                                        <button
+                                          onClick={handleInlineCreateProject}
+                                          disabled={!newProjectTitle.trim() || isProcessing}
+                                          className="flex items-center justify-center p-1.5 rounded-md bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                                          title="Confirm"
+                                        >
+                                          {isProcessing ? (
+                                            <div className="w-3 h-3 border border-gray-500 border-t-transparent rounded-full animate-spin" />
+                                          ) : (
+                                            <Check className="h-3 w-3" />
+                                          )}
+                                        </button>
+                                        <button
+                                          onClick={cancelAllActions}
+                                          disabled={isProcessing}
+                                          className="flex items-center justify-center p-1.5 rounded-md bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 disabled:opacity-50"
+                                          title="Cancel"
+                                        >
+                                          <X className="h-3 w-3" />
+                                        </button>
+                                      </div>
+                                    </div>
+                                  )}
                                 </div>
                               )}
                             </DropdownMenuContent>
@@ -858,14 +1183,98 @@ export const RealtimeEditor: React.FC<RealtimeEditorProps> = ({
                         )}
                       </div>
 
-                      {/* Page actions - only rename and delete buttons */}
+                      {/* Page actions - rename and delete buttons */}
                       <div className="flex items-center gap-2 flex-shrink-0 pb-[1px]">
-                        {selectedProject && handleRenameProject && handleDeleteProject && (
-                          <ProjectDialogs
-                            project={selectedProject}
-                            onRenameProject={handleRenameProject}
-                            onDeleteProject={handleDeleteProject}
-                          />
+                        {selectedProject && handleRenameProject && handleDeleteProject && !isRenamingProject && !isDeletingProject && (
+                          <>
+                            <button
+                              onClick={() => {
+                                setIsRenamingProject(true);
+                                setNewProjectTitle(selectedProject.title);
+                              }}
+                              disabled={disabled}
+                              className={`flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-lg bg-white/10 backdrop-blur-md border border-white/20 text-white hover:bg-white/20 transition-all duration-200 ${disabled ? 'cursor-not-allowed opacity-50' : ''}`}
+                            >
+                              <Pencil className="h-4 w-4" />
+                              <span>Rename</span>
+                            </button>
+                            <button
+                              onClick={() => setIsDeletingProject(true)}
+                              disabled={disabled}
+                              className={`flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-lg bg-white/10 backdrop-blur-md border border-white/20 text-white hover:bg-white/20 transition-all duration-200 ${disabled ? 'cursor-not-allowed opacity-50' : ''}`}
+                            >
+                              <Trash className="h-4 w-4" />
+                              <span>Delete</span>
+                            </button>
+                          </>
+                        )}
+
+                        {isRenamingProject && selectedProject && (
+                          <div className="flex items-center gap-2 p-2 bg-white/5 rounded-lg border border-white/10">
+                            <span className="text-xs text-white/70 font-medium whitespace-nowrap">Rename:</span>
+                            <Input
+                              value={newProjectTitle}
+                              onChange={(e) => setNewProjectTitle(e.target.value)}
+                              onKeyDown={(e) => handleKeyDown(e, 'rename')}
+                              disabled={isProcessing}
+                              className="w-48 h-8 text-sm bg-white/10 border-white/20 text-white placeholder:text-white/50"
+                              autoFocus
+                            />
+                            <button
+                              onClick={handleInlineRenameProject}
+                              disabled={!newProjectTitle.trim() || newProjectTitle === selectedProject.title || isProcessing}
+                              className="flex items-center justify-center gap-1 px-2 py-1.5 text-xs font-medium rounded-md bg-white/20 text-white hover:bg-white/30 disabled:opacity-50 disabled:cursor-not-allowed"
+                              title="Save changes"
+                            >
+                              {isProcessing ? (
+                                <div className="w-3 h-3 border border-white border-t-transparent rounded-full animate-spin" />
+                              ) : (
+                                <>
+                                  <Check className="h-3 w-3" />
+                                  <span>Save</span>
+                                </>
+                              )}
+                            </button>
+                            <button
+                              onClick={cancelAllActions}
+                              disabled={isProcessing}
+                              className="flex items-center justify-center gap-1 px-2 py-1.5 text-xs font-medium rounded-md bg-white/10 text-white/80 hover:bg-white/20 disabled:opacity-50"
+                              title="Cancel"
+                            >
+                              <X className="h-3 w-3" />
+                              <span>Cancel</span>
+                            </button>
+                          </div>
+                        )}
+
+                        {isDeletingProject && selectedProject && (
+                          <div className="flex items-center gap-2 p-2 bg-white/5 rounded-lg border border-white/10">
+                            <span className="text-sm text-white/80">Delete "<span className="font-medium text-white">{selectedProject.title}</span>"?</span>
+                            <button
+                              onClick={handleInlineDeleteProject}
+                              disabled={isProcessing}
+                              className="flex items-center justify-center gap-1 px-3 py-1.5 text-sm font-medium rounded-md bg-orange-100 dark:bg-orange-900/30 text-orange-800 dark:text-orange-300 hover:bg-orange-200 dark:hover:bg-orange-900/50 disabled:opacity-50 disabled:cursor-not-allowed"
+                              title="Confirm deletion"
+                            >
+                              {isProcessing ? (
+                                <div className="w-3 h-3 border border-orange-600 border-t-transparent rounded-full animate-spin" />
+                              ) : (
+                                <>
+                                  <Trash className="h-3 w-3" />
+                                  <span>Confirm</span>
+                                </>
+                              )}
+                            </button>
+                            <button
+                              onClick={cancelAllActions}
+                              disabled={isProcessing}
+                              className="flex items-center justify-center gap-1 px-3 py-1.5 text-sm font-medium rounded-md bg-white/10 text-white/80 hover:bg-white/20 disabled:opacity-50"
+                              title="Cancel deletion"
+                            >
+                              <X className="h-3 w-3" />
+                              <span>Cancel</span>
+                            </button>
+                          </div>
                         )}
                       </div>
                     </div>

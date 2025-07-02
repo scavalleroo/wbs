@@ -72,9 +72,14 @@ export function FocusPopover({ user }: FocusPopoverProps) {
         'Atmosphere': '/focus/none.mp4',
         'Rain': '/focus/rain.mp4',
         'Waves': '/focus/waves.mp4',
-        'Nature': '/focus/forest.mp4',
-        'Forest': '/focus/forest.mp4',
-        'Coffee': '/focus/cafe.mp4'
+        'Nature': '/focus/nature.mp4',
+        'Coffee': '/focus/cafe.mp4',
+        'Brown': '/focus/brown.mp4',
+        'Fan': '/focus/fan.mp4',
+        'Waterfall': '/focus/waterfall.mp4',
+        'Campfire': '/focus/campfire.mp4',
+        'Fireplace': '/focus/fireplace.mp4',
+        'Lofi': '/focus/lofi.mp4'
     };
 
     useEffect(() => {
@@ -210,8 +215,13 @@ export function FocusPopover({ user }: FocusPopoverProps) {
                                     <SelectItem value="Rain">Rain</SelectItem>
                                     <SelectItem value="Waves">Waves</SelectItem>
                                     <SelectItem value="Nature">Nature</SelectItem>
-                                    <SelectItem value="Forest">Forest</SelectItem>
                                     <SelectItem value="Coffee">Coffee Shop</SelectItem>
+                                    <SelectItem value="Brown">Brown Noise</SelectItem>
+                                    <SelectItem value="Fan">Fan</SelectItem>
+                                    <SelectItem value="Waterfall">Waterfall</SelectItem>
+                                    <SelectItem value="Campfire">Campfire</SelectItem>
+                                    <SelectItem value="Fireplace">Fireplace</SelectItem>
+                                    <SelectItem value="Lofi">Lo-Fi</SelectItem>
                                 </SelectContent>
                             </Select>
                         </div>

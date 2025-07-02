@@ -53,8 +53,13 @@ const DashboardComponet = ({ user }: DashboardComponetProps) => {
         { value: 'Rain', label: 'Rain' },
         { value: 'Waves', label: 'Ocean Waves' },
         { value: 'Nature', label: 'Nature' },
-        { value: 'Forest', label: 'Forest' },
-        { value: 'Coffee', label: 'Coffee Shop' }
+        { value: 'Coffee', label: 'Coffee Shop' },
+        { value: 'Brown', label: 'Brown Noise' },
+        { value: 'Fan', label: 'Fan' },
+        { value: 'Waterfall', label: 'Waterfall' },
+        { value: 'Campfire', label: 'Campfire' },
+        { value: 'Fireplace', label: 'Fireplace' },
+        { value: 'Lofi', label: 'Lo-Fi' }
     ];
 
     // Dashboard summary data
@@ -82,9 +87,14 @@ const DashboardComponet = ({ user }: DashboardComponetProps) => {
         'Atmosphere': '/focus/none.mp4',
         'Rain': '/focus/rain.mp4',
         'Waves': '/focus/waves.mp4',
-        'Nature': '/focus/forest.mp4',
-        'Forest': '/focus/forest.mp4',
-        'Coffee': '/focus/cafe.mp4'
+        'Nature': '/focus/nature.mp4',
+        'Coffee': '/focus/cafe.mp4',
+        'Brown': '/focus/brown.mp4',
+        'Fan': '/focus/fan.mp4',
+        'Waterfall': '/focus/waterfall.mp4',
+        'Campfire': '/focus/campfire.mp4',
+        'Fireplace': '/focus/fireplace.mp4',
+        'Lofi': '/focus/lofi.mp4'
     };
 
     // Sync mobile sound with timer context sound
